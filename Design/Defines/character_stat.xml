@@ -1,0 +1,59 @@
+<module name="">
+    <enum name="AttributeId" comment="角色属性Id">
+        <var name="Social" value="0" alias="交际" comment="交际"/>
+        <var name="Thinking" value="1" alias="思考" comment="思考"/>
+        <var name="Observation" value="2" alias="观察" comment="观察"/>
+        <var name="Inspiration" value="3" alias="灵感" comment="灵感"/>
+        <var name="Empathy" value="4" alias="共情" comment="共情"/>
+        <var name="Reasoning" value="5" alias="推理" comment="推理"/>
+        <var name="Movement" value="6" alias="运动" comment="运动"/>
+        <var name="Adaptation" value="7" alias="适应" comment="适应"/>
+        <var name="Knowledge" value="8" alias="博学" comment="博学"/>
+        <var name="Strength" value="9" alias="强壮" comment="强壮"/>
+        <var name="Count" comment="数量"/>
+    </enum>
+
+    <enum name="VitalId" comment="角色状态Id">
+        <var name="Stamina" value="0" alias="体力" comment="体力"/>
+        <var name="Sanity" value="1" alias="精神" comment="精神"/>
+        <var name="Count" comment="数量"/>
+    </enum>
+
+    <enum name="EmotionId" comment="情绪Id">
+        <var name="Joy" value="0" alias="喜" comment="喜"/>
+        <var name="Anger" value="1" alias="怒" comment="怒"/>
+        <var name="Sadness" value="2" alias="哀" comment="哀"/>
+        <var name="Fear" value="3" alias="惧" comment="惧"/>
+        <var name="Love" value="4" alias="爱" comment="爱"/>
+        <var name="Hate" value="5" alias="恶" comment="恶"/>
+        <var name="Desire" value="6" alias="欲" comment="欲"/>
+        <var name="Count" comment="数量"/>
+    </enum>
+
+    <enum name="CheckValueId" comment="检定基础值Id">
+        <var name="Social" value="0" alias="交际" comment="交际"/>
+        <var name="Thinking" value="1" alias="思考" comment="思考"/>
+        <var name="Observation" value="2" alias="观察" comment="观察"/>
+        <var name="Inspiration" value="3" alias="灵感" comment="灵感"/>
+        <var name="Empathy" value="4" alias="共情" comment="共情"/>
+        <var name="Reasoning" value="5" alias="推理" comment="推理"/>
+        <var name="Movement" value="6" alias="运动" comment="运动"/>
+        <var name="Adaptation" value="7" alias="适应" comment="适应"/>
+        <var name="Knowledge" value="8" alias="博学" comment="博学"/>
+        <var name="Strength" value="9" alias="强壮" comment="强壮"/>
+        <var name="Stamina" value="10" alias="当前体力" comment="当前体力"/>
+        <var name="Sanity" value="11" alias="当前精神" comment="当前精神"/>
+        <var name="Count" comment="数量"/>
+    </enum>
+    
+    <bean name="AttributeModifier" valueType="1" sep="," comment="属性修正">
+        <var name="id" type="AttributeId" comment="属性Id"/>
+        <var name="value" type="int" comment="修正值"/>
+    </bean>
+
+    <bean name="EmotionModifier" valueType="1" sep="," comment="情绪修正">
+        <var name="id" type="EmotionId" comment="情绪Id"/>
+        <var name="value" type="int" comment="修正值"/>
+    </bean>
+    
+</module>

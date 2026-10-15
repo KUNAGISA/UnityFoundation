@@ -1,0 +1,8 @@
+using Gameplay.UI;
+
+namespace Gameplay
+{
+    public partial class #SCRIPTNAME# : UIWidget
+    {
+    }
+}

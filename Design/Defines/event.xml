@@ -1,0 +1,6 @@
+<module name = "">
+    <enum name="SceneEventRepeatMode">
+        <var name="Once" value="0" comment="单次" alias="单次"/>
+        <var name="Repeatable" value="1" comment="重复" alias="重复"/>
+    </enum>
+</module>

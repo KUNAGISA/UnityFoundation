@@ -1,0 +1,17 @@
+{
+    "name": "Gameplay.Input",
+    "rootNamespace": "Gameplay",
+    "references": [
+        "GUID:ef41a2207ff80a14aaa0ed560bcfb6aa",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,93 @@
+---@meta
+
+---带 `time` 的动作参数表。
+---@class SequenceTweenOptions
+---@field time? number 动作耗时，单位为秒。未传时默认为 0，表示立即完成。
+
+---对话参数表。
+---@class SequenceMessageOptions
+---@field actor? string 角色名 key。为空时隐藏角色名。
+---@field auto? boolean 文本播放完成并等待配置时间后是否自动结束。
+---@field cv_id? integer 语音 ID。当前 API 会传入 Action，具体播放行为取决于后续系统实现。
+
+---设置立绘时使用的可选参数。
+---@class SequenceSetCharacterOptions
+---@field x? number 初始 x 坐标。未传时保持当前 x。
+---@field y? number 初始 y 坐标。未传时保持当前 y。
+
+---输出 Lua 日志。所有参数会按顺序转为字符串，并以空格拼接。
+---@param ... any 要输出的内容。
+function print(...) end
+
+---等待剧情继续执行。不传参数时等待当前已入队的 Action 全部执行完成；传入秒数时等待指定时间，且可被外部推进操作提前结束。
+---@param seconds? number 等待秒数。
+function wait(seconds) end
+
+---显示选项并等待玩家选择，返回从 1 开始的选项序号。
+---@param choice_id integer 选项组 ID。目前脚本层会传入并保存，但当前实现未直接使用该值决定显示内容。
+---@param option1 string 第一个选项文本。
+---@param ... string 更多选项文本。
+---@return integer index 玩家选择的选项序号，从 1 开始。
+function options(choice_id, option1, ...) end
+
+---显示一条对话文本。文本和角色名会通过本地化系统查找。
+---@param text_key string 对话文本 key 或文本内容。
+---@param opts? SequenceMessageOptions 对话参数表。
+function message(text_key, opts) end
+
+---设置或替换立绘资源，并可同时设置位置。
+---@param portrait_id integer 立绘 ID。同一个 ID 会复用已有立绘槽位。
+---@param location string 立绘资源路径。
+---@param opts? SequenceSetCharacterOptions 可选参数表。
+function set_chara(portrait_id, location, opts) end
+
+---移动立绘到目标位置。
+---@param portrait_id integer 立绘 ID。
+---@param x number 目标 x 坐标。
+---@param y number 目标 y 坐标。
+---@param opts? SequenceTweenOptions 可选参数表。
+function move_chara(portrait_id, x, y, opts) end
+
+---缩放立绘到目标比例。
+---@param portrait_id integer 立绘 ID。
+---@param scale_x number 目标横向缩放。
+---@param scale_y number 目标纵向缩放。
+---@param opts? SequenceTweenOptions 可选参数表。
+function zoom_chara(portrait_id, scale_x, scale_y, opts) end
+
+---修改立绘透明度。
+---@param portrait_id integer 立绘 ID。
+---@param opacity number 目标透明度，通常为 0 到 1。
+---@param opts? SequenceTweenOptions 可选参数表。
+function change_chara_opacity(portrait_id, opacity, opts) end
+
+---设置立绘显示层级。通常数值越大越靠前，具体表现由 UI 立绘容器决定。
+---@param portrait_id integer 立绘 ID。
+---@param order integer 层级顺序。
+function set_chara_z(portrait_id, order) end
+
+---修改立绘染色。
+---@param portrait_id integer 立绘 ID。
+---@param r integer 红色通道，通常为 0 到 255。
+---@param g integer 绿色通道，通常为 0 到 255。
+---@param b integer 蓝色通道，通常为 0 到 255。
+---@param opts? SequenceTweenOptions 可选参数表。
+function change_chara_tint(portrait_id, r, g, b, opts) end
+
+---旋转立绘到目标角度。
+---@param portrait_id integer 立绘 ID。
+---@param degree number 目标角度，单位为度。
+---@param opts? SequenceTweenOptions 可选参数表。
+function rotate_chara(portrait_id, degree, opts) end
+
+---设置立绘原点偏移。
+---@param portrait_id integer 立绘 ID。
+---@param x number 偏移 x。
+---@param y number 偏移 y。
+function set_chara_offset(portrait_id, x, y) end
+
+---设置立绘翻转。未传 `is_horizontal` 时，当前实现会设置垂直翻转。
+---@param portrait_id integer 立绘 ID。
+---@param flip boolean 是否翻转。
+---@param is_horizontal? boolean 是否水平翻转。true 为水平翻转，false 或未传为垂直翻转。
+function set_chara_flip(portrait_id, flip, is_horizontal) end

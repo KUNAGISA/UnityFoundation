@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 53
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bef8e5543e3d1d4bbc86cd380262153, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _version: 4
+  _bindingTemplate: {fileID: 102900000, guid: 3df0bfcd08c54a4ca6140d6ea58f4fcb, type: 3}
+  _viewScriptTemplate: {fileID: 4900000, guid: 3b63f1bed4bf5cf4684365d47e2be886, type: 3}
+  _widgetScriptTemplate: {fileID: 4900000, guid: be975bccb9e6cd34aab49ef781b9941c, type: 3}
+  _bindingRules:
+  - rid: 6107449687989288960
+  - rid: 6107449687989288961
+  - rid: 6107449687989288962
+  - rid: 6107449687989288963
+  - rid: 6107449687989288964
+  - rid: 6107449687989288965
+  - rid: 6107449687989288966
+  - rid: 6107449687989288967
+  - rid: 6107449687989288968
+  references:
+    version: 2
+    RefIds:
+    - rid: 6107449687989288960
+      type: {class: ComponentBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: unity.button
+        _displayName: Button
+        _includeInAutoResolve: 1
+        _fieldPrefix: btn
+        _componentScript: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+        _event:
+          _memberName: onClick
+          _handlerSuffix: Click
+    - rid: 6107449687989288961
+      type: {class: ComponentBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: unity.toggle
+        _displayName: Toggle
+        _includeInAutoResolve: 1
+        _fieldPrefix: toggle
+        _componentScript: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+        _event:
+          _memberName: onValueChanged
+          _handlerSuffix: ValueChanged
+    - rid: 6107449687989288962
+      type: {class: ComponentBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: unity.image
+        _displayName: Image
+        _includeInAutoResolve: 1
+        _fieldPrefix: img
+        _componentScript: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+        _event:
+          _memberName: 
+          _handlerSuffix: 
+    - rid: 6107449687989288963
+      type: {class: ComponentBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: tmp.text
+        _displayName: Text Mesh Pro
+        _includeInAutoResolve: 1
+        _fieldPrefix: txt
+        _componentScript: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+        _event:
+          _memberName: 
+          _handlerSuffix: 
+    - rid: 6107449687989288964
+      type: {class: ComponentBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: fancy.scroll-rect
+        _displayName: Fancy Scroll Rect
+        _includeInAutoResolve: 1
+        _fieldPrefix: scrollRect
+        _componentScript: {fileID: 11500000, guid: 025f590702fe7ed4fb691387bff40175, type: 3}
+        _event:
+          _memberName: 
+          _handlerSuffix: 
+    - rid: 6107449687989288965
+      type: {class: ComponentBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: fancy.grid-view
+        _displayName: Fancy Grid View
+        _includeInAutoResolve: 1
+        _fieldPrefix: gridView
+        _componentScript: {fileID: 11500000, guid: bc962b00aa5b2fb4a89a48be915a1925, type: 3}
+        _event:
+          _memberName: 
+          _handlerSuffix: 
+    - rid: 6107449687989288966
+      type: {class: UIWidgetBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: framework.ui-widget
+        _displayName: UI Widget
+        _includeInAutoResolve: 1
+        _fieldPrefix: widget
+    - rid: 6107449687989288967
+      type: {class: TransformBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: framework.transform
+        _displayName: Transform
+        _includeInAutoResolve: 0
+        _fieldPrefix: tf
+    - rid: 6107449687989288968
+      type: {class: GameObjectBindingRuleConfig, ns: Gameplay.UI.Editor, asm: Gameplay.UI.Editor}
+      data:
+        _key: framework.game-object
+        _displayName: Game Object
+        _includeInAutoResolve: 0
+        _fieldPrefix: go

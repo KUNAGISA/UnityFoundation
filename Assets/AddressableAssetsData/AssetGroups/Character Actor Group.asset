@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Character Actor Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Character Actor Group
+  m_GUID: bbfb253071849974ab76a0a62fc660f0
+  m_SerializeEntries:
+  - m_GUID: 2caebeb799eac5a4e89d35ee942c9350
+    m_Address: Characters/Test/Actor/PlayerTestActor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5035391281738fa44ab837f44cede030
+    m_Address: Characters/Test/Actor/NpcTestActor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f0ccd6a372b7e64418da2c7e0f0355cb
+    m_Address: Characters/Test/Actor/TestModel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: cbce1c41c36271747ab116f77006d27a, type: 2}
+    - {fileID: 11400000, guid: be0ee8be74bde814e9b5b862bfeb5357, type: 2}

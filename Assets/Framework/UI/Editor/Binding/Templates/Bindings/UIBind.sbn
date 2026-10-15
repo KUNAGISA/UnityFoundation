@@ -1,0 +1,76 @@
+{{- has_namespace = Namespace != "" -}}
+#region Auto Generate UI Bind
+#pragma warning disable IDE0052, IDE0001
+{{~ if has_namespace ~}}
+namespace {{ Namespace }}
+{
+{{~ end ~}}
+partial class {{ TypeName }}
+{
+{{~ if HasEvents || HasAwakeHandler ~}}
+	private void Awake()
+	{
+{{~ if HasEvents ~}}
+		InitializeAllWidgets();
+{{~ end ~}}
+{{~ if HasAwakeHandler ~}}
+		OnAwake();
+{{~ end ~}}
+	}
+{{~ end ~}}
+{{~ if HasAwakeHandler ~}}
+
+	partial void OnAwake();
+{{~ end ~}}
+{{~ for binding in Bindings ~}}
+{{~ if binding.HasEvent ~}}
+	partial void On{{ binding.BindingName }}{{ binding.Event.HandlerSuffix }}({{ if binding.IsCollection }}int index{{ if binding.Event.HasParameters }}, {{ end }}{{ end }}{{ for parameter in binding.Event.Parameters }}{{ if !for.first }}, {{ end }}{{ parameter.TypeName }} {{ parameter.Name }}{{ end }});
+{{~ end ~}}
+{{~ end ~}}
+{{~ if HasBindings ~}}
+
+{{~ for binding in Bindings ~}}
+	[UnityEngine.SerializeField, Sirenix.OdinInspector.FoldoutGroup("Binding Weight")]
+	private {{ binding.FieldTypeName }}{{ if binding.IsCollection }}[]{{ end }} {{ binding.FieldName }} = null;
+{{~ end ~}}
+
+	[UnityEngine.ContextMenu("Rebind Widgets"), System.Obsolete("Don't Call In Code.", true)]
+	private void RebindAllWidgets()
+	{
+#if UNITY_EDITOR
+		UnityEditor.Undo.RecordObject(this, "Bind All Widgets");
+#endif
+
+{{~ for binding in Bindings ~}}
+{{~ if binding.IsCollection ~}}
+		{{ binding.FieldName }} = new {{ binding.FieldTypeName }}[{{ binding.ElementCount }}];
+{{~ end ~}}
+{{~ for element in binding.Elements ~}}
+		{{ binding.FieldName }}{{ if binding.IsCollection }}[{{ element.Index }}]{{ end }} = transform.Find("{{ if binding.IsCollection }}{{ element.CollectionRootPath }}").GetChild({{ element.Index }}){{ if element.HasNodePath }}.Find("{{ element.NodePath }}"){{ end }}{{ else }}{{ element.NodePath }}"){{ end }}{{ if binding.IsComponent }}.GetComponent<{{ binding.FieldTypeName }}>(){{ else if binding.IsTransform }} as {{ binding.FieldTypeName }}{{ else if binding.IsGameObject }}.gameObject{{ end }};
+{{~ end ~}}
+{{~ end ~}}
+
+#if UNITY_EDITOR
+		UnityEditor.EditorUtility.SetDirty(this);
+#endif
+	}
+{{~ end ~}}
+{{~ if HasEvents ~}}
+
+	private void InitializeAllWidgets()
+	{
+{{~ for binding in Bindings ~}}
+{{~ if binding.HasEvent ~}}
+{{~ for element in binding.Elements ~}}
+		{{ binding.FieldName }}{{ if binding.IsCollection }}[{{ element.Index }}]{{ end }}.{{ binding.Event.EventMemberName }}.AddListener({{ if binding.Event.HasParameters }}({{ for parameter in binding.Event.Parameters }}{{ if !for.first }}, {{ end }}{{ parameter.Name }}{{ end }}){{ else }}(){{ end }} => On{{ binding.BindingName }}{{ binding.Event.HandlerSuffix }}({{ if binding.IsCollection }}{{ element.Index }}{{ if binding.Event.HasParameters }}, {{ end }}{{ end }}{{ for parameter in binding.Event.Parameters }}{{ if !for.first }}, {{ end }}{{ parameter.Name }}{{ end }}));
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+	}
+{{~ end ~}}
+}
+{{~ if has_namespace ~}}
+}
+{{~ end ~}}
+#pragma warning restore IDE0052, IDE0001
+#endregion Auto Generate UI Bind

@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Scene Resource Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Scene Resource Group
+  m_GUID: d22cf48a507540e697981657f9f3f84d
+  m_SerializeEntries:
+  - m_GUID: 22da70984baf2d342ad4040e41c9cc68
+    m_Address: SceneResources/TestLevel/layer-5
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - scene-resource-TestLevel
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4af1641e67be5fa4c84ca4f36c474779
+    m_Address: SceneResources/TestLevel/layer-1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - scene-resource-TestLevel
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 560757fde2e8ffd40a824629fac76c34
+    m_Address: SceneResources/TestLevel/layer-2 1
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - scene-resource-TestLevel
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 899958e1efd124a43a555c97016f6640
+    m_Address: SceneResources/TestLevel/layer-2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - scene-resource-TestLevel
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dacf0d96406647e4cb5e3239fa6e2fb3
+    m_Address: SceneResources/TestLevel/layer-4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - scene-resource-TestLevel
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f9faff74437b0a6458010b86080d2a1e
+    m_Address: SceneResources/TestLevel/layer-3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - scene-resource-TestLevel
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: a5f343c262634d018aa4bf5949acdd10, type: 2}
+    - {fileID: 11400000, guid: 606df4f9089e483181684354d1df9c84, type: 2}

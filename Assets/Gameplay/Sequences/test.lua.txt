@@ -1,0 +1,54 @@
+set_chara(1, "Characters/Test/Portrait/Test", {x = -200})
+set_chara(2, "Characters/Test/Portrait/Test", {x = 400})
+
+message "test"
+wait()
+
+message "deep_test"
+wait()
+
+message("test", {actor = "测试名字"})
+move_chara(1, 100, 0, {time = 0.5})
+wait()
+
+set_chara_z(1, 2)
+set_chara_z(2, 1)
+
+local select = options(1, "选项1", "选项2", "选项3")
+if select == 1 then
+    message("选择了1")
+elseif select == 2 then
+    message("选择了2")
+elseif select == 3 then
+    message("选择了3")
+end
+wait()
+
+rotate_chara(1, 180, {time = 0.5})
+change_chara_tint(2, 0, 255, 0, {time = 0.5})
+wait()
+
+rotate_chara(1, 0, {time = 0.5})
+change_chara_tint(2, 255, 0, 0, {time = 0.5})
+zoom_chara(2, 0.5, 0.5, {time = 0.5})
+wait()
+
+set_chara_offset(1, 200, 0)
+rotate_chara(1, -180, {time = 0.5})
+change_chara_tint(2, 0, 0, 255, {time = 0.5})
+zoom_chara(2, 1, 1, {time = 0.5})
+wait()
+
+rotate_chara(1, 0, {time = 0.5})
+change_chara_tint(2, 255, 255, 255, {time = 0.5})
+wait()
+
+set_chara_flip(2, true)
+message("测试非多语言文本12312321321", {actor = "测试名字2", auto = true})
+change_chara_opacity(1, 0, {time = 0.5})
+wait()
+
+set_chara_flip(2, true, true)
+message "测试很多行行行行行行行行行行<color=red>行行行行<size=60>行行行行行</size>行行行</color>行行行行行行行行行行行行行行行行行行行行行行行行行行行行行行非多语言文本12312321321"
+change_chara_opacity(1, 1, {time = 0.5})
+wait()

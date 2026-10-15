@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Font Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Font Group
+  m_GUID: cfb440901f9a82641809fbbc4ca811a2
+  m_SerializeEntries:
+  - m_GUID: 257f43d8e02fc274fa84094fec67cd65
+    m_Address: "Fonts/\u601D\u6E90\u5B8B\u4F53 \u7C97 SDF"
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - preload-global
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 491fa1c067f3a98408f772c267470b61
+    m_Address: "Fonts/\u601D\u6E90\u9ED1\u4F53 SDF"
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - preload-global
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f4dcfb580e2a5754790a0c111e45882d
+    m_Address: "Fonts/\u601D\u6E90\u5B8B\u4F53 SDF"
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - preload-global
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 7a2660c043463254196d40ccf713227e, type: 2}
+    - {fileID: 11400000, guid: b1f9b1cedee2472459f8fae4ab179da3, type: 2}

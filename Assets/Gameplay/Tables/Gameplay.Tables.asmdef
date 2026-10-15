@@ -1,0 +1,23 @@
+{
+    "name": "Gameplay.Tables",
+    "rootNamespace": "Gameplay.Tables",
+    "references": [
+        "GUID:9b1f50aa89f64b128f2490526fc8b3b6",
+        "GUID:ef41a2207ff80a14aaa0ed560bcfb6aa",
+        "GUID:3c968784d79135744bcabeda2138bb2e",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:2a81c6962524d424a8ef5072bd3b0fa0",
+        "GUID:1a195e31504d8da4cbf64724a0ad0afd",
+        "GUID:593a5b492d29ac6448b1ebf7f035ef33",
+        "GUID:84651a3751eca9349aac36a66bba901b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

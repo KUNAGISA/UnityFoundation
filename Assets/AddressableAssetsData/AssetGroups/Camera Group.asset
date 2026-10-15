@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Camera Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Camera Group
+  m_GUID: c8ddae730642cec4482d96600e13d380
+  m_SerializeEntries:
+  - m_GUID: 647df952fa2a02d478ac4514ce1c5174
+    m_Address: Cameras/ArtCameraSettings
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e86f647d089bd344e9e4bd254de8c03a
+    m_Address: Cameras/PlayerCameraRig
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ff87400a658ce884092621aa45aa76cc
+    m_Address: Cameras/PlayerCameraSettings
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 8ecc488ed757d3244989b43643fe0fa9, type: 2}
+    - {fileID: 11400000, guid: d92f2e98cebf5a3478e32fe32d382dcb, type: 2}

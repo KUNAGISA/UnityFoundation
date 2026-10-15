@@ -1,0 +1,672 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c113ff064b10c427fb3a071e46ace37d, type: 3}
+  m_Name: LayoutRuleData
+  m_EditorClassIdentifier: 
+  _layoutRule:
+    _settings:
+      _excludeUnversioned:
+        _value: 0
+      _versionExpression:
+        _value: 
+    _addressRules:
+      _internalList:
+      - _id: 69e418c3-f16f-43bd-9de1-f9c7304338c2
+        _addressableGroup: {fileID: 11400000, guid: 50274b7bc82844abbd64ad407bc1510c, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: 7424f0d0-693c-498b-bdc9-aa891522b143
+            _name:
+              _value: Scene Content
+            _filters:
+              _internalList:
+              - rid: 9100000000000000002
+        _addressProviderInternal:
+          rid: 9100000000000000001
+      - _id: df6ec820-f868-4fce-a776-85a7f47a6dfe
+        _addressableGroup: {fileID: 11400000, guid: 512a6860e04194049afd981e7404c30e, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: 8bcb6e61-9ac8-4c00-a63e-c2b70cf3e82a
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 4218723359542214664
+              - rid: 4218723359542214665
+        _addressProviderInternal:
+          rid: 4218723359542214663
+      - _id: a4c0931d-87d1-4689-bdc0-e7bb24af092e
+        _addressableGroup: {fileID: 11400000, guid: 27bdc233af7cd0d4eb056984af5bc4cd, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: be8a9497-059c-41d3-b0ee-a8bc444139cf
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 4218723359542214661
+              - rid: 4218723359542214662
+        _addressProviderInternal:
+          rid: 4218723359542214660
+      - _id: 482de4c3-fa41-481a-bb5c-0b1b40398520
+        _addressableGroup: {fileID: 11400000, guid: 8b71b0df51970fe46b3f387802cf3f91, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: 3cd17b46-b1f9-40e8-a44f-2e02fa793428
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 4218723359542214658
+              - rid: 4218723359542214659
+        _addressProviderInternal:
+          rid: 4218723359542214656
+      - _id: 22b0ab27-fc80-4aee-be64-bbd528bc620e
+        _addressableGroup: {fileID: 11400000, guid: ccc5ec788e659df4c8ad50a0d50e5f94, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: 356efe10-3352-4657-ad06-2125c4c78730
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 4218723357122887687
+              - rid: 4218723363634282496
+        _addressProviderInternal:
+          rid: 4218723357122887683
+      - _id: 0883c1cf-14bd-4838-bd4e-f0ed882ce2dd
+        _addressableGroup: {fileID: 11400000, guid: d3d3839f68860674ea4366a637370e1d, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: b7f4c845-c013-4a4d-987b-423ec3289626
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 4218723357122887686
+              - rid: 4218723363634282497
+        _addressProviderInternal:
+          rid: 4218723357122887684
+      - _id: 9adc7bc5-20a4-4fee-9627-8faf2e708470
+        _addressableGroup: {fileID: 11400000, guid: 58253129044f75c41ac36d3a8320e8bc, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: a4627dac-ecc6-48a8-ace4-23a52c41cbc9
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 4218722862064467971
+              - rid: 4218722862064467973
+        _addressProviderInternal:
+          rid: 4218723357122887681
+      - _id: 0cc70176-91ef-4c22-8e85-10f31d944a9e
+        _addressableGroup: {fileID: 11400000, guid: a9d85b1424fff30448e47864f00a8b02, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: 7c0254d3-af21-4aee-a6c1-9ca6ee784683
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 5099079137288257540
+              - rid: 4218723363634282498
+          - _id: 45cc7e31-11bc-4cad-8631-a2c833b53466
+            _name:
+              _value: Camera Settings
+            _filters:
+              _internalList:
+              - rid: 9000000000000000001
+              - rid: 9000000000000000002
+        _addressProviderInternal:
+          rid: 5099079137288257538
+      - _id: 8e0b2625-9d1c-44b5-a3db-8ab89325b39b
+        _addressableGroup: {fileID: 11400000, guid: 25e0af2ae24c8f04e9a1359516d9eff4, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: b5e06544-23e3-4448-9b65-458f72e4b896
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 5099079137288257537
+              - rid: 4218723363634282499
+          - _id: 110cda27-22cf-4e9a-ae6a-67e5165465bc
+            _name:
+              _value: Camera System Settings
+            _filters:
+              _internalList:
+              - rid: 9000000000000000003
+              - rid: 9000000000000000004
+        _addressProviderInternal:
+          rid: 5099079137288257536
+      - _id: 21e0cf93-c70b-4188-8e79-9f0579a8cc12
+        _addressableGroup: {fileID: 11400000, guid: 0958cbd1b933fb147999af2200b23d2b, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: fb795fb7-45ee-4f49-acdf-00e48d8cbcdc
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 5099078978472771610
+              - rid: 4218723359542214657
+        _addressProviderInternal:
+          rid: 5099078978472771609
+      - _id: 30eb5691-33c9-4971-b1b0-3f49d2547dad
+        _addressableGroup: {fileID: 11400000, guid: 926c9b03f5cc32447a0b2a0e20c828a7, type: 2}
+        _control:
+          _value: 1
+        _assetGroups:
+          _internalList:
+          - _id: f8ee7afb-817a-463e-8cd5-595a159ef64d
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 5099078978472771601
+              - rid: 7089961138480218121
+        _addressProviderInternal:
+          rid: 5099078978472771589
+      - _id: 38925226-9268-4741-9dac-a1e145666b58
+        _addressableGroup: {fileID: 11400000, guid: c7284587a1e004440be99bbcfc94b7ea, type: 2}
+        _control:
+          _value: 0
+        _assetGroups:
+          _internalList:
+          - _id: 38b8e982-2281-4393-a542-fd80f82e8cdc
+            _name:
+              _value: Default Asset Group
+            _filters:
+              _internalList:
+              - rid: 4218722862064467969
+        _addressProviderInternal:
+          rid: 5099078978472771584
+    _labelRules:
+      _internalList:
+      - _id: 2f6177bd-f33b-4536-9383-057cc1b7c2a1
+        _name:
+          _value: Global Preload
+        _assetGroups:
+          _internalList:
+          - _id: f7a95e55-29f4-47ab-b45d-145f7575bf29
+            _name:
+              _value: TMP Fonts
+            _filters:
+              _internalList:
+              - rid: 4218723359542214658
+              - rid: 4218723359542214659
+        _labelProviderInternal:
+          rid: 8000000000000000001
+      - _id: 49576caf-e65c-42ea-8c8d-4dbc08cf0c9c
+        _name:
+          _value: Scene Resource Packing
+        _assetGroups:
+          _internalList:
+          - _id: 4cd416f7-94e3-4c34-bfe2-545d206d5b99
+            _name:
+              _value: Scene Content
+            _filters:
+              _internalList:
+              - rid: 9100000000000000002
+        _labelProviderInternal:
+          rid: 9100000000000000003
+      - _id: 3e1e50db-a851-41c1-805a-d0e638c43db7
+        _name:
+          _value: Localization Packing
+        _assetGroups:
+          _internalList:
+          - _id: 10b05c35-d48b-43f3-9ead-202b14db551f
+            _name:
+              _value: Localization Tables
+            _filters:
+              _internalList:
+              - rid: 9100000000000000004
+        _labelProviderInternal:
+          rid: 9100000000000000005
+    _versionRules:
+      _internalList: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 4218722862064467969
+      type: {class: DependentObjectBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 725742b5-4d80-440e-a805-4061512d289d
+        _onlyDirectDependencies: 0
+        _object:
+          _isListMode: 0
+          _values:
+          - {fileID: 102900000, guid: 7024feae24bb4018adf2a4dc8307e3b9, type: 3}
+    - rid: 4218722862064467971
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 0f7b931c-e90e-43bf-9b0c-c4656d0c33ea
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Sequences
+    - rid: 4218722862064467973
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: fc78ecb8-adb6-47cb-b798-4c83bd36c23a
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: TextAsset
+            _fullName: UnityEngine.TextAsset
+            _assemblyQualifiedName: UnityEngine.TextAsset, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723357122887681
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Sequences/([0-9a-zA-Z_]*)\.(.*)$
+        _replacement: Sequences/$1
+    - rid: 4218723357122887683
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Tables/Data/Localization/(.*)\.(.*)$
+        _replacement: Localizations/$1
+    - rid: 4218723357122887684
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Tables/Data/Config/(.*)\.(.*)$
+        _replacement: Configs/$1
+    - rid: 4218723357122887686
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 2c47de4f-5349-4e9c-8381-1ee3a022b1a9
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Tables/Data/Config
+    - rid: 4218723357122887687
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 35e1661a-8cfe-4f22-9a6b-ae740818876f
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Tables/Data/Localization
+    - rid: 4218723359542214656
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 1
+        _replaceWithRegex: 1
+        _pattern: ^
+        _replacement: Fonts/
+    - rid: 4218723359542214657
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 247dc92d-e58f-452c-bda2-4c1c19dbb826
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: GameObject
+            _fullName: UnityEngine.GameObject
+            _assemblyQualifiedName: UnityEngine.GameObject, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723359542214658
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: adc50c51-a497-4c9b-b559-c9f91867bc85
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Arts/Fonts/TMP
+    - rid: 4218723359542214659
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 4cd9c2d4-6d09-415e-9f95-a959d9d71a38
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: TMP_FontAsset
+            _fullName: TMPro.TMP_FontAsset
+            _assemblyQualifiedName: TMPro.TMP_FontAsset, Unity.TextMeshPro, Version=0.0.0.0,
+              Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723359542214660
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Prefabs/Characters/(.*)/Portrait/(.*)\.(.*)$
+        _replacement: Characters/$1/Portrait/$2
+    - rid: 4218723359542214661
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 6b9f95c6-c0f0-41f5-9792-1ab313ea9c29
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Prefabs/Characters/.*/Portrait
+    - rid: 4218723359542214662
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 76008cbd-cc51-4620-91de-6a17623c6f0c
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: GameObject
+            _fullName: UnityEngine.GameObject
+            _assemblyQualifiedName: UnityEngine.GameObject, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723359542214663
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Prefabs/Characters/(.*)/Actor/(.*)\.(.*)$
+        _replacement: Characters/$1/Actor/$2
+    - rid: 4218723359542214664
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: c3cb7009-110a-419a-9041-2eeff4a10ca8
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Prefabs/Characters/.*/Actor
+    - rid: 4218723359542214665
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 90498e6a-898c-4c34-bdb8-a7ce0586ed57
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: GameObject
+            _fullName: UnityEngine.GameObject
+            _assemblyQualifiedName: UnityEngine.GameObject, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723363634282496
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 78704a3c-acfd-43cd-9305-dd006138eb70
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: TextAsset
+            _fullName: UnityEngine.TextAsset
+            _assemblyQualifiedName: UnityEngine.TextAsset, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723363634282497
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 5d29aace-c9bc-42a0-bf78-453c93c88069
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: TextAsset
+            _fullName: UnityEngine.TextAsset
+            _assemblyQualifiedName: UnityEngine.TextAsset, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723363634282498
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 4ef7a348-b45a-4423-a61a-928245916518
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: GameObject
+            _fullName: UnityEngine.GameObject
+            _assemblyQualifiedName: UnityEngine.GameObject, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 4218723363634282499
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 30365c73-4f98-476a-b8c9-9dc4da4046a8
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: GameObject
+            _fullName: UnityEngine.GameObject
+            _assemblyQualifiedName: UnityEngine.GameObject, UnityEngine.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 5099078978472771584
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 1
+        _replaceWithRegex: 0
+        _pattern: 
+        _replacement: 
+    - rid: 5099078978472771589
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 1
+        _replaceWithRegex: 1
+        _pattern: ^
+        _replacement: Scenes/
+    - rid: 5099078978472771601
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: b4bf0151-306c-4cc8-b34e-d64053b6a69f
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Scenes
+    - rid: 5099078978472771609
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 1
+        _replaceWithRegex: 1
+        _pattern: ^
+        _replacement: Views/
+    - rid: 5099078978472771610
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: a6a3dfee-48fe-4a98-88f1-104853317afe
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Prefabs/Views
+    - rid: 5099079137288257536
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 1
+        _replaceWithRegex: 1
+        _pattern: ^
+        _replacement: Global/
+    - rid: 5099079137288257537
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 15ace75b-24d8-427b-863b-178361ca6bfb
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Prefabs/Global
+    - rid: 5099079137288257538
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 1
+        _replaceWithRegex: 1
+        _pattern: ^
+        _replacement: Cameras/
+    - rid: 5099079137288257540
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 4f6c09c2-59c9-45ab-a80a-806675728b60
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Prefabs/Cameras
+    - rid: 7089961138480218121
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: c6e60768-baba-46d7-a685-66b347081601
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: SceneAsset
+            _fullName: UnityEditor.SceneAsset
+            _assemblyQualifiedName: UnityEditor.SceneAsset, UnityEditor.CoreModule,
+              Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 8000000000000000001
+      type: {class: ConstantLabelProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.LabelRules, asm: SmartAddresser.Editor}
+      data:
+        _label: preload-global
+    - rid: 9000000000000000001
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 83253318-f09c-4494-87e1-19bcf5519883
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Settings/Camera/(PlayerCameraSettings|ArtCameraSettings)
+    - rid: 9000000000000000002
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 62456c3e-59b2-4388-96a7-7caec36a1a20
+        _type:
+          _isListMode: 1
+          _values:
+          - _name: ArtCameraSettings
+            _fullName: Gameplay.ArtCameraSettings
+            _assemblyQualifiedName: Gameplay.ArtCameraSettings, Gameplay, Version=0.0.0.0,
+              Culture=neutral, PublicKeyToken=null
+          - _name: PlayerCameraSettings
+            _fullName: Gameplay.PlayerCameraSettings
+            _assemblyQualifiedName: Gameplay.PlayerCameraSettings, Gameplay, Version=0.0.0.0,
+              Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 9000000000000000003
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: e244dcee-f373-408a-bbb9-4c956ed78d91
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - Assets/Gameplay/Settings/Camera/CameraSystemSettings
+    - rid: 9000000000000000004
+      type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 2a19cb76-4cb8-4970-b456-65d7f6e92d31
+        _type:
+          _isListMode: 0
+          _values:
+          - _name: CameraSystemSettings
+            _fullName: Gameplay.CameraSystemSettings
+            _assemblyQualifiedName: Gameplay.CameraSystemSettings, Gameplay, Version=0.0.0.0,
+              Culture=neutral, PublicKeyToken=null
+        _matchWithDerivedTypes: 1
+        _invertMatch: 0
+    - rid: 9100000000000000001
+      type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Scenes/([^/]+)/Content/(.*)\.(.*)$
+        _replacement: SceneResources/$1/$2
+    - rid: 9100000000000000002
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: bc872183-4c41-4ceb-9174-768760d58560
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - ^Assets/Gameplay/Scenes/[^/]+/Content/
+    - rid: 9100000000000000003
+      type: {class: AssetPathBasedLabelProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.LabelRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Scenes/([^/]+)/Content/.*$
+        _replacement: scene-resource-$1
+    - rid: 9100000000000000004
+      type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
+      data:
+        _id: 019c7e70-a0a8-44f8-98e2-5e88f0f58e51
+        _matchWithFolders: 0
+        _condition: 1
+        _assetPathRegex:
+          _isListMode: 0
+          _values:
+          - ^Assets/Gameplay/Tables/Data/Localization/[^/]+/
+    - rid: 9100000000000000005
+      type: {class: AssetPathBasedLabelProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.LabelRules, asm: SmartAddresser.Editor}
+      data:
+        _source: 2
+        _replaceWithRegex: 1
+        _pattern: ^Assets/Gameplay/Tables/Data/Localization/([^/]+)/.*$
+        _replacement: localization-$1

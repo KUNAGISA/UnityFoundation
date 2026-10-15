@@ -1,0 +1,35 @@
+{
+    "name": "Gameplay.UI.Editor",
+    "rootNamespace": "Gameplay.UI.Editor",
+    "references": [
+        "GUID:8a18263ac81f029488d6a6b00dd6fee4",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:1a195e31504d8da4cbf64724a0ad0afd",
+        "GUID:ef41a2207ff80a14aaa0ed560bcfb6aa",
+        "GUID:3c968784d79135744bcabeda2138bb2e",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:593a5b492d29ac6448b1ebf7f035ef33",
+        "GUID:0097f75b7b0d1f545aae1bbc02984eb5",
+        "GUID:59f6770f7492c42ff827a64ac010ac49"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Sirenix.OdinInspector.Attributes.dll",
+        "Sirenix.OdinInspector.Editor.dll",
+        "Sirenix.Utilities.dll",
+        "Sirenix.Utilities.Editor.dll",
+        "Sirenix.Reflection.Editor.dll",
+        "Sirenix.Serialization.Config.dll",
+        "Sirenix.Serialization.dll",
+        "Scriban.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

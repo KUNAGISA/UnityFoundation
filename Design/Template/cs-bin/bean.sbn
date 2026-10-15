@@ -1,0 +1,98 @@
+﻿{{~
+    parent_def_type = __bean.parent_def_type
+    export_fields = __bean.export_fields
+    hierarchy_export_fields = __bean.hierarchy_export_fields
+    func classvalueisit(__bean)
+        if (__bean.type_mappers != null) && (__bean.type_mappers.size) > 0
+            ret "internal"
+        end
+        ret "public"
+    end
+~}}
+using Aoiro;
+using Sirenix.OdinInspector;
+using Luban;
+
+{{namespace_with_grace_begin __namespace_with_top_module}}
+{{~if __bean.comment != '' ~}}
+/// <summary>
+/// {{escape_comment __bean.comment}}
+/// </summary>
+{{~end~}}
+{{~
+func get_indexvaluear_name
+    ret (format_property_name __code_style $0.name) + '_Index'
+end
+~}}
+[System.Serializable]
+{{~if __bean.is_value_type~}}
+{{classvalueisit __bean}} partial struct {{__name}}
+{{~else~}}
+{{~if __bean.comment != '' ~}}
+[LabelText("{{__bean.comment}}")]
+{{~end~}}
+{{classvalueisit __bean}} {{class_modifier __bean}} partial class {{__name}} : {{if parent_def_type}}{{__bean.parent}}{{else}}Luban.BeanBase{{end}}
+{{~end~}}
+{
+    internal {{__name}}(ByteBuf buffer) {{if parent_def_type}} : base(buffer) {{end}}
+    {
+        {{~ for field in export_fields
+            fieldName = format_property_name __code_style field.name
+         ~}}
+        {{deserialize 'buffer' fieldName field.ctype}}
+            {{~if has_index field~}}
+        foreach(var value in {{fieldName}})
+        { 
+            {{get_indexvaluear_name field}}.Add(value.{{format_property_name __code_style (get_index_field field).name}}, value);
+        }
+            {{~end~}}
+        {{~end~}}
+    }
+
+    internal static {{__name}} Deserialize{{__name}}(ByteBuf buffer)
+    {
+    {{~if __bean.is_abstract_type~}}
+        switch (buffer.ReadInt())
+        {
+        {{~for child in __bean.hierarchy_not_abstract_children~}}
+            case {{child.full_name}}.__ID__: return new {{child.full_name}}(buffer);
+        {{~end~}}
+            default: throw new SerializationException();
+        }
+    {{~else~}}
+        return new {{__bean.full_name}}(buffer);
+    {{~end~}}
+    }
+
+    {{~ for field in export_fields ~}}
+{{~if field.comment != '' ~}}
+    /// <summary>
+    /// {{escape_comment field.comment}}
+    /// </summary>
+    [LabelText("{{escape_comment field.comment}}")]
+{{~end~}}
+    [ShowInInspector]
+    public readonly {{declaring_type_name field.ctype}} {{format_property_name __code_style field.name}};
+   {{~if has_index field
+        indexMapType = get_index_map_type field
+   ~}}
+    public readonly {{declaring_type_name indexMapType}} {{get_indexvaluear_name field}} = new {{declaring_type_name indexMapType}}();
+   {{~end~}}
+   {{~end~}}
+   
+{{~if !__bean.is_abstract_type && !__bean.is_value_type~}}
+    public const int __ID__ = {{__bean.id}};
+    public override int GetTypeId() => __ID__;
+{{~end~}}
+
+    public override string ToString()
+    {
+        return "{{full_name}}{ "
+    {{~for field in hierarchy_export_fields ~}}
+        + "{{format_property_name __code_style field.name}}:" + {{to_pretty_string (format_property_name __code_style field.name) field.ctype}} + ","
+    {{~end~}}
+        + "}";
+    }
+}
+
+{{namespace_with_grace_end __namespace_with_top_module}}

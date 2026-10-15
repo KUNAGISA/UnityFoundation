@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b55b7b55468cc4585e7ab90b9febe4, type: 3}
+  m_Name: CameraSystemSettings
+  m_EditorClassIdentifier: 
+  _mainCameraLocation: Global/MainCamera
+  _outputChannel: 1
+  _defaultBlend:
+    _style: 1
+    _duration: 0.5
+  _providerRanges:
+  - _providerId: 1
+    _range:
+      _minimum: 100
+      _maximum: 199
+  - _providerId: 2
+    _range:
+      _minimum: 500
+      _maximum: 599
+  - _providerId: 3
+    _range:
+      _minimum: 600
+      _maximum: 699
+  _providerBlends:
+  - _from: 1
+    _to: 2
+    _blend:
+      _style: 1
+      _duration: 0.4
+  - _from: 2
+    _to: 1
+    _blend:
+      _style: 1
+      _duration: 0.4

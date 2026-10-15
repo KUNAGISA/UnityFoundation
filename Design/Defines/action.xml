@@ -1,0 +1,7 @@
+<module name = "">
+    <bean name="ActionDef" sep="," comment="行为">
+    </bean>
+    <bean name="PlaySequenceActionDef" sep="," parent="ActionDef" comment="播放演出脚本" alias="播放演出脚本">
+        <var name="sequenceId" type="int#ref=SequenceTable"/>
+    </bean>
+</module>

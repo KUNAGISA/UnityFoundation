@@ -1,0 +1,45 @@
+<module name="">
+    <bean name="gameplaytag" valueType="1" sep=",">
+        <var name="id" type="int"/>
+        <mapper target="all" codeTarget="cs-bin">
+            <option name="type" value="Gameplay.Tags.GameplayTag"/>
+            <option name="constructor" value="BuildIn.ToGameplayTag"/>
+        </mapper>
+    </bean>
+    <bean name="vector2" valueType="1" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+        <mapper target="all" codeTarget="cs-bin">
+            <option name="type" value="UnityEngine.Vector2"/>
+            <option name="constructor" value="BuildIn.ToVector2"/>
+        </mapper>
+    </bean>
+    <bean name="vector3" valueType="1" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+        <var name="z" type="float"/>
+        <mapper target="all" codeTarget="cs-bin">
+            <option name="type" value="UnityEngine.Vector3"/>
+            <option name="constructor" value="BuildIn.ToVector3"/>
+        </mapper>
+    </bean>
+    <bean name="vector4" valueType="1" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+        <var name="z" type="float"/>
+        <var name="w" type="float"/>
+        <mapper target="all" codeTarget = "cs-bin">
+            <option name="type" value="UnityEngine.Vector4"/>
+            <option name="constructor" value="BuildIn.ToVector4"/>
+        </mapper>
+    </bean>
+    <bean name="rotation" valueType="1" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+        <var name="z" type="float"/>
+        <mapper target = "all" codeTarget="cs-bin">
+            <option name="type" value="UnityEngine.Quaternion"/>
+            <option name="constructor" value="BuildIn.ToQuaternion"/>
+        </mapper>
+    </bean>
+</module>

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Character Portrait Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Character Portrait Group
+  m_GUID: ef74c25ba0d70ce42997eedfbe248dad
+  m_SerializeEntries:
+  - m_GUID: 14bf0843874238e45a9a825f7173c368
+    m_Address: Characters/Test/Portrait/Test
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5844f9f510fa8ef4c84c0f6a00cf4d2a, type: 2}
+    - {fileID: 11400000, guid: a98260b0a034ee54f81bb4b354467a78, type: 2}

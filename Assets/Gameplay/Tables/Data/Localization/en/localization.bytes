@@ -1,0 +1,2 @@
+testtest	deep_test'测试嵌套-{test}，道具{item:1001}开始游戏
+Start Game读取存档	Load Game	Game Name	Game Name关闭Close存档SaveReturnReturn

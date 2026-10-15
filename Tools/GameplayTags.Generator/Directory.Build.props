@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)../../.ai-workspace/gameplaytag-generator/obj/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)../../.ai-workspace/gameplaytag-generator/bin/</BaseOutputPath>
+  </PropertyGroup>
+</Project>

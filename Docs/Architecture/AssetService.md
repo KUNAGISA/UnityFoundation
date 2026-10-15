@@ -1,0 +1,40 @@
+# IAssetService
+
+`IAssetService` 是运行时资源与场景加载的统一能力边界，负责隔离 Addressables、表达异步 operation 所有权，并让调用方按自身生命周期释放资源。
+
+## 职责与边界
+
+业务与框架调用方通过 `IAssetService` 加载资源和场景，不直接依赖 Addressables。服务负责定位资源并返回项目封装的 operation；Prefab 实例化、实例生命周期和业务缓存策略由调用方负责。
+
+运行时的 `AddressableAssetService.OnInitialize` 不加载资源。正式初始化由 Launch 调用 `InitializeAsync` 完成并保存默认 `IResourceLocator`；初始化前调用加载接口会抛出明确异常。`EditorArchitecture` 使用显式的同步初始化选项，在模块初始化时取得 locator，以供编辑模式下同步读取配表。启动依赖见 [初始化流程](Initialization.md)。
+
+## 主要类型与入口
+
+- `IAssetService`：`Assets/Framework/Asset/Runtime/Core/IAssetService.cs`
+- `AddressableAssetService`：`Assets/Framework/Asset/Runtime/Addressable/AddressableAssetService.cs`
+- `IAssetAsyncOperation<T>`、`ISceneAsyncOperation`：`Assets/Framework/Asset/Runtime/Core/AsyncOperation`
+
+主要入口包括 `LoadAssetAsync<T>`、`LoadAssetsAsync<T>`、`LoadSceneAsync`、`UnloadUnusedAssets` 和 `CreateLoader`。
+
+## 生命周期与核心语义
+
+- 单资源加载按 location 定位，批量加载按 Addressables Label 定位。
+- 找不到资源时通过 logger 记录错误。
+- 加载返回封装 operation，创建者负责在生命周期结束时释放。
+- `AssetLoader` 是可重复使用的资源作用域，缓存多个单资源 operation；`Clear()` 会取消未完成等待、释放缓存并允许后续复用。
+- 场景 operation 由流程或其他明确所有者持有，卸载时使用对应 operation。
+
+## 使用与扩展规则
+
+- 玩法和框架模块统一通过 `IAssetService` 加载资源。
+- 需要按调用方生命周期缓存资源时使用 `AssetLoader`，并在所有者退出前调用 `Clear()`。
+- Label 可以包含不同 Unity 资源类型，类型专属初始化由调用方处理。
+- 流程场景加载优先使用 [Procedure](Procedure.md) 的场景封装。
+- 新增通用加载能力放入 `Assets/Framework/Asset`，保持与具体游戏业务解耦。
+- operation 生命周期必须与调用方生命周期匹配，不绕过服务直接使用 Addressables。
+
+## 验证
+
+- 验证初始化前访问会明确失败，初始化成功后 location 与 Label 加载正常。
+- 覆盖调用方取消、Loader Clear、场景卸载和架构 Shutdown，确认 operation 被释放且旧回调不再生效。
+- 资源加载改动后执行 Unity Editor 编译、Addressables Build，并检查运行时引用计数。

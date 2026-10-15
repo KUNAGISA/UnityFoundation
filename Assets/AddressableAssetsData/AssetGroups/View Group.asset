@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: View Group
+  m_EditorClassIdentifier: 
+  m_GroupName: View Group
+  m_GUID: 881ec5908ad17ff4b948f67610aa6d46
+  m_SerializeEntries:
+  - m_GUID: 0c12342a99e18b6479038085c14daa01
+    m_Address: Views/LaunchLoadingView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1c057d7c422329e44aeb9c652b3313af
+    m_Address: Views/DemoMainView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 20a919893e808c349b552449b7ab5454
+    m_Address: Views/LoadingView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 421d45b103623834e917f157b4db1443
+    m_Address: Views/AdvView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a6793070712f0574083d4791e85f8bb0
+    m_Address: Views/AdvPortraitSlot
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb60ea98a29c50d4fa5dafcb00eb1c4d
+    m_Address: Views/InputNavigationTestView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bc40aa1191c0c1c448f2ee2f60ad8e90
+    m_Address: Views/MainMenuView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: df36dc0fa7f227c40b41baecf26460c7
+    m_Address: Views/SaveLoadView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f5f3abadabc041843b3705224cb744ce
+    m_Address: Views/BlackMaskView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: feb1f910f3bf18a41bc907c3db538aa8
+    m_Address: Views/AdvChoiceItem
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 03866cd1b7ca26a45aca768577f6969d, type: 2}
+    - {fileID: 11400000, guid: 5be412deb86609c46baf8af1f580b4c8, type: 2}

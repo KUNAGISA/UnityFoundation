@@ -1,0 +1,16 @@
+{
+    "name": "Gameplay.Tags",
+    "rootNamespace": "Gameplay.Tags",
+    "references": [
+        "GUID:ef41a2207ff80a14aaa0ed560bcfb6aa"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

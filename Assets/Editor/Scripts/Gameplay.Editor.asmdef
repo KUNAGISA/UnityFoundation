@@ -1,0 +1,47 @@
+{
+    "name": "Gameplay.Editor",
+    "rootNamespace": "Gameplay.Editor",
+    "references": [
+        "GUID:ef41a2207ff80a14aaa0ed560bcfb6aa",
+        "GUID:132fee8f854c08d469e7281964dab1b8",
+        "GUID:cec0e4e12333c2c40906fa4335f87764",
+        "GUID:3c968784d79135744bcabeda2138bb2e",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:84651a3751eca9349aac36a66bba901b",
+        "GUID:1a195e31504d8da4cbf64724a0ad0afd",
+        "GUID:8d1dac07161e09748ae6e5774e5d5c35",
+        "GUID:966bb1359144f2a479573fbf4a112dd5",
+        "GUID:cad85dd6640544743bd64e7f1131d9a3",
+        "GUID:8a18263ac81f029488d6a6b00dd6fee4",
+        "GUID:6ba492a9e2537204aaaa38642d082796",
+        "GUID:2a81c6962524d424a8ef5072bd3b0fa0",
+        "GUID:69448af7b92c7f342b298e06a37122aa",
+        "GUID:fb24642277b1db2449da7ac148ce939d",
+        "GUID:593a5b492d29ac6448b1ebf7f035ef33",
+        "GUID:029c1c1b674aaae47a6841a0b89ad80e",
+        "GUID:4307f53044263cf4b835bd812fc161a4",
+        "GUID:0097f75b7b0d1f545aae1bbc02984eb5",
+        "GUID:59f6770f7492c42ff827a64ac010ac49",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Sirenix.OdinInspector.Attributes.dll",
+        "Sirenix.OdinInspector.Editor.dll",
+        "Sirenix.Utilities.dll",
+        "Sirenix.Utilities.Editor.dll",
+        "Sirenix.Reflection.Editor.dll",
+        "Sirenix.Serialization.Config.dll",
+        "Sirenix.Serialization.dll",
+        "Scriban.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

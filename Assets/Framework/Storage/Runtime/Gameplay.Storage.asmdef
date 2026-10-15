@@ -1,0 +1,17 @@
+{
+    "name": "Gameplay.Storage",
+    "rootNamespace": "Gameplay.Storage",
+    "references": [
+        "GUID:ef41a2207ff80a14aaa0ed560bcfb6aa",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

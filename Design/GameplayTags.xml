@@ -1,0 +1,7 @@
+<gameplayTags nextId="4">
+    <tag name="Control" id="2">
+        <tag name="Block" id="3">
+            <tag name="Movement" id="1" />
+        </tag>
+    </tag>
+</gameplayTags>

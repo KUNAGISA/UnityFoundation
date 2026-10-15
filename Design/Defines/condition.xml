@@ -1,0 +1,14 @@
+<module name = "">
+    <bean name="ConditionDef" sep="," comment="条件">
+    </bean>
+    <bean name="TrueConditionDef" sep="," parent="ConditionDef" comment="始终成立" alias="始终成立">
+    </bean>
+    <bean name="FalseConditionDef" sep="," parent="ConditionDef" comment="始终不成立" alias="始终不成立">
+    </bean>
+    <bean name="AllConditionDef" sep="," parent="ConditionDef" comment="全部成立" alias="全部成立">
+        <var name="conditions" type="(array#sep=|),ConditionDef" comment="条件列表"/>
+    </bean>
+    <bean name="AnyConditionDef" sep="," parent="ConditionDef" comment="任一成立" alias="任一成立">
+        <var name="conditions" type="(array#sep=|),ConditionDef" comment="条件列表"/>
+    </bean>
+</module>

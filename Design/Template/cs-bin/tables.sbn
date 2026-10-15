@@ -1,0 +1,62 @@
+using System;
+using Aoiro;
+using Sirenix.OdinInspector;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using Luban;
+
+{{~
+func lower_first(name)
+    ret (name | string.slice 0 1 | string.downcase) + (name | string.slice 1)
+end
+
+func field_name(name)
+    ret '_' + (lower_first name)
+end
+
+func table_file_name(name)
+    ret "Configs/" + name
+end
+~}}
+{{namespace_with_grace_begin __namespace}}
+[Searchable(FuzzySearch = true, Recursive = false)]
+public partial class {{__name}} : ModelBase
+{
+    {{~for table in __tables ~}}
+    [ShowInInspector, FoldoutGroup("{{table.name}}"), HideLabel, HideReferenceObjectPicker]
+    private {{table.full_name}} {{field_name table.name}} = null;
+#if UNITY_EDITOR
+    public {{table.full_name}} {{format_property_name __code_style table.name}} => {{field_name table.name}} ??= new {{table.full_name}}(LoadBuff("{{table_file_name table.output_data_file}}"));
+#else
+    public {{table.full_name}} {{format_property_name __code_style table.name}} => {{field_name table.name}};
+#endif
+
+    {{~end~}}
+
+    public async UniTask LoadAllAsync(CancellationToken cancellationToken = default, IProgress<float> progress = null)
+    {
+        progress?.Report(0f);
+        {{~for table in __tables ~}}
+        {{field_name table.name}} ??= new {{table.full_name}}(await LoadBuffAsync("{{table_file_name table.output_data_file}}", cancellationToken));
+        progress?.Report({{for.index+1}}/{{__tables.size}}f);
+        {{~end~}}
+    }
+
+    public void LoadAll()
+    {
+        {{~for table in __tables ~}}
+        {{field_name table.name}} ??= new {{table.full_name}}(LoadBuff("{{table_file_name table.output_data_file}}"));
+        {{~end~}}
+    }
+    
+    internal void Reload(string file)
+    {
+        switch (file)
+        {
+            {{~for table in __tables ~}}
+            case "{{table.output_data_file}}" : if ({{field_name table.name}} != null) { {{field_name table.name}} = new {{table.full_name}}(LoadBuff("{{table_file_name table.output_data_file}}")); this.PublishEvent(new TableReloadedEvent<{{table.full_name}}>({{field_name table.name}})); } break;
+            {{~end~}}
+        }
+    }
+}
+{{namespace_with_grace_end __namespace}}

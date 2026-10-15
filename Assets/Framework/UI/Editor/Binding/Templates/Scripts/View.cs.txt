@@ -1,0 +1,12 @@
+using Gameplay.UI;
+
+namespace Gameplay
+{
+    public partial class #SCRIPTNAME# : UIView<#SCRIPTNAME#.Data>
+    {
+        public class Data : UIViewData
+        {
+            public override string Location => "Views/" + nameof(#SCRIPTNAME#);
+        }
+    }
+}

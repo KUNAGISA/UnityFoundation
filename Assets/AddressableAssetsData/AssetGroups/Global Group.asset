@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Global Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Global Group
+  m_GUID: 664291d590d51a947af1e4326c4d8a1e
+  m_SerializeEntries:
+  - m_GUID: 4215e9cb53a7248458bb0c904e1a529f
+    m_Address: Global/Console
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 72e68cd8363940646a4aa9805bbf6a04
+    m_Address: Global/MainCamera
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8869bdac2fb6e9a488ec1656193fb76d
+    m_Address: Global/CameraSystemSettings
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f3f05ba9ccda3d54da9bed90343c7481
+    m_Address: Global/UIRoot
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: a400c02f9dac5874b84c978b8251df48, type: 2}
+    - {fileID: 11400000, guid: dd9a357870c73f846af9bdfc188743b2, type: 2}

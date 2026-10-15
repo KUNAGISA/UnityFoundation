@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Config Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Config Group
+  m_GUID: 546994b7fb3ecbc4ba82576088543d70
+  m_SerializeEntries:
+  - m_GUID: 20a8ba61f1ec6d74eac5e14d2c48e2ce
+    m_Address: Configs/emotiontable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 233cd1a278dc81f418de75c2768738d9
+    m_Address: Configs/scenetable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 456b429e325bc7549b82ff0706fe71a8
+    m_Address: Configs/actortable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 54560db2320c71e419410298f65bb5e6
+    m_Address: Configs/sequencesettingstable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6dc8c36a9b31bec4da0e76bc34c76158
+    m_Address: Configs/conditiontable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f8c7627cc0cbcd4d871c0c2a79c2a51
+    m_Address: Configs/npctable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8721d78f93d706c409374dd638cb0dc3
+    m_Address: Configs/itemtable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8857bce7ce508a499dcac51094b4913
+    m_Address: Configs/globaltable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b9dc3dc86590ab5409bf40ce2e69a1fa
+    m_Address: Configs/sceneeventtable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d127d1ef902ac2a4386329da446bf7b7
+    m_Address: Configs/playercharactertable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e80eb8f3dca6f0d40b3bbcb85e5f5141
+    m_Address: Configs/sequencetable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f9540528f794f124bba9d3d899b0b600
+    m_Address: Configs/actiontable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ff446ae7de754264589778ff0a3c69e8
+    m_Address: Configs/scenenpctable
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 89c6807b317f39f4384b1ff1e21644fa, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: bea44060865ee5b4782089e2a53efe32, type: 2}
+    - {fileID: 11400000, guid: 517238c819ec6d645ac36521d0683570, type: 2}
