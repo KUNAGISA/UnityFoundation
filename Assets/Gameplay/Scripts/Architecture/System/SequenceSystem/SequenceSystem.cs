@@ -16,14 +16,8 @@ namespace Gameplay
 {
     public class SequenceSystem : ProcedureCapacitySystem, ISystemAccessor, ISceneBeforeLeave
     {
-        private sealed class ScriptCacheEntry
-        {
-            public int ChunkReference = LuaConst.NoRef;
-            public readonly UniTaskCompletionSource<int> CompletionSource = new UniTaskCompletionSource<int>();
-        }
-
         private readonly SequenceContext _context = new SequenceContext();
-        private readonly Dictionary<string, ScriptCacheEntry> _scriptCache = new Dictionary<string, ScriptCacheEntry>();
+        private SequenceScriptCache _scriptCache;
 
         private IntPtr _mainThread;
         private IntPtr _currentThread;
@@ -31,15 +25,13 @@ namespace Gameplay
         private GCHandle _currentPlayerHandle;
         private SequenceToken _currentToken = SequenceToken.None;
         private SequencePlayback _currentPlayback;
+        private int? _currentOnCompletedActionId;
         private InputModeToken _inputModeToken;
         private int _playbackIdGeneration;
-        private long _cacheGeneration;
 
         private IInputService _inputService;
-        private IAssetService _assetService;
         private TablesModel _tablesModel;
         private LocalizationSystem _localizationSystem;
-        private CancellationTokenSource _cacheLifetime;
         private CancellationTokenSource _playbackLoadCancellation;
         private SubscriptionToken _tableReloadedToken;
         private FrameTickToken _frameTickToken;
@@ -48,10 +40,8 @@ namespace Gameplay
         {
             BindContext(_context);
             _inputService = this.GetService<IInputService>();
-            _assetService = this.GetService<IAssetService>();
             _tablesModel = this.GetModel<TablesModel>();
             _localizationSystem = this.GetSystem<LocalizationSystem>();
-            _cacheLifetime = new CancellationTokenSource();
             _tableReloadedToken = this.SubscribeEvent<TableReloadedEvent<SequenceTable>>(OnSequenceTableReloaded);
 
             _mainThread = LuaAPI.luaL_newstate();
@@ -60,6 +50,7 @@ namespace Gameplay
             LuaAPI.luaopen_math(_mainThread);
             LuaAPI.luaopen_utf8(_mainThread);
             SequenceLuaAPI.Register(_mainThread);
+            _scriptCache = new SequenceScriptCache(this.GetService<IAssetService>(), _mainThread);
         }
 
         protected override void OnShutdown()
@@ -67,7 +58,8 @@ namespace Gameplay
             _tableReloadedToken.Cancel();
             _tableReloadedToken = default;
             StopCurrentPlayer(SequencePlaybackStatus.Cancelled);
-            ClearCache(false);
+            _scriptCache?.Dispose();
+            _scriptCache = null;
 
             if (_mainThread != IntPtr.Zero)
             {
@@ -77,7 +69,6 @@ namespace Gameplay
             _frameTickToken.Cancel();
             _frameTickToken = default;
             _inputService = null;
-            _assetService = null;
             _tablesModel = null;
             _localizationSystem = null;
         }
@@ -93,6 +84,7 @@ namespace Gameplay
 
             _currentToken = CreateToken();
             _currentPlayback = new SequencePlayback(this, _currentToken);
+            _currentOnCompletedActionId = sequenceEntry.OnCompletedActionId;
             _inputModeToken = _inputService.PushMode(InputModeCatalog.Sequence);
             var playback = _currentPlayback;
             var token = _currentToken;
@@ -100,20 +92,7 @@ namespace Gameplay
             var textLocation = sequenceEntry.TextLocation;
             _playbackLoadCancellation = new CancellationTokenSource();
 
-            if (!_scriptCache.TryGetValue(location, out var cacheEntry) || cacheEntry.ChunkReference == LuaConst.NoRef)
-            {
-                if (cacheEntry == null)
-                {
-                    LoadAndStartUncachedPlaybackAsync(token, location, textLocation, _playbackLoadCancellation.Token).Forget();
-                }
-                else
-                {
-                    WaitForPreloadAndStartPlaybackAsync(token, location, textLocation, cacheEntry, _playbackLoadCancellation.Token).Forget();
-                }
-                return playback;
-            }
-
-            LoadTextAndStartCachedPlaybackAsync(token, location, textLocation, cacheEntry.ChunkReference, _playbackLoadCancellation.Token).Forget();
+            LoadAndStartPlaybackAsync(token, location, textLocation, _playbackLoadCancellation.Token).Forget();
             return playback;
         }
 
@@ -123,15 +102,7 @@ namespace Gameplay
             {
                 throw new KeyNotFoundException($"Sequence [{sequenceId}] was not found.");
             }
-            var location = sequenceEntry.ScriptLocation;
-            if (!_scriptCache.TryGetValue(location, out var cacheEntry))
-            {
-                cacheEntry = new ScriptCacheEntry();
-                var generation = _cacheGeneration;
-                _scriptCache.Add(location, cacheEntry);
-                PreloadScriptAsync(cacheEntry, location, generation, _cacheLifetime.Token).Forget();
-            }
-            await cacheEntry.CompletionSource.Task.AttachExternalCancellation(cancellationToken);
+            await _scriptCache.PreloadAsync(sequenceEntry.ScriptLocation, cancellationToken);
         }
 
         public void Cancel(SequenceToken token)
@@ -179,154 +150,36 @@ namespace Gameplay
         private void ClearSceneCache()
         {
             StopCurrentPlayer(SequencePlaybackStatus.Cancelled);
-            ClearCache(true);
-        }
-
-        private async UniTask WaitForPreloadAndStartPlaybackAsync(SequenceToken token, string location, string textLocation, ScriptCacheEntry cacheEntry, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var localizationTask = _localizationSystem.SetSequenceTextSourceAsync(textLocation, cancellationToken).Preserve();
-                var chunkReference = await cacheEntry.CompletionSource.Task.AttachExternalCancellation(cancellationToken);
-                await localizationTask;
-                if (!IsPlaying(token))
-                {
-                    return;
-                }
-                CreatePlayerFromReference(chunkReference, location);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-            }
-            catch (Exception exception)
-            {
-                HandlePlaybackException(token, exception);
-            }
-        }
-
-        private async UniTask LoadAndStartUncachedPlaybackAsync(SequenceToken token, string location, string textLocation, CancellationToken cancellationToken)
-        {
-            IAssetAsyncOperation<TextAsset> operation = null;
-            try
-            {
-                var localizationTask = _localizationSystem.SetSequenceTextSourceAsync(textLocation, cancellationToken).Preserve();
-                operation = _assetService.LoadAssetAsync<TextAsset>("Sequences/" + location);
-                var textAsset = await operation.ToUniTask(cancellationToken: cancellationToken);
-                if (textAsset == null)
-                {
-                    throw new InvalidOperationException($"Sequence script [{location}] returned null.");
-                }
-                await localizationTask;
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!IsPlaying(token))
-                {
-                    return;
-                }
-                await UniTask.SwitchToMainThread(cancellationToken);
-                if (!IsPlaying(token))
-                {
-                    return;
-                }
-                CreatePlayerFromBytes(textAsset.bytes, location);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-            }
-            catch (Exception exception)
-            {
-                HandlePlaybackException(token, exception);
-            }
-            finally
-            {
-                operation?.Release();
-            }
-        }
-
-        private async UniTask LoadTextAndStartCachedPlaybackAsync(SequenceToken token, string location, string textLocation, int chunkReference, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _localizationSystem.SetSequenceTextSourceAsync(textLocation, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (!IsPlaying(token))
-                {
-                    return;
-                }
-                CreatePlayerFromReference(chunkReference, location);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-            }
-            catch (Exception exception)
-            {
-                HandlePlaybackException(token, exception);
-            }
-        }
-
-        private async UniTask PreloadScriptAsync(ScriptCacheEntry cacheEntry, string location, long generation, CancellationToken cancellationToken)
-        {
-            IAssetAsyncOperation<TextAsset> operation = null;
-            try
-            {
-                operation = _assetService.LoadAssetAsync<TextAsset>("Sequences/" + location);
-                var textAsset = await operation.ToUniTask(cancellationToken: cancellationToken);
-                if (textAsset == null)
-                {
-                    throw new InvalidOperationException($"Sequence script [{location}] returned null.");
-                }
-                cancellationToken.ThrowIfCancellationRequested();
-                if (generation != _cacheGeneration)
-                {
-                    throw new OperationCanceledException(cancellationToken);
-                }
-                await UniTask.SwitchToMainThread(cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (generation != _cacheGeneration)
-                {
-                    throw new OperationCanceledException(cancellationToken);
-                }
-                var chunkReference = CompileScript(textAsset.bytes, location);
-                cacheEntry.ChunkReference = chunkReference;
-                cacheEntry.CompletionSource.TrySetResult(chunkReference);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                RemoveCacheEntry(location, cacheEntry);
-                cacheEntry.CompletionSource.TrySetCanceled(cancellationToken);
-            }
-            catch (Exception exception)
-            {
-                RemoveCacheEntry(location, cacheEntry);
-                cacheEntry.CompletionSource.TrySetException(exception);
-            }
-            finally
-            {
-                operation?.Release();
-            }
-        }
-
-        private void RemoveCacheEntry(string location, ScriptCacheEntry cacheEntry)
-        {
-            if (_scriptCache.TryGetValue(location, out var current) && ReferenceEquals(current, cacheEntry))
-            {
-                _scriptCache.Remove(location);
-            }
-        }
-
-        private void ClearCache(bool recreateLifetime)
-        {
-            ++_cacheGeneration;
-            _cacheLifetime?.Cancel();
-            _cacheLifetime?.Dispose();
-            _cacheLifetime = recreateLifetime ? new CancellationTokenSource() : null;
-            foreach (var entry in _scriptCache.Values)
-            {
-                if (entry.ChunkReference != LuaConst.NoRef)
-                {
-                    LuaAPI.luaL_unref(_mainThread, entry.ChunkReference);
-                }
-            }
             _scriptCache.Clear();
+        }
+
+        private async UniTask LoadAndStartPlaybackAsync(SequenceToken token, string location, string textLocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var localizationTask = _localizationSystem.SetSequenceTextSourceAsync(textLocation, cancellationToken).Preserve();
+                var thread = await _scriptCache.CreateThreadAsync(location, cancellationToken);
+                if (!IsPlaying(token))
+                {
+                    LuaAPI.lua_closethread(thread, _mainThread);
+                    return;
+                }
+                // 等待文本期间也由播放收尾负责关闭协程。
+                _currentThread = thread;
+                await localizationTask;
+                if (!IsPlaying(token))
+                {
+                    return;
+                }
+                InitializePlayer(thread, location);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+            }
+            catch (Exception exception)
+            {
+                HandlePlaybackException(token, exception);
+            }
         }
 
         private void OnSequenceTableReloaded(TableReloadedEvent<SequenceTable> _)
@@ -353,40 +206,14 @@ namespace Gameplay
             if (_currentPlayer.IsCompleted)
             {
                 Debug.Log("[Sequence] 剧情脚本播放结束");
+                var onCompletedActionId = _currentOnCompletedActionId;
                 StopCurrentPlayer(SequencePlaybackStatus.Succeeded);
+                if (onCompletedActionId.HasValue)
+                {
+                    // 先释放旧播放，再提交可能启动下一段剧情的行为。
+                    this.GetSystem<ActionSystem>().Submit(onCompletedActionId.Value);
+                }
             }
-        }
-
-        private int CompileScript(ReadOnlySpan<byte> bytes, string location)
-        {
-            if (LuaAPI.luaL_loadbuffer(_mainThread, bytes, location) == LuaStatus.Ok)
-            {
-                return LuaAPI.luaL_ref(_mainThread);
-            }
-
-            var error = LuaAPI.lua_tostring(_mainThread, -1);
-            LuaAPI.lua_pop(_mainThread, 1);
-            throw new Exception(error);
-        }
-
-        private void CreatePlayerFromReference(int chunkReference, string location)
-        {
-            var thread = LuaAPI.lua_newthread(_mainThread);
-            LuaAPI.luaL_getref(_mainThread, chunkReference);
-            LuaAPI.lua_xmove(_mainThread, thread, 1);
-            InitializePlayer(thread, location);
-        }
-
-        private void CreatePlayerFromBytes(ReadOnlySpan<byte> bytes, string location)
-        {
-            var thread = LuaAPI.lua_newthread(_mainThread);
-            if (LuaAPI.luaL_loadbuffer(thread, bytes, location) != LuaStatus.Ok)
-            {
-                var error = LuaAPI.lua_tostring(thread, -1);
-                LuaAPI.lua_closethread(thread, _mainThread);
-                throw new Exception(error);
-            }
-            InitializePlayer(thread, location);
         }
 
         private void InitializePlayer(IntPtr thread, string location)
@@ -398,7 +225,6 @@ namespace Gameplay
             LuaAPI.lua_setmetatable(thread, -2);
             LuaAPI.lua_setupvalue(thread, -2, 1);
 
-            _currentThread = thread;
             var routine = new LuaSequenceRoutine(_mainThread, _currentThread);
             _currentPlayer = new SequencePlayer<Sequence.ISequenceContext>(_context, routine, builder =>
             {
@@ -431,6 +257,7 @@ namespace Gameplay
 
         private void StopCurrentPlayer(SequencePlaybackStatus status)
         {
+            _currentOnCompletedActionId = null;
             var inputModeToken = _inputModeToken;
             _inputModeToken = default;
             inputModeToken.Cancel();

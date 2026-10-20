@@ -29,6 +29,8 @@
 
 业务表使用必填 `conditionId` / `actionId` 并声明对应总表的 Luban `ref`。相同配置可共享 ID；两张总表使用独立 ID 空间。All/Any 的子条件仍直接内嵌配置，不通过总表引用；求值保持短路，空 All 成立、空 Any 不成立。
 
+演出表的 `onCompletedActionId` 是可选的行为总表引用，类型为 `int?#ref=ActionTable`，生成成员为 `SequenceEntry.OnCompletedActionId`。留空表示无结束行为，非空值必须通过行为总表引用校验；运行时在本次剧情正常完成并清理后经 ActionSystem 提交，取消和失败不提交，生命周期详见 [Sequence 框架](Sequence.md)。
+
 运行时 ID 入口由 [ConditionSystem](Conditions.md) 和 [ActionSystem](Actions.md) 提供。System 从表模型查找定义，生成的 ConditionResolver / ActionResolver / ConditionDependencyResolver 保留接收定义的类型分发入口，不再重复提供总表 ID 查询。找不到 ID 时记录错误，条件返回 false，行为结果回调反馈 false。
 
 上下文复用 Aoiro 的架构能力和绑定生命周期，目前不携带调用来源。ConditionSystem 持有只读 ConditionContext；ActionSystem 持有 ActionContext，以同步 FIFO 防止重入插队。ActionResolver 返回 bool，true 表示已成功发起；持续行为的状态、替换和取消归所属系统，不向调用方返回 Action 监视器。消费方负责触发判断、去重及业务完成记录。

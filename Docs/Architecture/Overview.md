@@ -36,6 +36,8 @@
 - [0008：Gameplay Tag 使用稳定 ID、来源计数与同步批次通知](../ADR/0008-use-stable-source-counted-gameplay-tags.md)
 - [0009：RuleSystem 统一处理 Condition / Action（已取代）](../ADR/0009-centralize-condition-observation-in-rule-system.md)
 - [0010：拆分条件观察与同步行为分发，行为发起即视为成功](../ADR/0010-separate-condition-observation-and-action-dispatch.md)
+- [0011：剧情正常结束后执行可选配表行为](../ADR/0011-run-configured-action-after-sequence-completion.md)
+- [0012：将剧情脚本加载与编译缓存交给独立对象](../ADR/0012-isolate-sequence-script-loading-and-cache.md)
 
 ## 新增文档
 

@@ -32,6 +32,28 @@ Player 状态为 `Created → Preparing → Running → Completed`：
 
 Module 通过 Player 获取其他 Module：必需依赖使用 `GetModule<T>`，可选依赖使用 `TryGetModule<T>`。Module 的 Player 引用只在受控生命周期内有效，Cleanup 后不再保存或访问。
 
+## Gameplay 配表播放接入
+
+`SequenceSystem.Play(sequenceId)` 从演出表读取脚本、多语言文本路径和可选的 `onCompletedActionId`；结束行为 ID 在本次播放发起时保存。字段留空表示正常结束后不执行行为。
+
+仅当播放器 Tick 正常返回且自然完成时，SequenceSystem 才会在释放旧播放的输入模式、加载任务、播放器、Lua 线程和多语言文本源，并将播放状态设为 `Succeeded` 后，通过 `ActionSystem.Submit` 提交结束行为。每次播放最多提交一次；同一剧情再次播放并正常结束时会再次提交。提交后不再清理旧播放，结束行为可以安全启动下一段剧情。
+
+替换、主动取消、离场、流程退出、系统关闭、加载或播放异常均不执行结束行为；所有收尾路径清空本次保存的行为 ID。演出表重载沿用取消当前播放并清理缓存的语义，不执行结束行为。
+
+结束行为沿用 ActionSystem 的同步分发和失败处理，不等待持续行为结束，执行失败不改变已经成功完成的剧情状态。
+
+### 脚本加载与缓存
+
+`SequenceSystem` 持有普通对象 `SequenceScriptCache`，向其注入 `IAssetService` 和借用的 Lua 主状态；缓存类不注册为架构模块，不负责文本、立绘、输入或 Player 生命周期。脚本地址继续使用 `Sequences/<location>`。
+
+`PreloadAsync(location, cancellationToken)` 按脚本路径合并共享预加载，缓存 Lua registry 中的编译函数引用，编译后释放原始 TextAsset operation。调用方取消只结束自身等待；共享预加载由缓存作用域管理。加载或编译失败会移除对应条目，后续请求可以重试。
+
+`CreateThreadAsync(location, cancellationToken)` 统一处理命中缓存、等待预加载和未缓存加载，直接返回已装入脚本函数的 Lua 协程。普通播放不自动写入缓存。未缓存 operation 在编译并创建协程后、返回前释放；缓存引用仍归缓存类所有。创建失败时缓存类关闭尚未交接的协程。
+
+System 并行开始文本与脚本准备，取得协程后检查播放身份并立即接管，在文本就绪后于主线程再次确认播放身份，再初始化 Player。异步等待由对应任务处理调用方取消；缓存生命周期令牌、代次和播放身份分别阻止使用失效缓存、旧任务回写和启动旧播放。协程在等待文本期间也归 System，通过统一播放收尾处理取消和文本加载失败；已失效的请求在交接前直接关闭协程。System 不读取缓存条目、编译引用或代次。
+
+剧情播放、缓存入口和取消均遵循主线程调用契约，资源完成回调及 PlayerLoop 在主线程恢复等待，不主动切换线程。离场、流程退出及演出表重载先停止播放，再调用缓存 `Clear()`；Clear 取消本批工作、释放编译引用并允许后续复用。旧任务通过取消令牌、代次和条目身份阻止回写或移除新条目。Shutdown 先停止播放并 Dispose 缓存，再关闭 Lua 主状态。
+
 ## 使用与扩展规则
 
 - 新 Action、Yield、Module 和 Preparation 继承现有抽象基类，不创建平行生命周期接口。
@@ -46,3 +68,5 @@ Module 通过 Player 获取其他 Module：必需依赖使用 `GetModule<T>`，�
 - 覆盖无需等待和跨帧 Preparation、并发 Action、Yield 返回值、Routine 自然结束与主动停止。
 - 在 Module、Preparation、Action、Yield 和 Routine 各阶段注入异常，确认统一清理且每个对象只清理一次。
 - 验证 Module 正序启动、反序清理，以及 Cleanup 后 Player 引用不可继续使用。
+- 验证配表结束行为的空值、正常完成且仅提交一次、重复播放、取消及异常不提交，以及结束行为启动下一段剧情时不会被旧播放清理。
+- 验证未缓存、已预加载和预加载中三条脚本准备路径、同地址预加载合并、单个等待者取消、失败重试，以及 Clear/Dispose 后旧请求不回写且资源正确释放。

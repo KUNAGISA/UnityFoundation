@@ -21,6 +21,7 @@ public sealed partial class SequenceEntry : Luban.BeanBase
         Id = buffer.ReadInt();
         ScriptLocation = buffer.ReadString();
         TextLocation = buffer.ReadString();
+        if(buffer.ReadBool()){ OnCompletedActionId = buffer.ReadInt(); } else { OnCompletedActionId = null; }
     }
 
     internal static SequenceEntry DeserializeSequenceEntry(ByteBuf buffer)
@@ -46,6 +47,12 @@ public sealed partial class SequenceEntry : Luban.BeanBase
     [LabelText("多语言文本路径")]
     [ShowInInspector]
     public readonly string TextLocation;
+    /// <summary>
+    /// 正常结束行为
+    /// </summary>
+    [LabelText("正常结束行为")]
+    [ShowInInspector]
+    public readonly int? OnCompletedActionId;
    
     public const int __ID__ = 54034705;
     public override int GetTypeId() => __ID__;
@@ -56,6 +63,7 @@ public sealed partial class SequenceEntry : Luban.BeanBase
         + "Id:" + Id + ","
         + "ScriptLocation:" + ScriptLocation + ","
         + "TextLocation:" + TextLocation + ","
+        + "OnCompletedActionId:" + OnCompletedActionId + ","
         + "}";
     }
 }
