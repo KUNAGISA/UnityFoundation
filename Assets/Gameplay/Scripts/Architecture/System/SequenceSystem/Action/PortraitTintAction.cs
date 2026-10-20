@@ -8,6 +8,6 @@ namespace Gameplay.Sequence
         protected override AdvPortraitChannel Channel => AdvPortraitChannel.Tint;
         protected override ColorRGB Read(in AdvPortraitVisualState state) => state.Tint;
         protected override ColorRGB Interpolate(ColorRGB start, ColorRGB target, float progress) => ColorRGB.Lerp(start, target, progress);
-        protected override void Write(AdvSession session, in AdvPortraitChannelToken token, ColorRGB value) => session.SetPortraitTint(token, value);
+        protected override void Write(AdvPortraitRegistry portraits, in AdvPortraitChannelToken token, ColorRGB value) => portraits.SetTint(token, value);
     }
 }

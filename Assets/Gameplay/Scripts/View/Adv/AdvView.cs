@@ -31,7 +31,8 @@ namespace Gameplay
         private LocalizationSystem _localizationSystem = null;
         private AdvSession _session = null;
         private AssetLoader _loader = null;
-        private SubscriptionToken _changedToken = default;
+        private SubscriptionToken _choicesChangedToken = default;
+        private SubscriptionToken _dialogueChangedToken = default;
         private SubscriptionToken _portraitChangedToken = default;
         private VersionToken _renderedDialogueVersion = default;
         private VersionToken _renderedDialogueContentRevision = default;
@@ -50,20 +51,25 @@ namespace Gameplay
 	        _navigation = GetComponent<UIViewNavigation>();
 	        _loader = this.GetService<IAssetService>().CreateLoader();
 	        _session = data.Session;
-	        _session.AttachPresentation();
-	        _changedToken = _session.Changed.Subscribe(OnSessionChanged);
-	        _portraitChangedToken = _session.PortraitChanged.Subscribe(OnPortraitChanged);
-	        RefreshSession(AdvChange.All);
+	        _hasRenderedDialogue = false;
+	        _session.NotifyViewBound();
+	        _choicesChangedToken = _session.ChoicesChanged.Subscribe(RefreshChoices);
+	        _dialogueChangedToken = _session.Dialogue.Changed.Subscribe(RefreshDialogue);
+	        _portraitChangedToken = _session.Portraits.Changed.Subscribe(OnPortraitChanged);
+	        RefreshDialogue(AdvDialogueChange.All);
+	        RefreshChoices();
 	        RefreshPortraits();
         }
 
         protected override void OnClose()
         {
-	        _changedToken.Cancel();
-	        _changedToken = default;
+	        _choicesChangedToken.Cancel();
+	        _choicesChangedToken = default;
+	        _dialogueChangedToken.Cancel();
+	        _dialogueChangedToken = default;
 	        _portraitChangedToken.Cancel();
 	        _portraitChangedToken = default;
-	        _session?.DetachPresentation();
+	        _session?.NotifyViewClosed();
 	        _session = null;
 
 	        _choiceItems.Clear();
@@ -78,36 +84,36 @@ namespace Gameplay
 	        _loader = null;
         }
 
-        private void RefreshDialogue()
+        private void RefreshDialogueText()
         {
-	        var version = _session.DialogueVersion;
-	        var contentRevision = _session.DialogueContentRevision;
+	        var version = _session.Dialogue.Version;
+	        var contentRevision = _session.Dialogue.ContentRevision;
 	        if (!_hasRenderedDialogue || _renderedDialogueVersion != version || _renderedDialogueContentRevision != contentRevision)
 	        {
-		        _txtDialogue.text = _session.DialogueText;
+		        _txtDialogue.text = _session.Dialogue.Text;
 		        _txtDialogue.ForceMeshUpdate();
 		        _renderedDialogueVersion = version;
 		        _renderedDialogueContentRevision = contentRevision;
 		        _hasRenderedDialogue = true;
-		        _session.ReportDialogueMeasurement(version, _txtDialogue.textInfo.characterCount);
+		        _session.Dialogue.ReportCharacterCount(version, contentRevision, _txtDialogue.textInfo.characterCount);
 	        }
-	        _txtDialogue.maxVisibleCharacters = _session.DialogueVisibleCount;
+	        _txtDialogue.maxVisibleCharacters = _session.Dialogue.VisibleCharacterCount;
         }
 
         private void RefreshCharacterName()
         {
-	        _goCharacterNameBg.SetActive(!string.IsNullOrEmpty(_session.CharacterName));
-	        _txtCharacterName.text = _session.CharacterName;
+	        _goCharacterNameBg.SetActive(!string.IsNullOrEmpty(_session.Dialogue.CharacterName));
+	        _txtCharacterName.text = _session.Dialogue.CharacterName;
         }
 
         private void RefreshAdvancePrompt()
         {
-	        _goAdvanceable.SetActive(_session.AdvancePromptVisible);
+	        _goAdvanceable.SetActive(_session.Dialogue.AdvancePromptVisible);
         }
 
         private void RefreshPortraits()
         {
-	        foreach (var (portraitId, entry) in _session.Portraits)
+	        foreach (var (portraitId, entry) in _session.Portraits.Entries)
 	        {
 		        RefreshPortraitAsset(portraitId, entry);
 	        }
@@ -116,7 +122,7 @@ namespace Gameplay
 
         private void OnPortraitChanged(AdvPortraitChange change)
         {
-	        if (_session == null || !_session.TryGetPortrait(change.PortraitId, out var entry))
+	        if (_session == null || !_session.Portraits.TryGet(change.PortraitId, out var entry))
 	        {
 		        return;
 	        }
@@ -263,25 +269,19 @@ namespace Gameplay
 	        _session?.RequestAdvance();
         }
 
-        private void OnSessionChanged(AdvChange change) => RefreshSession(change);
-
-        private void RefreshSession(AdvChange change)
+        private void RefreshDialogue(AdvDialogueChange change)
         {
-	        if ((change & AdvChange.Dialogue) != 0)
+	        if ((change & AdvDialogueChange.Text) != 0)
 	        {
-		        RefreshDialogue();
+		        RefreshDialogueText();
 	        }
-	        if ((change & AdvChange.CharacterName) != 0)
+	        if ((change & AdvDialogueChange.CharacterName) != 0)
 	        {
 		        RefreshCharacterName();
 	        }
-	        if ((change & AdvChange.AdvancePrompt) != 0)
+	        if ((change & AdvDialogueChange.AdvancePrompt) != 0)
 	        {
 		        RefreshAdvancePrompt();
-	        }
-	        if ((change & AdvChange.Choices) != 0)
-	        {
-		        RefreshChoices();
 	        }
         }
     }

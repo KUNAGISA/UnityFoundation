@@ -133,6 +133,7 @@ namespace Gameplay.Sequence
 
         private IntPtr CreateThread(ReadOnlySpan<byte> bytes, string location, int chunkReference = LuaConst.NoRef)
         {
+            var stackTop = LuaAPI.lua_gettop(_mainThread);
             var thread = LuaAPI.lua_newthread(_mainThread);
             try
             {
@@ -145,12 +146,17 @@ namespace Gameplay.Sequence
                 {
                     throw new Exception(LuaAPI.lua_tostring(thread, -1));
                 }
+                SequenceLuaAPI.RetainThread(thread);
                 return thread;
             }
             catch
             {
-                LuaAPI.lua_closethread(thread, _mainThread);
+                SequenceLuaAPI.CloseThread(thread, _mainThread);
                 throw;
+            }
+            finally
+            {
+                LuaAPI.lua_settop(_mainThread, stackTop);
             }
         }
 

@@ -6,6 +6,6 @@ namespace Gameplay.Sequence
         protected override AdvPortraitChannel Channel => AdvPortraitChannel.Rotation;
         protected override float Read(in AdvPortraitVisualState state) => state.RotationDegrees;
         protected override float Interpolate(float start, float target, float progress) => start + (target - start) * progress;
-        protected override void Write(AdvSession session, in AdvPortraitChannelToken token, float value) => session.SetPortraitRotation(token, value);
+        protected override void Write(AdvPortraitRegistry portraits, in AdvPortraitChannelToken token, float value) => portraits.SetRotationDegrees(token, value);
     }
 }

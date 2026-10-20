@@ -6,7 +6,8 @@ namespace Gameplay.Sequence
         private readonly int[] _channelVersions = new int[(int)AdvPortraitChannel.Count];
         
         private AdvPortraitVisualState _visualState;
-        public ref AdvPortraitVisualState VisualState => ref _visualState;
+        public ref readonly AdvPortraitVisualState VisualState => ref _visualState;
+        internal ref AdvPortraitVisualState MutableVisualState => ref _visualState;
         
         public string AssetLocation { get; internal set; } = string.Empty;
         public int SortingOrder { get; internal set; }
@@ -17,7 +18,7 @@ namespace Gameplay.Sequence
             _visualState.Reset();
         }
         
-        internal AdvPortraitChannelToken Acquire(AdvPortraitChannel channel)
+        internal AdvPortraitChannelToken AcquireChannel(AdvPortraitChannel channel)
         {
             var version = ++_channelVersions[(int)channel];
             return new AdvPortraitChannelToken(_portraitId, channel, version);

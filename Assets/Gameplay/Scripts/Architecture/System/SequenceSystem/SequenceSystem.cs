@@ -1,9 +1,9 @@
-using Aoiro.Sequence;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Aoiro;
+using Aoiro.Sequence;
 using Cysharp.Threading.Tasks;
 using Gameplay.Asset;
 using Gameplay.Scheduler;
@@ -57,7 +57,7 @@ namespace Gameplay
         {
             _tableReloadedToken.Cancel();
             _tableReloadedToken = default;
-            StopCurrentPlayer(SequencePlaybackStatus.Cancelled);
+            StopCurrentPlayback(SequencePlaybackStatus.Cancelled);
             _scriptCache?.Dispose();
             _scriptCache = null;
 
@@ -75,19 +75,19 @@ namespace Gameplay
 
         public SequencePlayback Play(int sequenceId)
         {
-            StopCurrentPlayer(SequencePlaybackStatus.Cancelled);
+            StopCurrentPlayback(SequencePlaybackStatus.Cancelled);
             if (!_tablesModel.SequenceTable.TryGet(sequenceId, out var sequenceEntry))
             {
                 Debug.LogError($"[Sequence] 找不到演出配置 [{sequenceId}]");
                 return SequencePlayback.Failed;
             }
 
-            _currentToken = CreateToken();
+            var token = CreateToken();
+            _currentToken = token;
             _currentPlayback = new SequencePlayback(this, _currentToken);
             _currentOnCompletedActionId = sequenceEntry.OnCompletedActionId;
             _inputModeToken = _inputService.PushMode(InputModeCatalog.Sequence);
             var playback = _currentPlayback;
-            var token = _currentToken;
             var location = sequenceEntry.ScriptLocation;
             var textLocation = sequenceEntry.TextLocation;
             _playbackLoadCancellation = new CancellationTokenSource();
@@ -124,7 +124,7 @@ namespace Gameplay
             {
                 return;
             }
-            StopCurrentPlayer(SequencePlaybackStatus.Cancelled);
+            StopCurrentPlayback(SequencePlaybackStatus.Cancelled);
             Debug.Log("[Sequence] 中断剧情脚本");
         }
 
@@ -149,7 +149,7 @@ namespace Gameplay
 
         private void ClearSceneCache()
         {
-            StopCurrentPlayer(SequencePlaybackStatus.Cancelled);
+            StopCurrentPlayback(SequencePlaybackStatus.Cancelled);
             _scriptCache.Clear();
         }
 
@@ -157,21 +157,15 @@ namespace Gameplay
         {
             try
             {
-                var localizationTask = _localizationSystem.SetSequenceTextSourceAsync(textLocation, cancellationToken).Preserve();
-                var thread = await _scriptCache.CreateThreadAsync(location, cancellationToken);
-                if (!IsPlaying(token))
-                {
-                    LuaAPI.lua_closethread(thread, _mainThread);
-                    return;
-                }
-                // 等待文本期间也由播放收尾负责关闭协程。
-                _currentThread = thread;
-                await localizationTask;
+                var localizationTask = _localizationSystem.SetSequenceTextSourceAsync(textLocation, cancellationToken);
+                var scriptTask = PreparePlaybackThreadAsync(token, location, cancellationToken);
+                // 两个任务均由 WhenAll 观察；任一失败后收尾会取消另一个任务。
+                await UniTask.WhenAll(localizationTask, scriptTask);
                 if (!IsPlaying(token))
                 {
                     return;
                 }
-                InitializePlayer(thread, location);
+                StartPlayer(_currentThread, location);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -182,6 +176,19 @@ namespace Gameplay
             }
         }
 
+        private async UniTask PreparePlaybackThreadAsync(SequenceToken token, string location, CancellationToken cancellationToken)
+        {
+            var mainThread = _mainThread;
+            var thread = await _scriptCache.CreateThreadAsync(location, cancellationToken);
+            if (!IsPlaying(token))
+            {
+                SequenceLuaAPI.CloseThread(thread, mainThread);
+                return;
+            }
+            // 等待文本期间也由播放收尾负责关闭协程。
+            _currentThread = thread;
+        }
+
         private void OnSequenceTableReloaded(TableReloadedEvent<SequenceTable> _)
         {
             ClearSceneCache();
@@ -189,25 +196,26 @@ namespace Gameplay
 
         private void OnProcedureFrameTick(in FrameTime time)
         {
-            if (_currentPlayer == null)
+            var player = _currentPlayer;
+            var token = _currentToken;
+            if (player == null)
             {
                 return;
             }
             try
             {
-                _currentPlayer.Tick(time.DeltaTime);
+                player.Tick(time.DeltaTime);
             }
             catch (Exception exception)
             {
-                Debug.LogException(exception);
-                StopCurrentPlayer(SequencePlaybackStatus.Failed);
+                HandlePlaybackException(token, exception);
                 return;
             }
-            if (_currentPlayer.IsCompleted)
+            if (IsPlaying(token) && player.IsCompleted)
             {
                 Debug.Log("[Sequence] 剧情脚本播放结束");
                 var onCompletedActionId = _currentOnCompletedActionId;
-                StopCurrentPlayer(SequencePlaybackStatus.Succeeded);
+                StopCurrentPlayback(SequencePlaybackStatus.Succeeded);
                 if (onCompletedActionId.HasValue)
                 {
                     // 先释放旧播放，再提交可能启动下一段剧情的行为。
@@ -216,7 +224,7 @@ namespace Gameplay
             }
         }
 
-        private void InitializePlayer(IntPtr thread, string location)
+        private void StartPlayer(IntPtr thread, string location)
         {
             LuaAPI.lua_newtable(thread);
             LuaAPI.lua_newtable(thread);
@@ -225,13 +233,13 @@ namespace Gameplay
             LuaAPI.lua_setmetatable(thread, -2);
             LuaAPI.lua_setupvalue(thread, -2, 1);
 
-            var routine = new LuaSequenceRoutine(_mainThread, _currentThread);
-            _currentPlayer = new SequencePlayer<Sequence.ISequenceContext>(_context, routine, builder =>
+            var routine = new LuaSequenceRoutine(_mainThread, thread);
+            _currentPlayer = new SequencePlayer<ISequenceContext>(_context, routine, builder =>
             {
                 builder.Register(new AdvSession());
             });
             _currentPlayerHandle = GCHandle.Alloc(_currentPlayer, GCHandleType.Normal);
-            SequenceLuaAPI.SetCurrentPlayer(_currentThread, GCHandle.ToIntPtr(_currentPlayerHandle));
+            SequenceLuaAPI.BindPlayer(thread, GCHandle.ToIntPtr(_currentPlayerHandle));
             _currentPlayer.Start();
             Debug.Log($"[Sequence] 创建脚本 [{location}] 成功");
         }
@@ -241,7 +249,7 @@ namespace Gameplay
             Debug.LogException(exception);
             if (IsPlaying(token))
             {
-                StopCurrentPlayer(SequencePlaybackStatus.Failed);
+                StopCurrentPlayback(SequencePlaybackStatus.Failed);
             }
         }
 
@@ -255,37 +263,44 @@ namespace Gameplay
             return new SequenceToken(_playbackIdGeneration);
         }
 
-        private void StopCurrentPlayer(SequencePlaybackStatus status)
+        private void StopCurrentPlayback(SequencePlaybackStatus status)
         {
-            _currentOnCompletedActionId = null;
-            var inputModeToken = _inputModeToken;
-            _inputModeToken = default;
-            inputModeToken.Cancel();
-
-            _playbackLoadCancellation?.Cancel();
-            _playbackLoadCancellation?.Dispose();
-            _playbackLoadCancellation = null;
             var playback = _currentPlayback;
+            var player = _currentPlayer;
+            var thread = _currentThread;
+            var mainThread = _mainThread;
+            var playerHandle = _currentPlayerHandle;
+            var inputModeToken = _inputModeToken;
+            var loadCancellation = _playbackLoadCancellation;
+            var localizationSystem = _localizationSystem;
+
+            // 先移交到局部变量，使取消回调和旧异步任务无法再接管当前播放。
             _currentPlayback = null;
-
-            if (_currentPlayer != null)
-            {
-                _currentPlayer.Stop();
-                _currentPlayer = null;
-            }
-            if (_currentThread != IntPtr.Zero)
-            {
-                LuaAPI.lua_closethread(_currentThread, _mainThread);
-                _currentThread = IntPtr.Zero;
-            }
-            if (_currentPlayerHandle.IsAllocated)
-            {
-                _currentPlayerHandle.Free();
-            }
-
+            _currentPlayer = null;
+            _currentThread = IntPtr.Zero;
+            _currentPlayerHandle = default;
+            _inputModeToken = default;
+            _playbackLoadCancellation = null;
             _currentToken = SequenceToken.None;
+            _currentOnCompletedActionId = null;
+
+            inputModeToken.Cancel();
+            loadCancellation?.Cancel();
+            loadCancellation?.Dispose();
+            player?.Stop();
+            if (thread != IntPtr.Zero)
+            {
+                SequenceLuaAPI.CloseThread(thread, mainThread);
+            }
+            if (playerHandle.IsAllocated)
+            {
+                playerHandle.Free();
+            }
+            if (_currentPlayback == null)
+            {
+                localizationSystem?.ClearSequenceTextSource();
+            }
             playback?.Complete(status);
-            _localizationSystem?.ClearSequenceTextSource();
         }
     }
 }

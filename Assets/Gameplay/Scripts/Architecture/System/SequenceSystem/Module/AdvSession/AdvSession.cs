@@ -1,63 +1,47 @@
 using System;
-using System.Collections.Generic;
 using Aoiro;
 using Aoiro.Sequence;
 using Gameplay.Common;
+using Gameplay.Tables;
 using Gameplay.UI;
-using UnityEngine;
 
 namespace Gameplay.Sequence
 {
     public sealed class AdvSession : SequenceModule<ISequenceContext>
     {
-        private enum PresentationState
+        private enum ViewState
         {
             None,
             Opening,
-            Attached,
-            Released,
+            Bound,
+            Closed,
             Cleaning
         }
 
-        private readonly Signal<AdvChange> _changed = new Signal<AdvChange>();
-        private readonly Signal<AdvPortraitChange> _portraitChanged = new Signal<AdvPortraitChange>();
-        private readonly AdvPortraitRegistry _portraits = new AdvPortraitRegistry();
-        private VersionGate _dialogueVersion;
-        private VersionGate _dialogueContentRevision;
+        private readonly Signal _choicesChanged = new Signal();
         private VersionGate _choiceVersion;
         private UIViewToken _viewToken = UIViewToken.None;
-        private int? _dialogueCharacterCount;
         private AdvChoiceToken _choiceToken;
         private int? _selectedChoiceIndex;
-        private PresentationState _presentationState;
+        private ViewState _viewState;
         private bool _advanceRequested;
-        private bool _hasDialogue;
-        private string _dialogueTextKey = string.Empty;
-        private string _characterNameKey = string.Empty;
         private LocalizationSystem _localizationSystem;
         private SubscriptionToken _localizationChangedToken;
 
-        public string DialogueText { get; private set; } = string.Empty;
-        public int DialogueVisibleCount { get; private set; }
-        public VersionToken DialogueVersion => _dialogueVersion.Current;
-        public VersionToken DialogueContentRevision => _dialogueContentRevision.Current;
-        public string CharacterName { get; private set; } = string.Empty;
-        public bool AdvancePromptVisible { get; private set; }
+        public AdvDialogue Dialogue { get; } = new AdvDialogue();
+        public AdvPortraitRegistry Portraits { get; } = new AdvPortraitRegistry();
         public string[] Choices { get; private set; }
         public bool ChoicesVisible => Choices != null;
         public AdvChoiceToken ChoiceToken => _choiceToken;
-        public IReadOnlyDictionary<int, AdvPortraitEntry> Portraits => _portraits.Entries;
-        public bool IsPresentationAttached => _presentationState == PresentationState.Attached;
-
-        public ISignal<AdvChange> Changed => _changed;
-        public ISignal<AdvPortraitChange> PortraitChanged => _portraitChanged;
+        public bool IsViewBound => _viewState == ViewState.Bound;
+        public ISignal ChoicesChanged => _choicesChanged;
 
         protected override SequencePreparation OnPrepare()
         {
             var uiSystem = Player.Context.GetSystem<UISystem>();
             _localizationSystem = Player.Context.GetSystem<LocalizationSystem>();
             _localizationChangedToken = _localizationSystem.CatalogChanged.Subscribe(OnLocalizationCatalogChanged);
-            _presentationState = PresentationState.Opening;
+            _viewState = ViewState.Opening;
             _viewToken = uiSystem.OpenView(new AdvView.Data(this));
             _advanceRequested = false;
             return new AdvViewPreparation(this, _viewToken);
@@ -65,11 +49,10 @@ namespace Gameplay.Sequence
 
         protected override void OnTick(float deltaTime)
         {
-            if (_presentationState == PresentationState.Released)
+            if (_viewState == ViewState.Closed)
             {
-                throw new InvalidOperationException($"AdvView [{_viewToken.ViewId}] was released during sequence playback.");
+                throw new InvalidOperationException($"AdvView [{_viewToken.ViewId}] was closed during sequence playback.");
             }
-
             if (_advanceRequested)
             {
                 _advanceRequested = false;
@@ -79,88 +62,49 @@ namespace Gameplay.Sequence
 
         protected override void OnCleanup()
         {
-            _presentationState = PresentationState.Cleaning;
-
-            _localizationChangedToken.Cancel();
+            _viewState = ViewState.Cleaning;
+            var localizationToken = _localizationChangedToken;
+            var viewToken = _viewToken;
             _localizationChangedToken = default;
+            _viewToken = UIViewToken.None;
             _localizationSystem = null;
 
-            _viewToken.Cancel();
-            _viewToken = UIViewToken.None;
-
-            _changed.Clear();
-            _portraitChanged.Clear();
-            _portraits.Clear();
-
+            localizationToken.Cancel();
+            viewToken.Cancel();
+            _choicesChanged.Clear();
+            Dialogue.Clear();
+            Portraits.Clear();
+            Choices = null;
+            _selectedChoiceIndex = null;
             _advanceRequested = false;
-            _hasDialogue = false;
-            _dialogueTextKey = string.Empty;
-            _characterNameKey = string.Empty;
         }
 
-        public void AttachPresentation()
+        public void NotifyViewBound()
         {
-            if (_presentationState != PresentationState.Cleaning)
+            if (_viewState != ViewState.Cleaning)
             {
-                _presentationState = PresentationState.Attached;
+                _viewState = ViewState.Bound;
             }
         }
 
-        public void DetachPresentation()
+        public void NotifyViewClosed()
         {
-            if (_presentationState != PresentationState.Cleaning)
+            if (_viewState != ViewState.Cleaning)
             {
-                _presentationState = PresentationState.Released;
+                _viewState = ViewState.Closed;
             }
         }
 
         public void RequestAdvance() => _advanceRequested = true;
 
-        public VersionToken SetDialogue(string textKey, string characterNameKey)
+        public VersionToken BeginDialogue(string textKey, string characterNameKey, bool autoAdvance)
         {
-            _hasDialogue = true;
-            _dialogueTextKey = textKey ?? string.Empty;
-            _characterNameKey = characterNameKey ?? string.Empty;
-            RefreshLocalizedDialogue();
-            DialogueVisibleCount = 0;
-            _dialogueCharacterCount = null;
-            AdvancePromptVisible = false;
-            var version = _dialogueVersion.Bump();
-            _dialogueContentRevision.Bump();
-            _changed.Emit(AdvChange.Dialogue | AdvChange.CharacterName | AdvChange.AdvancePrompt);
-            return version;
-        }
-
-        public void ReportDialogueMeasurement(in VersionToken token, int characterCount)
-        {
-            if (token == _dialogueVersion.Current)
-            {
-                _dialogueCharacterCount = characterCount;
-            }
-        }
-
-        public bool TryGetDialogueCharacterCount(in VersionToken token, out int characterCount)
-        {
-            characterCount = _dialogueCharacterCount ?? 0;
-            return token == _dialogueVersion.Current && _dialogueCharacterCount.HasValue;
-        }
-
-        public void SetDialogueVisibleCount(in VersionToken token, int count)
-        {
-            if (token == _dialogueVersion.Current)
-            {
-                DialogueVisibleCount = count;
-                _changed.Emit(AdvChange.Dialogue);
-            }
-        }
-
-        public void CompleteDialogue(in VersionToken token)
-        {
-            if (token == _dialogueVersion.Current && !AdvancePromptVisible)
-            {
-                AdvancePromptVisible = true;
-                _changed.Emit(AdvChange.AdvancePrompt);
-            }
+            textKey ??= string.Empty;
+            characterNameKey ??= string.Empty;
+            var text = _localizationSystem.Get(textKey, TextSourceFlags.Sequence | TextSourceFlags.Global);
+            var characterName = ResolveCharacterName(characterNameKey);
+            var settings = Player.Context.GetModel<TablesModel>().SequenceSettingsTable;
+            return Dialogue.Begin(textKey, characterNameKey, text, characterName, settings.MessageCharIntervalMs, settings.MessageAdvanceableWaitTimeMs, autoAdvance);
         }
 
         public AdvChoiceToken ShowChoices(int choiceId, string[] choices)
@@ -168,7 +112,7 @@ namespace Gameplay.Sequence
             Choices = choices;
             _selectedChoiceIndex = null;
             _choiceToken = new AdvChoiceToken(choiceId, _choiceVersion.Bump());
-            _changed.Emit(AdvChange.Choices);
+            _choicesChanged.Emit();
             return _choiceToken;
         }
 
@@ -191,114 +135,11 @@ namespace Gameplay.Sequence
             if (IsCurrentChoice(token))
             {
                 Choices = null;
-                _changed.Emit(AdvChange.Choices);
-            }
-        }
-
-        public AdvPortraitChannelToken AcquirePortraitToken(int portraitId, AdvPortraitChannel channel)
-        {
-            return TryGetRegisteredPortrait(portraitId, out var portrait) ? portrait.Acquire(channel) : default;
-        }
-
-        public bool IsPortraitTokenValid(in AdvPortraitChannelToken token) => _portraits.IsTokenValid(token);
-        public ref readonly AdvPortraitVisualState GetPortraitVisualState(int portraitId) => ref _portraits.GetVisualState(portraitId);
-        public bool TryGetPortrait(int portraitId, out AdvPortraitEntry portrait) => _portraits.TryGet(portraitId, out portrait);
-
-        public void SetPortraitAsset(int portraitId, string assetLocation, Vector2? position)
-        {
-            var portrait = _portraits.GetOrAdd(portraitId);
-            if (position.HasValue)
-            {
-                portrait.VisualState.Position = position.Value;
-            }
-
-            portrait.AssetLocation = assetLocation;
-            EmitPortraitChanged(portraitId, AdvPortraitChangeType.Asset);
-        }
-
-        public void SetPortraitSortingOrder(int portraitId, int order)
-        {
-            if (TryGetRegisteredPortrait(portraitId, out var portrait))
-            {
-                portrait.SortingOrder = order;
-                EmitPortraitChanged(portraitId, AdvPortraitChangeType.SortingOrder);
-            }
-        }
-
-        public void SetPortraitOrigin(int portraitId, Vector2 origin)
-        {
-            if (TryGetRegisteredPortrait(portraitId, out var portrait))
-            {
-                portrait.VisualState.Origin = origin;
-                EmitPortraitChanged(portraitId, AdvPortraitChangeType.Visual);
-            }
-        }
-
-        public void SetPortraitFlipHorizontal(int portraitId, bool flip)
-        {
-            if (TryGetRegisteredPortrait(portraitId, out var portrait))
-            {
-                portrait.VisualState.HorizontalFlip = flip;
-                EmitPortraitChanged(portraitId, AdvPortraitChangeType.Visual);
-            }
-        }
-
-        public void SetPortraitFlipVertical(int portraitId, bool flip)
-        {
-            if (TryGetRegisteredPortrait(portraitId, out var portrait))
-            {
-                portrait.VisualState.VerticalFlip = flip;
-                EmitPortraitChanged(portraitId, AdvPortraitChangeType.Visual);
-            }
-        }
-
-        public void SetPortraitPosition(in AdvPortraitChannelToken token, Vector2 value)
-        {
-            if (_portraits.TryGet(token, AdvPortraitChannel.Position, out var portrait))
-            {
-                portrait.VisualState.Position = value;
-                EmitPortraitChanged(token.PortraitId, AdvPortraitChangeType.Visual);
-            }
-        }
-
-        public void SetPortraitOpacity(in AdvPortraitChannelToken token, float value)
-        {
-            if (_portraits.TryGet(token, AdvPortraitChannel.Opacity, out var portrait))
-            {
-                portrait.VisualState.Opacity = value;
-                EmitPortraitChanged(token.PortraitId, AdvPortraitChangeType.Visual);
-            }
-        }
-
-        public void SetPortraitTint(in AdvPortraitChannelToken token, ColorRGB value)
-        {
-            if (_portraits.TryGet(token, AdvPortraitChannel.Tint, out var portrait))
-            {
-                portrait.VisualState.Tint = value;
-                EmitPortraitChanged(token.PortraitId, AdvPortraitChangeType.Visual);
-            }
-        }
-
-        public void SetPortraitScale(in AdvPortraitChannelToken token, Vector2 value)
-        {
-            if (_portraits.TryGet(token, AdvPortraitChannel.Scale, out var portrait))
-            {
-                portrait.VisualState.Scale = value;
-                EmitPortraitChanged(token.PortraitId, AdvPortraitChangeType.Visual);
-            }
-        }
-
-        public void SetPortraitRotation(in AdvPortraitChannelToken token, float value)
-        {
-            if (_portraits.TryGet(token, AdvPortraitChannel.Rotation, out var portrait))
-            {
-                portrait.VisualState.RotationDegrees = value;
-                EmitPortraitChanged(token.PortraitId, AdvPortraitChangeType.Visual);
+                _choicesChanged.Emit();
             }
         }
 
         private bool IsCurrentChoice(in AdvChoiceToken token) => token.ChoiceId == _choiceToken.ChoiceId && token.Version == _choiceVersion.Current;
-        private void EmitPortraitChanged(int portraitId, AdvPortraitChangeType type) => _portraitChanged.Emit(new AdvPortraitChange(portraitId, type));
 
         private void OnLocalizationCatalogChanged(LocalizationCatalogChanged change)
         {
@@ -306,44 +147,20 @@ namespace Gameplay.Sequence
             {
                 return;
             }
-
-            var changed = AdvChange.None;
-            if (_hasDialogue)
+            if (Dialogue.HasDialogue)
             {
-                RefreshLocalizedDialogue();
-                DialogueVisibleCount = 0;
-                _dialogueCharacterCount = null;
-                AdvancePromptVisible = false;
-                _dialogueContentRevision.Bump();
-                changed |= AdvChange.Dialogue | AdvChange.CharacterName | AdvChange.AdvancePrompt;
+                var text = _localizationSystem.Get(Dialogue.TextKey, TextSourceFlags.Sequence | TextSourceFlags.Global);
+                Dialogue.UpdateLocalizedContent(text, ResolveCharacterName(Dialogue.CharacterNameKey));
             }
             if (ChoicesVisible)
             {
-                changed |= AdvChange.Choices;
-            }
-            if (changed != AdvChange.None)
-            {
-                _changed.Emit(changed);
+                _choicesChanged.Emit();
             }
         }
 
-        private void RefreshLocalizedDialogue()
+        private string ResolveCharacterName(string key)
         {
-            DialogueText = _localizationSystem.Get(_dialogueTextKey, TextSourceFlags.Sequence | TextSourceFlags.Global);
-            CharacterName = string.IsNullOrEmpty(_characterNameKey)
-                ? string.Empty
-                : _localizationSystem.Get(_characterNameKey, TextSourceFlags.Sequence | TextSourceFlags.Global);
-        }
-
-        private bool TryGetRegisteredPortrait(int portraitId, out AdvPortraitEntry portrait)
-        {
-            if (_portraits.TryGet(portraitId, out portrait))
-            {
-                return true;
-            }
-
-            Debug.LogError($"[Sequence] 未注册立绘 Id [{portraitId}]。");
-            return false;
+            return string.IsNullOrEmpty(key) ? string.Empty : _localizationSystem.Get(key, TextSourceFlags.Sequence | TextSourceFlags.Global);
         }
     }
 }

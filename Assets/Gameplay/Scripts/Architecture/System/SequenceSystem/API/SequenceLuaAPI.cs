@@ -1,8 +1,7 @@
-using Aoiro.Sequence;
-using Aoiro;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using Aoiro.Sequence;
 using Gameplay.Common;
 using LiteLua;
 using UnityEngine;
@@ -53,18 +52,38 @@ namespace Gameplay.Sequence
             LuaAPI.lua_setglobal(l, "set_chara_flip");
         }
         
-        public static void SetCurrentPlayer(IntPtr l, IntPtr playerPtr)
+        public static void RetainThread(IntPtr thread)
         {
-            LuaAPI.lua_pushthread(l);
-            LuaAPI.lua_pushlightuserdata(l, playerPtr);
-            LuaAPI.lua_settable(l, LuaConst.RegistryIndex);
+            // 创建后即可脱离主状态栈，等待文本期间仍需保持协程存活。
+            LuaAPI.lua_pushthread(thread);
+            LuaAPI.lua_pushboolean(thread, true);
+            LuaAPI.lua_rawset(thread, LuaConst.RegistryIndex);
         }
 
-        private static ISequencePlayer<ISequenceContext> GetCurrentPlayer(IntPtr l)
+        public static void CloseThread(IntPtr thread, IntPtr mainThread)
         {
-            LuaAPI.lua_pushthread(l);
-            LuaAPI.lua_gettable(l, LuaConst.RegistryIndex);
-            var playerPtr = LuaAPI.lua_touserdata(l, -1);
+            if (LuaAPI.lua_closethread(thread, mainThread) != LuaStatus.Ok)
+            {
+                Debug.LogError($"[Sequence] 关闭 Lua 协程失败：{LuaAPI.lua_tostring(thread, -1)}");
+            }
+            LuaAPI.lua_pushthread(thread);
+            LuaAPI.lua_pushnil(thread);
+            LuaAPI.lua_rawset(thread, LuaConst.RegistryIndex);
+        }
+
+        public static void BindPlayer(IntPtr thread, IntPtr playerPtr)
+        {
+            LuaAPI.lua_pushthread(thread);
+            LuaAPI.lua_pushlightuserdata(thread, playerPtr);
+            LuaAPI.lua_settable(thread, LuaConst.RegistryIndex);
+        }
+
+        private static ISequencePlayer<ISequenceContext> GetBoundPlayer(IntPtr thread)
+        {
+            LuaAPI.lua_pushthread(thread);
+            LuaAPI.lua_gettable(thread, LuaConst.RegistryIndex);
+            var playerPtr = LuaAPI.lua_touserdata(thread, -1);
+            LuaAPI.lua_pop(thread, 1);
             return (ISequencePlayer<ISequenceContext>)GCHandle.FromIntPtr(playerPtr).Target;
         }
 
@@ -84,7 +103,7 @@ namespace Gameplay.Sequence
 
         private static int Wait(IntPtr l)
         {
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
             
             if (LuaAPI.lua_isnumber(l, 1))
             {
@@ -113,7 +132,7 @@ namespace Gameplay.Sequence
                 return LuaAPI.luaL_error(l, "需要传入选项");
             }
 
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
             var choices = new string[count];
             for (var index = 0; index < count; ++index)
             {
@@ -128,7 +147,7 @@ namespace Gameplay.Sequence
         
         private static int Message(IntPtr l)
         {
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
 
             var text = LuaAPI.lua_tostring(l, 1);
             var name = string.Empty;
@@ -167,11 +186,11 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
             
-            var player = GetCurrentPlayer(l);
-            var advSession = player.GetModule<AdvSession>();
+            var player = GetBoundPlayer(l);
+            var portraits = player.GetModule<AdvSession>().Portraits;
             
             var location = LuaAPI.lua_tostring(l, 2);
-            var position = advSession.GetPortraitVisualState(portraitId).Position;
+            var position = portraits.GetVisualStateOrDefault(portraitId).Position;
             
             if (LuaAPI.lua_type(l, 3) == LuaType.Table)
             {
@@ -188,7 +207,7 @@ namespace Gameplay.Sequence
                 LuaAPI.lua_pop(l, 1);
             }
             
-            advSession.SetPortraitAsset(portraitId, location, position);
+            portraits.SetAsset(portraitId, location, position);
             return 0;
         }
 
@@ -199,7 +218,7 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
             
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
             var duration = ReadDuration(l, 4);
             
             player.EnqueueAction(new PortraitMoveAction(portraitId, duration, position));
@@ -213,7 +232,7 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
             
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
             var duration = ReadDuration(l, 4);
             
             player.EnqueueAction(new PortraitScaleAction(portraitId, duration, scale));
@@ -227,7 +246,7 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
 
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
             var duration = ReadDuration(l, 3);
             
             player.EnqueueAction(new PortraitOpacityAction(portraitId, duration, opacity));
@@ -241,8 +260,8 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
             
-            var player = GetCurrentPlayer(l);
-            player.GetModule<AdvSession>().SetPortraitSortingOrder(portraitId, order);
+            var player = GetBoundPlayer(l);
+            player.GetModule<AdvSession>().Portraits.SetSortingOrder(portraitId, order);
             return 0;
         }
         
@@ -259,7 +278,7 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
             
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
             var duration = ReadDuration(l, 5);
             
             player.EnqueueAction(new PortraitTintAction(portraitId, duration, tint));
@@ -273,7 +292,7 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
 
-            var player = GetCurrentPlayer(l);
+            var player = GetBoundPlayer(l);
             var duration = ReadDuration(l, 3);
             
             player.EnqueueAction(new PortraitRotateAction(portraitId, duration, degree));
@@ -287,8 +306,8 @@ namespace Gameplay.Sequence
                 return errorCode;
             }
             
-            var player = GetCurrentPlayer(l);
-            player.GetModule<AdvSession>().SetPortraitOrigin(portraitId, origin);
+            var player = GetBoundPlayer(l);
+            player.GetModule<AdvSession>().Portraits.SetOrigin(portraitId, origin);
             return 0;
         }
 
@@ -302,16 +321,16 @@ namespace Gameplay.Sequence
             var flip = LuaAPI.lua_toboolean(l, 2);
             var isHorizontal = LuaAPI.lua_toboolean(l, 3);
 
-            var player = GetCurrentPlayer(l);
-            var advSession = player.GetModule<AdvSession>();
+            var player = GetBoundPlayer(l);
+            var portraits = player.GetModule<AdvSession>().Portraits;
             
             if (isHorizontal)
             {
-                advSession.SetPortraitFlipHorizontal(portraitId, flip);
+                portraits.SetHorizontalFlip(portraitId, flip);
             }
             else
             {
-                advSession.SetPortraitFlipVertical(portraitId, flip);
+                portraits.SetVerticalFlip(portraitId, flip);
             }
 
             return 0;

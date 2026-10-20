@@ -51,7 +51,7 @@ namespace Gameplay.Sequence
             {
                 await _token.WaitForReadyAsync(cancellationToken);
 
-                if (!_session.IsPresentationAttached)
+                if (!_session.IsViewBound)
                 {
                     throw new InvalidOperationException($"AdvView [{_token.ViewId}] did not bind its session during initialization.");
                 }

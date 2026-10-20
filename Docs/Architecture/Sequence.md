@@ -42,6 +42,8 @@ Module 通过 Player 获取其他 Module：必需依赖使用 `GetModule<T>`，�
 
 结束行为沿用 ActionSystem 的同步分发和失败处理，不等待持续行为结束，执行失败不改变已经成功完成的剧情状态。
 
+System 保持单次播放的完整所有权，不额外创建播放操作对象。`Play` 先停止旧播放，再校验配表，仅在配置有效时创建新播放的 Token。`PreparePlaybackThreadAsync` 加载、创建并接管协程，`StartPlayer` 创建并启动播放器，`StopCurrentPlayback` 统一收尾加载、输入、播放器、协程和文本源。收尾先将旧资源移交到局部变量并清空当前身份，再取消加载和逐项释放。输入模式取消、加载取消、Player 停止、GCHandle 释放和文本源清除遵循各自的不抛异常契约，直接调用。本次私有取消源仅连接资源加载与 UniTask 取消链，取消异常由对应异步等待处理，不注册会抛异常的业务回调。异步结果和 Tick 的正常、异常出口都核对发起时的 Token。共享文本源仅在没有当前播放时清除。
+
 ### 脚本加载与缓存
 
 `SequenceSystem` 持有普通对象 `SequenceScriptCache`，向其注入 `IAssetService` 和借用的 Lua 主状态；缓存类不注册为架构模块，不负责文本、立绘、输入或 Player 生命周期。脚本地址继续使用 `Sequences/<location>`。
@@ -50,9 +52,23 @@ Module 通过 Player 获取其他 Module：必需依赖使用 `GetModule<T>`，�
 
 `CreateThreadAsync(location, cancellationToken)` 统一处理命中缓存、等待预加载和未缓存加载，直接返回已装入脚本函数的 Lua 协程。普通播放不自动写入缓存。未缓存 operation 在编译并创建协程后、返回前释放；缓存引用仍归缓存类所有。创建失败时缓存类关闭尚未交接的协程。
 
-System 并行开始文本与脚本准备，取得协程后检查播放身份并立即接管，在文本就绪后于主线程再次确认播放身份，再初始化 Player。异步等待由对应任务处理调用方取消；缓存生命周期令牌、代次和播放身份分别阻止使用失效缓存、旧任务回写和启动旧播放。协程在等待文本期间也归 System，通过统一播放收尾处理取消和文本加载失败；已失效的请求在交接前直接关闭协程。System 不读取缓存条目、编译引用或代次。
+`SequenceLuaAPI.RetainThread` 以协程自身为 registry 键建立强引用，创建方法在返回前恢复 Lua 主状态栈。Player 准备好后，`BindPlayer` 将同一条目更新为 GCHandle 指针；等待文本期间也有强引用保护。所有释放路径统一调用 `CloseThread`，先关闭协程，再删除 registry 条目，随后由 System 释放 GCHandle。关闭返回 Lua 错误时只记录日志并继续删除条目，不向调用方抛异常；已关闭的协程不能再次访问。
+
+System 并行开始文本与脚本准备，通过 `UniTask.WhenAll` 同时观察两个任务的取消和异常。脚本任务取得协程后检查播放身份并立即接管，在两项准备完成后于主线程再次确认播放身份，再初始化 Player。任一任务失败都进入播放收尾并取消另一任务。缓存生命周期令牌、代次和播放身份分别阻止使用失效缓存、旧任务回写和启动旧播放。协程在等待文本期间也归 System，通过统一播放收尾处理取消和文本加载失败；已失效的请求在交接前直接关闭协程。System 不读取缓存条目、编译引用或代次。
 
 剧情播放、缓存入口和取消均遵循主线程调用契约，资源完成回调及 PlayerLoop 在主线程恢复等待，不主动切换线程。离场、流程退出及演出表重载先停止播放，再调用缓存 `Clear()`；Clear 取消本批工作、释放编译引用并允许后续复用。旧任务通过取消令牌、代次和条目身份阻止回写或移除新条目。Shutdown 先停止播放并 Dispose 缓存，再关闭 Lua 主状态。
+
+### ADV 接入
+
+`AdvSession` 是随 Player 运行的 Module，负责 View 的准备与释放、本地化订阅、推进请求和选项；其无参数信号 `ChoicesChanged` 只通知选项变化。View 通过 `NotifyViewBound`、`NotifyViewClosed` 回报生命周期，准备节点以 `IsViewBound` 判断绑定是否完成。Session 持有普通对象 `AdvDialogue` 与 `AdvPortraitRegistry`，不将它们注册进架构，每段剧情只创建一份并在其中复用。
+
+Session 在 `BeginDialogue` 解析本地化文本并传入配表参数。`AdvDialogue` 统一拥有对白身份、内容修订、测量、计时、显示及完成状态，不访问架构或 TMP。`DialogueAction` 通过 `BeginDialogue`、`Tick`、`Advance` 接入原有调度时点。`IsCurrent(version)` 只判断对白身份，`IsCompleted` 只读属性表示当前对白的完成状态；Action 在身份失效或对白完成时结束。旧对白 Token 的 Tick 与 Advance 无效。
+
+View 分别订阅选项、对白与立绘通知；`Dialogue.Changed` 使用 `AdvDialogueChange` 的 `Text`、`CharacterName`、`AdvancePrompt` 标记，`All` 仅包含这三项。View 只负责显示与 TMP 测量，显示字数读取 `VisibleCharacterCount`；通过 `ReportCharacterCount(version, contentRevision, characterCount)` 回报具体版本、具体内容的字符数。尚未测量时不推进对白，过期测量不会回写。语言变化由 Session 重新解析内容并调用 `UpdateLocalizedContent`：进行中的对白清空测量并重置进度，已结束但仍留屏的对白保持完成并完整显示新译文，不重新启动 Action。
+
+立绘状态的修改、通道 Token 和通知集中在 `AdvPortraitRegistry`。Lua 与 Tween Action 经其方法写入，View 订阅 `Portraits.Changed` 并读取 `Entries`；`AdvPortraitEntry.VisualState` 对外为只读引用，避免绕过通道与通知修改。`AcquireChannel` 获取指定动画通道的控制权；`GetVisualStateOrDefault` 在立绘缺失时返回默认状态。翻转设置使用 `SetHorizontalFlip`、`SetVerticalFlip`，旋转设置使用 `SetRotationDegrees`，单位为度。相同通道的新动作替换旧动作，不同通道可并行。
+
+Lua 中的 `set` 指令立即设置状态，`move` 等持续动作入队并在启动时读取起点；脚本在同一次恢复中先写 `move` 再写 `set`，表示先设置到该位置，再从该位置向动作目标移动。`wait` 保持 Action/Yield 的既有等待语义。
 
 ## 使用与扩展规则
 
@@ -70,3 +86,5 @@ System 并行开始文本与脚本准备，取得协程后检查播放身份并�
 - 验证 Module 正序启动、反序清理，以及 Cleanup 后 Player 引用不可继续使用。
 - 验证配表结束行为的空值、正常完成且仅提交一次、重复播放、取消及异常不提交，以及结束行为启动下一段剧情时不会被旧播放清理。
 - 验证未缓存、已预加载和预加载中三条脚本准备路径、同地址预加载合并、单个等待者取消、失败重试，以及 Clear/Dispose 后旧请求不回写且资源正确释放。
+- 验证反复播放后主状态栈深度和 registry 协程条目恢复、等待文本期间协程不被 GC、Lua 关闭错误只记录日志，以及取消加载后的异步结果不启动旧播放。
+- 验证对白替换、过期测量、手动推进、自动结束、语言切换与已完成对白留屏，以及立绘即时设置、同通道替换、不同通道并行和通知订阅清理。
