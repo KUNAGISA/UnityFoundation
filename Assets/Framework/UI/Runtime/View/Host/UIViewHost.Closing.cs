@@ -46,86 +46,31 @@ namespace Gameplay.UI
 
         private void RequestClose(UIViewEntry entry, bool immediately)
         {
-            if (!entry.TryRequestClose(out var previousState))
+            switch (entry.RequestClose(immediately))
             {
-                return;
-            }
-
-            if (previousState == UIViewEntryState.Loading)
-            {
-                if (entry.View is null)
-                {
-                    ReleaseEntry(entry);
-                }
-                return;
-            }
-
-            if (previousState == UIViewEntryState.Closing)
-            {
-                if (immediately)
-                {
-                    CompleteImmediateClose(entry);
-                }
-                return;
-            }
-
-            if (immediately)
-            {
-                CompleteImmediateClose(entry);
-                return;
-            }
-
-            switch (entry.VisibilityState)
-            {
-                case UIViewVisibilityState.Hidden:
+                case UIViewEntry.CloseAction.Release:
                     ReleaseEntry(entry);
                     break;
-                case UIViewVisibilityState.Showing:
-                case UIViewVisibilityState.Shown:
+                case UIViewEntry.CloseAction.Hide:
                     StartHide(entry);
                     break;
-                case UIViewVisibilityState.Hiding:
+                case UIViewEntry.CloseAction.HideImmediately:
+                    StartHide(entry, true);
+                    break;
+                case UIViewEntry.CloseAction.FinishHideImmediately:
+                    if (entry.IsHiding)
+                    {
+                        if (entry.View != null)
+                        {
+                            entry.View.Hide(true);
+                        }
+                        else
+                        {
+                            ReleaseEntry(entry);
+                        }
+                    }
                     break;
             }
-        }
-
-        private void CompleteImmediateClose(UIViewEntry entry)
-        {
-            var startHide = entry.VisibilityState is UIViewVisibilityState.Showing or UIViewVisibilityState.Shown;
-            var interruptHide = entry.VisibilityState == UIViewVisibilityState.Hiding;
-            if (startHide)
-            {
-                if (!entry.TryBeginHide())
-                {
-                    return;
-                }
-
-                NotifyBeforeHide(entry);
-                if (!entry.IsHiding)
-                {
-                    return;
-                }
-            }
-
-            if (entry.View != null)
-            {
-                if (startHide && entry.View.IsShow)
-                {
-                    entry.View.HideAsync(true).GetAwaiter().GetResult();
-                }
-                else if (startHide || interruptHide)
-                {
-                    // 已经 Hiding 或尚未真正 Show 时只强制失效过渡，不重复派发 View.OnHide。
-                    entry.View.ForceHidden();
-                }
-            }
-
-            if ((startHide || interruptHide) && !entry.TryCompleteHide())
-            {
-                return;
-            }
-
-            ReleaseEntry(entry);
         }
 
         private void ReleaseEntry(UIViewEntry entry)

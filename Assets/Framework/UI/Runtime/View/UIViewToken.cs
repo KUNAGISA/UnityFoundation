@@ -57,6 +57,10 @@ namespace Gameplay.UI
 
         public void Cancel() => Close();
 
+        internal void NotifyShowCompleted() => _host?.CompleteShow(this);
+
+        internal void NotifyHideCompleted() => _host?.CompleteHide(this);
+
         public bool Equals(UIViewToken other) => ReferenceEquals(_host, other._host) && ViewId == other.ViewId;
 
         public override bool Equals(object obj) => obj is UIViewToken other && Equals(other);

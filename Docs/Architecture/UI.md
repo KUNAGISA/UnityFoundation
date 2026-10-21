@@ -4,8 +4,9 @@ UI 框架以 `UIViewHost` 统一编排 View 实例、可见性、过渡、Layer 
 
 ## 职责与边界
 
-- `UIViewHost` 位于 Framework，是生命周期的唯一编排者，通过 `IUIViewInstanceProvider` 请求和归还实例。
-- `UIViewEntry` 只保存一次打开的生命周期、可见性、Data 版本和等待状态，不反向驱动 Host、Layer、View 或 Extension。
+- `UIViewHost` 位于 Framework，是生命周期的唯一编排者，通过 `IUIViewInstanceProvider` 请求和归还实例；同步发起 Show/Hide，通过 View 完成通知推进逻辑状态，不等待动画任务。
+- `UIView` 执行表现、等待动画并收束立即隐藏，通过绑定 Token 向 Host 报告有效完成；具体 View 只需返回动画 UniTask，无需手动发送通知。
+- `UIViewEntry` 管理一次打开的生命周期、可见性、Data 版本、状态转换决策和等待结果；关闭请求由 Entry 判断下一步动作，不反向驱动 Host、Layer、View 或 Extension。
 - `UILayer` 维护层内顺序、Root、遮挡和目标可见性；实际 Show/Hide 由 Host 执行。
 - `UISystem` 位于 Gameplay，创建 UIRoot、持有 Prefab 缓存、注册 UI Camera Stack、注入 Extension 并提供业务入口。
 - 横切行为由 `UIViewExtension` 承接，不写入 Framework 的 View 基类。
@@ -58,7 +59,7 @@ Gameplay 的 `UIViewPrefabCache` 缓存每个 Location 的 Prefab operation；�
 
 Provider、Prefab、Data、Bind 或 Initialize 失败会使本次打开失败并完整回滚。Show/Hide 表现异常只记录日志，Host 仍完成逻辑状态；各 Extension 回调独立捕获异常，单个 Extension 失败不阻断后续 Extension。
 
-Extension 注册顺序执行打开与显示阶段，释放和 Shutdown 按反序。`Released` 撤销单 Entry 所有权，`OnShutdown` 清理输入模式、Tween 等全局残留。回调允许重入 Close、Refresh 和可见性重算；Host 通过 Entry 状态、`TransitionVersion` 和 dirty 重算使旧任务失效。
+Extension 注册顺序执行打开与显示阶段，释放和 Shutdown 按反序。`Released` 撤销单 Entry 所有权，`OnShutdown` 清理输入模式、Tween 等全局残留。回调允许重入 Close、Refresh 和可见性重算；Host 通过 Entry 状态和 dirty 重算处理重入，UIView 通过 VersionGate 使旧过渡失效。
 
 ### Layer 与实例约束
 
@@ -68,14 +69,18 @@ Extension 注册顺序执行打开与显示阶段，释放和 Shutdown 按反序
 
 ### View 状态与等待
 
-Entry 生命周期为 Loading、Opened、Closing、Releasing、Released；可见性独立为 Hidden、Showing、Shown、Hiding。`UIView` 是动画版本的唯一所有者，Host 只消费有效完成结果。
+Entry 生命周期为 Loading、Opened、Closing、Releasing、Released；可见性独立为 Hidden、Showing、Shown、Hiding。`UIView` 是动画版本的唯一所有者，在生命周期回调、异步动画及显隐切换后校验版本，Host 只消费有效完成通知。无动画时允许同步完成；通知前完成自身收尾，通知后不再访问可能已经释放的实例。
+
+`UIViewEntry.RequestClose` 标记 Closing、取消 Shown 等待并返回关闭动作：无需操作、直接释放、普通隐藏、首次立即隐藏或立即结束已有隐藏。Host 按动作执行，不再解释生命周期与可见性的组合；首次隐藏派发 `BeforeHide`，立即结束已有隐藏不重复派发。取消等待者可能同步重入，Entry 决策前及 Host 执行隐藏回调前后均复查状态。Loading 时尚未附加 View 的记录直接释放，已附加且仍在初始化的记录交由初始化流程退出后释放。
+
+`OnPlayShowAnimation` 和 `OnPlayHideAnimation` 保留返回 UniTask 的扩展协议，由 UIView 基类统一等待、处理异常和通知 Host。Host 只在资源加载处等待异步操作，外部顺序等待仍通过 Token 按需创建完成源，不以轮询状态驱动生命周期。
 
 - `WaitForReadyAsync` 等待实例化、校验、Bind 与 Initialize，不等待 Show。
 - `WaitForShownAsync` 等待有效 Show 及 `ShowCompleted`；被 Hide、Close 或 Shutdown 打断时取消。
 - `WaitForClosedAsync` 等待 Hide、Extension、Layer、输入和 Provider Release，不承诺池化实例已销毁。
 - 等待 token 只取消调用方等待，不取消 UI 实例。
 
-永久关闭执行有效 Hide、`OnClose` 和 Release；普通遮挡 Hide 不执行 `OnClose`。Immediate Close 终止当前过渡并立即完成清理。业务通过 `UIViewToken`、`UISystem.CloseAll` 或 `CloseSelf` 关闭 View，不手动销毁或归还 GameObject。
+永久关闭执行有效 Hide、`OnClose` 和 Release；普通遮挡 Hide 不执行 `OnClose`。Immediate Close 由 UIView 同步使当前过渡失效并完成隐藏，已经隐藏中或尚未真正显示时不重复派发 `OnHide`，随后通过同一完成通知进入 Host 的释放入口。Host 先进入 Releasing 防止重入，再调用 `OnClose` 并清理 Layer、Extension 和 Provider。业务通过 `UIViewToken`、`UISystem.CloseAll` 或 `CloseSelf` 关闭 View，不手动销毁或归还 GameObject。
 
 ### 模糊与 Camera Stack
 

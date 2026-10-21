@@ -1,5 +1,3 @@
-using Cysharp.Threading.Tasks;
-
 namespace Gameplay.UI
 {
     public sealed partial class UIViewHost
@@ -109,12 +107,12 @@ namespace Gameplay.UI
                 return;
             }
 
-            ObserveShowAsync(entry, entry.View.ShowAsync()).Forget();
+            entry.View.Show();
         }
 
-        private async UniTask ObserveShowAsync(UIViewEntry entry, UniTask<bool> showTask)
+        internal void CompleteShow(UIViewToken token)
         {
-            if (!await showTask || !entry.TryCompleteShow(out var completionSource))
+            if (!_entries.TryGetValue(token, out var entry) || !entry.TryCompleteShow(out var completionSource))
             {
                 return;
             }
@@ -123,9 +121,10 @@ namespace Gameplay.UI
             completionSource?.TrySetResult();
         }
 
-        private void StartHide(UIViewEntry entry)
+        private void StartHide(UIViewEntry entry, bool immediately = false)
         {
-            if (!entry.TryBeginHide())
+            // TryBeginHide 取消 Shown 等待时也可能同步重入，不能继续派发失效的隐藏。
+            if (!entry.TryBeginHide() || !entry.IsHiding)
             {
                 return;
             }
@@ -136,28 +135,12 @@ namespace Gameplay.UI
                 return;
             }
 
-            if (!entry.View.IsShow)
-            {
-                FinishHide(entry);
-                return;
-            }
-
-            ObserveHideAsync(entry, entry.View.HideAsync(false)).Forget();
+            entry.View.Hide(immediately);
         }
 
-        private async UniTask ObserveHideAsync(UIViewEntry entry, UniTask<bool> hideTask)
+        internal void CompleteHide(UIViewToken token)
         {
-            if (!await hideTask || !entry.IsHiding)
-            {
-                return;
-            }
-
-            FinishHide(entry);
-        }
-
-        private void FinishHide(UIViewEntry entry)
-        {
-            if (!entry.TryCompleteHide())
+            if (!_entries.TryGetValue(token, out var entry) || !entry.TryCompleteHide())
             {
                 return;
             }

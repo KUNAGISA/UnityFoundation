@@ -23,14 +23,29 @@ namespace Gameplay.UI
 
         internal void Refresh(UIViewData data) => OnRefresh(data);
 
-        internal async UniTask<bool> ShowAsync()
+        internal void Show() => PlayShowAsync().Forget();
+
+        internal void Hide(bool immediately) => PlayHideAsync(immediately).Forget();
+
+        private async UniTask PlayShowAsync()
         {
             var transitionVersion = _transitionVersionGate.Bump();
+            var token = _token;
             IsShow = true;
             try
             {
                 gameObject.SetActive(true);
+                if (!IsTransitionValid(transitionVersion))
+                {
+                    return;
+                }
+
                 OnShow();
+                if (!IsTransitionValid(transitionVersion))
+                {
+                    return;
+                }
+
                 await OnPlayShowAnimation(transitionVersion);
             }
             catch (System.Exception exception)
@@ -38,19 +53,33 @@ namespace Gameplay.UI
                 Debug.LogException(exception);
             }
 
-            return IsTransitionValid(transitionVersion);
+            if (IsTransitionValid(transitionVersion))
+            {
+                token.NotifyShowCompleted();
+            }
         }
 
-        internal async UniTask<bool> HideAsync(bool immediately)
+        private async UniTask PlayHideAsync(bool immediately)
         {
             var transitionVersion = _transitionVersionGate.Bump();
+            var token = _token;
+            var wasShown = IsShow;
             IsShow = false;
             try
             {
-                OnHide();
-                if (!immediately)
+                // 已在隐藏中或尚未真正显示时，只收束过渡，不重复派发 OnHide。
+                if (wasShown)
                 {
-                    await OnPlayHideAnimation(transitionVersion);
+                    OnHide();
+                    if (!IsTransitionValid(transitionVersion))
+                    {
+                        return;
+                    }
+
+                    if (!immediately)
+                    {
+                        await OnPlayHideAnimation(transitionVersion);
+                    }
                 }
             }
             catch (System.Exception exception)
@@ -60,17 +89,15 @@ namespace Gameplay.UI
 
             if (!IsTransitionValid(transitionVersion))
             {
-                return false;
+                return;
             }
 
             DeactivateAfterHide();
-            return true;
-        }
-
-        internal void ForceHidden()
-        {
-            _transitionVersionGate.Bump();
-            DeactivateAfterHide();
+            // SetActive(false) 的 OnDisable 也允许重入，不能通知已经失效的隐藏。
+            if (IsTransitionValid(transitionVersion))
+            {
+                token.NotifyHideCompleted();
+            }
         }
 
         internal void Close()

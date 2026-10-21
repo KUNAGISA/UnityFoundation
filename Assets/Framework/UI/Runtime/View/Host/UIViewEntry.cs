@@ -5,10 +5,19 @@ using Cysharp.Threading.Tasks;
 namespace Gameplay.UI
 {
     /// <summary>
-    /// 保存一次 OpenView 创建的逻辑记录；生命周期编排统一由 UIViewHost 负责。
+    /// 管理一次 UI 打开的生命周期状态、状态转换决策及等待结果；具体流程由 UIViewHost 编排。
     /// </summary>
     internal sealed class UIViewEntry
     {
+        internal enum CloseAction
+        {
+            None,
+            Release,
+            Hide,
+            HideImmediately,
+            FinishHideImmediately
+        }
+
         private static long _viewIdGeneration;
 
         private UniTaskCompletionSource _readyCompletionSource;
@@ -70,12 +79,12 @@ namespace Gameplay.UI
 
         internal void MarkOpened() => State = UIViewEntryState.Opened;
 
-        internal bool TryRequestClose(out UIViewEntryState previousState)
+        internal CloseAction RequestClose(bool immediately)
         {
-            previousState = State;
-            if (State >= UIViewEntryState.Releasing)
+            var previousState = State;
+            if (IsReleasingOrReleased)
             {
-                return false;
+                return CloseAction.None;
             }
 
             if (State < UIViewEntryState.Closing)
@@ -84,7 +93,29 @@ namespace Gameplay.UI
                 CancelShownCompletion();
             }
 
-            return true;
+            // 取消等待者可能同步重入 Close 或 Shutdown，后续决策必须基于仍存活的记录。
+            if (IsReleasingOrReleased)
+            {
+                return CloseAction.None;
+            }
+
+            if (previousState == UIViewEntryState.Loading)
+            {
+                return View is null ? CloseAction.Release : CloseAction.None;
+            }
+
+            if (previousState == UIViewEntryState.Closing && !immediately)
+            {
+                return CloseAction.None;
+            }
+
+            return VisibilityState switch
+            {
+                UIViewVisibilityState.Hidden => CloseAction.Release,
+                UIViewVisibilityState.Showing or UIViewVisibilityState.Shown => immediately ? CloseAction.HideImmediately : CloseAction.Hide,
+                UIViewVisibilityState.Hiding when immediately => CloseAction.FinishHideImmediately,
+                _ => CloseAction.None
+            };
         }
 
         internal bool TryBeginRelease()
