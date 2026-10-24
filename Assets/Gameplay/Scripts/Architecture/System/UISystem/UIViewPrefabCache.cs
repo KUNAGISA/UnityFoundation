@@ -106,13 +106,13 @@ namespace Gameplay
         {
             if (!_operations.TryGetValue(location, out var operation))
             {
-                operation = _assetService.LoadAssetAsync<GameObject>(location) ?? throw new InvalidOperationException($"UI prefab provider returned no operation for [{location}].");
+                operation = _assetService.LoadAssetSync<GameObject>(location) ?? throw new InvalidOperationException($"UI prefab provider returned no operation for [{location}].");
                 _operations.Add(location, operation);
             }
 
             try
             {
-                var prefab = operation.IsDone ? operation.Result : operation.WaitForComplete();
+                var prefab = operation.Result;
                 if (operation.Status == AsyncOperationStatus.Failed)
                 {
                     throw operation.OperationException ?? new InvalidOperationException($"UI prefab asset [{location}] failed to load.");

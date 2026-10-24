@@ -80,6 +80,11 @@ namespace Gameplay.Asset
             }
         }
 
+        public IAssetAsyncOperation<T> LoadAssetSync<T>(string location) where T : Object
+        {
+            return CompleteSynchronously(LoadAssetAsync<T>(location));
+        }
+
         public IAssetAsyncOperation<T> LoadAssetAsync<T>(string location) where T : Object
         {
             ThrowIfNotInitialized();
@@ -93,6 +98,11 @@ namespace Gameplay.Asset
                 Debug.LogError($"[{LogCategory}] Load Asset Failed. [{location}] cant not found.");
             }
             return new AddressableAssetAsyncOperation<T>(handle);
+        }
+
+        public IAssetAsyncOperation<System.Collections.Generic.IList<T>> LoadAssetsSync<T>(string label) where T : Object
+        {
+            return CompleteSynchronously(LoadAssetsAsync<T>(label));
         }
 
         public IAssetAsyncOperation<System.Collections.Generic.IList<T>> LoadAssetsAsync<T>(string label) where T : Object
@@ -128,6 +138,20 @@ namespace Gameplay.Asset
         public async UniTask UnloadUnusedAssets(CancellationToken cancellationToken = default)
         {
             await Resources.UnloadUnusedAssets().ToUniTask(timing: PlayerLoopTiming.EarlyUpdate, cancellationToken: cancellationToken);
+        }
+
+        private static IAssetAsyncOperation<T> CompleteSynchronously<T>(IAssetAsyncOperation<T> operation)
+        {
+            try
+            {
+                operation.WaitForComplete();
+                return operation;
+            }
+            catch
+            {
+                operation.Release();
+                throw;
+            }
         }
 
         private void ThrowIfNotInitialized()

@@ -47,10 +47,16 @@ namespace Gameplay.Tables
 
         private ByteBuf LoadBuff(string path, bool cleanup = false)
         {
-            var operation = _assetService.LoadAssetAsync<TextAsset>(path);
-            operation.WaitForComplete();
-            _cache.Replace(operation.Result.bytes);
-            return _cache;
+            var operation = _assetService.LoadAssetSync<TextAsset>(path);
+            try
+            {
+                _cache.Replace(operation.Result.bytes);
+                return _cache;
+            }
+            finally
+            {
+                operation.Release();
+            }
         }
         
         [Button("加载全部"), PropertyOrder(-100)]

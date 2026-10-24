@@ -40,6 +40,7 @@
 - [0012：将剧情脚本加载与编译缓存交给独立对象](../ADR/0012-isolate-sequence-script-loading-and-cache.md)
 - [0013：保留剧情播放所有权并复用独立 ADV 状态](../ADR/0013-keep-playback-ownership-and-reuse-adv-state.md)
 - [0014：UI 过渡由 View 收束，Entry 决策与 Host 编排分离](../ADR/0014-separate-ui-transition-completion-and-close-decisions.md)
+- [0015：同步资源加载作为服务接口并保留 operation 所有权](../ADR/0015-expose-synchronous-asset-loading-with-operations.md)
 
 ## 新增文档
 

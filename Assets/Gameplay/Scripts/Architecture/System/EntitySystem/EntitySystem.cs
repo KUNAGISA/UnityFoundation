@@ -272,8 +272,8 @@ namespace Gameplay
                 return false;
             }
 
-            operation = _assetService.LoadAssetAsync<GameObject>(location);
-            prefab = operation.WaitForComplete();
+            operation = _assetService.LoadAssetSync<GameObject>(location);
+            prefab = operation.Result;
             if (prefab == null)
             {
                 Debug.LogError($"[Entities] Failed to load actor prefab. ActorId: {actorId}, Location: {location}");

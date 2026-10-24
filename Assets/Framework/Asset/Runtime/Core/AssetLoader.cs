@@ -105,7 +105,7 @@ namespace Gameplay.Asset
             }
             else
             {
-                if ((operation = _assetService.LoadAssetAsync<T>(location)) == null)
+                if ((operation = _assetService.LoadAssetSync<T>(location)) == null)
                 {
                     return null;
                 }
