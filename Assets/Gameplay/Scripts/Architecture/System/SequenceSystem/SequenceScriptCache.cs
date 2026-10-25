@@ -40,23 +40,22 @@ namespace Gameplay.Sequence
             await entry.CompletionSource.Task.AttachExternalCancellation(cancellationToken);
         }
 
-        public async UniTask<IntPtr> CreateThreadAsync(string location, CancellationToken cancellationToken = default)
+        public IntPtr CreateThread(string location)
         {
-            var cacheLifetimeToken = _cacheLifetime.Token;
             if (_entries.TryGetValue(location, out var entry))
             {
-                var chunkReference = await entry.CompletionSource.Task.AttachExternalCancellation(cancellationToken);
-                cacheLifetimeToken.ThrowIfCancellationRequested();
-                return CreateThread(default, location, chunkReference);
+                return CreateThread(default, location, entry.ChunkReference);
             }
 
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cacheLifetimeToken);
-            var operationToken = linkedCancellation.Token;
-            IAssetAsyncOperation<TextAsset> operation = null;
+            var operation = _assetService.LoadAssetSync<TextAsset>("Sequences/" + location);
             try
             {
-                operation = _assetService.LoadAssetAsync<TextAsset>("Sequences/" + location);
-                var textAsset = await operation.ToUniTask(cancellationToken: operationToken);
+                if (operation.Status != AsyncOperationStatus.Succeeded)
+                {
+                    throw new InvalidOperationException($"Failed to load sequence script [{location}].", operation.OperationException);
+                }
+
+                var textAsset = operation.Result;
                 if (textAsset == null)
                 {
                     throw new InvalidOperationException($"Sequence script [{location}] returned null.");
@@ -67,7 +66,7 @@ namespace Gameplay.Sequence
             }
             finally
             {
-                operation?.Release();
+                operation.Release();
             }
         }
 

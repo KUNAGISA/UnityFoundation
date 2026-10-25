@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Aoiro;
@@ -13,6 +14,12 @@ namespace Gameplay
 {
     public class LocalizationSystem : SystemBase
     {
+        private sealed class SequenceTextCacheEntry
+        {
+            public LocalizationCatalog Catalog;
+            public readonly UniTaskCompletionSource CompletionSource = new UniTaskCompletionSource();
+        }
+
         private const int MaxDepth = 8;
         private const string GlobalCatalogLocation = "localization";
 
@@ -20,7 +27,8 @@ namespace Gameplay
         public ISignal<LocalizationCatalogChanged> CatalogChanged => _catalogChanged;
 
         private LocalizationCatalog _globalCatalog = new LocalizationCatalog(TextSourceFlags.Global);
-        private LocalizationCatalog _sequenceCatalog = new LocalizationCatalog(TextSourceFlags.Sequence);
+        private LocalizationCatalog _sequenceCatalog;
+        private readonly Dictionary<string, SequenceTextCacheEntry> _sequenceTextCache = new Dictionary<string, SequenceTextCacheEntry>();
         private readonly LocalizationResolverRegistry _resolverRegistry = new LocalizationResolverRegistry();
         private readonly LocalizationResolveContext _resolveContext = new LocalizationResolveContext();
         private readonly Signal<LocalizationCatalogChanged> _catalogChanged = new Signal<LocalizationCatalogChanged>();
@@ -29,8 +37,9 @@ namespace Gameplay
         private IAssetService _assetService;
         private GlobalSettingModel _globalSettingModel;
         private LocalizationCompiler _compiler;
-        private string _sequenceLocation = string.Empty;
-        private long _sequenceRequestVersion;
+        private CancellationTokenSource _sequenceCacheLifetime = new CancellationTokenSource();
+        private long _sequenceTextSourceGeneration;
+        private long _currentSequenceTextSourceId;
 
         protected override void OnInitialize()
         {
@@ -44,16 +53,14 @@ namespace Gameplay
 
         protected override void OnShutdown()
         {
-            _globalCatalog.Clear();
-            _sequenceCatalog.Clear();
             _catalogChanged.Clear();
+            ClearSequenceTextCache(false);
+            _globalCatalog.Clear();
             _stringBuilderPool.Dispose();
 
             _assetService = null;
             _globalSettingModel = null;
             _compiler = null;
-            _sequenceLocation = string.Empty;
-            ++_sequenceRequestVersion;
             IsInitialized = false;
         }
 
@@ -89,61 +96,119 @@ namespace Gameplay
             }
 
             var language = _globalSettingModel.Language;
-            var sequenceLocation = _sequenceLocation;
-            var sequenceVersion = ++_sequenceRequestVersion;
             var globalCatalog = LoadCatalog(TextSourceFlags.Global, language, GlobalCatalogLocation);
-            EnsureSequenceRequest(sequenceVersion, sequenceLocation);
-            var sequenceCatalog = string.IsNullOrEmpty(sequenceLocation) ? null : LoadCatalog(TextSourceFlags.Sequence, language, sequenceLocation);
-            EnsureSequenceRequest(sequenceVersion, sequenceLocation);
+            var sequenceCatalogs = new Dictionary<string, LocalizationCatalog>(_sequenceTextCache.Count);
+            foreach (var location in _sequenceTextCache.Keys)
+            {
+                sequenceCatalogs.Add(location, LoadCatalog(TextSourceFlags.Sequence, language, location));
+            }
+
+            LocalizationCatalog sequenceCatalog = null;
+            if (_sequenceCatalog != null && !sequenceCatalogs.TryGetValue(_sequenceCatalog.Location, out sequenceCatalog))
+            {
+                sequenceCatalog = LoadCatalog(TextSourceFlags.Sequence, language, _sequenceCatalog.Location);
+            }
 
             _globalCatalog = globalCatalog;
-            if (sequenceCatalog == null)
+            foreach (var (location, catalog) in sequenceCatalogs)
             {
-                _sequenceCatalog.Clear();
+                _sequenceTextCache[location].Catalog = catalog;
             }
-            else
-            {
-                _sequenceCatalog = sequenceCatalog;
-            }
-
+            _sequenceCatalog = sequenceCatalog;
             EmitCatalogChanged(language, sequenceCatalog == null ? TextSourceFlags.Global : TextSourceFlags.Global | TextSourceFlags.Sequence);
         }
 
-        public async UniTask SetSequenceTextSourceAsync(string location, CancellationToken cancellationToken = default)
+        public async UniTask PreloadSequenceTextAsync(string location, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(location))
             {
                 throw new ArgumentException("Sequence localization location cannot be null or empty.", nameof(location));
             }
 
-            var requestVersion = ++_sequenceRequestVersion;
-            _sequenceLocation = location;
-            var language = _globalSettingModel.Language;
-
-            var catalog = await LoadCatalogAsync(TextSourceFlags.Sequence, language, location, cancellationToken, null);
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!IsSequenceRequestCurrent(requestVersion, location))
+            if (!_sequenceTextCache.TryGetValue(location, out var entry))
             {
-                return;
+                entry = new SequenceTextCacheEntry();
+                _sequenceTextCache.Add(location, entry);
+                PreloadSequenceTextCatalogAsync(entry, location, _sequenceCacheLifetime.Token).Forget();
             }
 
-            _sequenceCatalog = catalog;
-            EmitCatalogChanged(language, TextSourceFlags.Sequence);
+            // 调用方只取消自身等待，共享加载随场景缓存一起清理。
+            await entry.CompletionSource.Task.AttachExternalCancellation(cancellationToken);
         }
 
-        public void ClearSequenceTextSource()
+        public SequenceTextSourceToken ActivateSequenceTextSource(string location)
         {
-            ++_sequenceRequestVersion;
-            _sequenceLocation = string.Empty;
-            if (string.IsNullOrEmpty(_sequenceCatalog.Location))
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                throw new ArgumentException("Sequence localization location cannot be null or empty.", nameof(location));
+            }
+
+            // 播放入口保证预加载已经完成；未预加载的剧情同步读取且不写入缓存。
+            var catalog = _sequenceTextCache.TryGetValue(location, out var entry) ? entry.Catalog : LoadCatalog(TextSourceFlags.Sequence, _globalSettingModel.Language, location);
+            _sequenceCatalog = catalog;
+            _currentSequenceTextSourceId = ++_sequenceTextSourceGeneration;
+            var token = new SequenceTextSourceToken(this, _currentSequenceTextSourceId);
+            EmitCatalogChanged(_globalSettingModel.Language, TextSourceFlags.Sequence);
+            return token;
+        }
+
+        public void ClearSequenceTextCache()
+        {
+            ClearSequenceTextCache(true);
+        }
+
+        internal bool IsSequenceTextSourceActive(long activationId)
+        {
+            return activationId != 0 && activationId == _currentSequenceTextSourceId;
+        }
+
+        internal void CancelSequenceTextSource(long activationId)
+        {
+            if (!IsSequenceTextSourceActive(activationId))
             {
                 return;
             }
 
-            _sequenceCatalog.Clear();
-            if (IsInitialized)
+            _currentSequenceTextSourceId = 0;
+            _sequenceCatalog = null;
+            EmitCatalogChanged(_globalSettingModel.Language, TextSourceFlags.Sequence);
+        }
+
+        private void ClearSequenceTextCache(bool recreateLifetime)
+        {
+            _sequenceCacheLifetime.Cancel();
+            _sequenceCacheLifetime.Dispose();
+            _sequenceCacheLifetime = recreateLifetime ? new CancellationTokenSource() : null;
+            _sequenceTextCache.Clear();
+            CancelSequenceTextSource(_currentSequenceTextSourceId);
+        }
+
+        private async UniTask PreloadSequenceTextCatalogAsync(SequenceTextCacheEntry entry, string location, CancellationToken cancellationToken)
+        {
+            try
             {
-                EmitCatalogChanged(_globalSettingModel.Language, TextSourceFlags.Sequence);
+                var catalog = await LoadCatalogAsync(TextSourceFlags.Sequence, _globalSettingModel.Language, location, cancellationToken, null);
+                cancellationToken.ThrowIfCancellationRequested();
+                entry.Catalog = catalog;
+                entry.CompletionSource.TrySetResult();
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                RemoveSequenceTextCacheEntry(location, entry);
+                entry.CompletionSource.TrySetCanceled(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                RemoveSequenceTextCacheEntry(location, entry);
+                entry.CompletionSource.TrySetException(exception);
+            }
+        }
+
+        private void RemoveSequenceTextCacheEntry(string location, SequenceTextCacheEntry entry)
+        {
+            if (_sequenceTextCache.TryGetValue(location, out var current) && ReferenceEquals(current, entry))
+            {
+                _sequenceTextCache.Remove(location);
             }
         }
 
@@ -283,18 +348,8 @@ namespace Gameplay
         private static bool TryGetEntry(LocalizationCatalog catalog, string key, TextSourceFlags allowed, out LocalizationEntry entry)
         {
             entry = null;
-            return (catalog.Flags & allowed) == catalog.Flags && catalog.TryGet(key, out entry);
+            return catalog != null && (catalog.Flags & allowed) == catalog.Flags && catalog.TryGet(key, out entry);
         }
-
-        private void EnsureSequenceRequest(long version, string location)
-        {
-            if (!IsSequenceRequestCurrent(version, location))
-            {
-                throw new OperationCanceledException("Sequence localization request was replaced.");
-            }
-        }
-
-        private bool IsSequenceRequestCurrent(long version, string location) => version == _sequenceRequestVersion && string.Equals(location, _sequenceLocation, StringComparison.Ordinal);
 
         private void EmitCatalogChanged(GameLanguage language, TextSourceFlags sources) => _catalogChanged.Emit(new LocalizationCatalogChanged(language, sources));
     }

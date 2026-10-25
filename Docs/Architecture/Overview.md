@@ -43,6 +43,7 @@
 - [0015：同步资源加载作为服务接口并保留 operation 所有权](../ADR/0015-expose-synchronous-asset-loading-with-operations.md)
 - [0016：信任已验证契约并将防御保留在真实边界](../ADR/0016-trust-validated-contracts-at-runtime-boundaries.md)
 - [0017：主动语言切换同步执行并由 Command 编排](../ADR/0017-synchronous-language-switch-command.md)
+- [0018：剧情资源异步预加载，同步启动并用 Token 管理文本源](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)
 
 ## 新增文档
 

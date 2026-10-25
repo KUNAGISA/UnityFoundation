@@ -54,7 +54,7 @@ namespace Gameplay.Sequence
         
         public static void RetainThread(IntPtr thread)
         {
-            // 创建后即可脱离主状态栈，等待文本期间仍需保持协程存活。
+            // 创建后即可脱离主状态栈，直到播放收尾或创建失败时显式关闭。
             LuaAPI.lua_pushthread(thread);
             LuaAPI.lua_pushboolean(thread, true);
             LuaAPI.lua_rawset(thread, LuaConst.RegistryIndex);

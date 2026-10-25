@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Aoiro;
@@ -27,12 +26,12 @@ namespace Gameplay
         private SequencePlayback _currentPlayback;
         private int? _currentOnCompletedActionId;
         private InputModeToken _inputModeToken;
+        private SequenceTextSourceToken _textSourceToken;
         private int _playbackIdGeneration;
 
         private IInputService _inputService;
         private TablesModel _tablesModel;
         private LocalizationSystem _localizationSystem;
-        private CancellationTokenSource _playbackLoadCancellation;
         private SubscriptionToken _tableReloadedToken;
         private FrameTickToken _frameTickToken;
 
@@ -60,6 +59,7 @@ namespace Gameplay
             StopCurrentPlayback(SequencePlaybackStatus.Cancelled);
             _scriptCache?.Dispose();
             _scriptCache = null;
+            _localizationSystem?.ClearSequenceTextCache();
 
             if (_mainThread != IntPtr.Zero)
             {
@@ -86,13 +86,18 @@ namespace Gameplay
             _currentToken = token;
             _currentPlayback = new SequencePlayback(this, _currentToken);
             _currentOnCompletedActionId = sequenceEntry.OnCompletedActionId;
-            _inputModeToken = _inputService.PushMode(InputModeCatalog.Sequence);
             var playback = _currentPlayback;
-            var location = sequenceEntry.ScriptLocation;
-            var textLocation = sequenceEntry.TextLocation;
-            _playbackLoadCancellation = new CancellationTokenSource();
-
-            LoadAndStartPlaybackAsync(token, location, textLocation, _playbackLoadCancellation.Token).Forget();
+            try
+            {
+                _inputModeToken = _inputService.PushMode(InputModeCatalog.Sequence);
+                _currentThread = _scriptCache.CreateThread(sequenceEntry.ScriptLocation);
+                _textSourceToken = _localizationSystem.ActivateSequenceTextSource(sequenceEntry.TextLocation);
+                StartPlayer(_currentThread, sequenceEntry.ScriptLocation);
+            }
+            catch (Exception exception)
+            {
+                HandlePlaybackException(token, exception);
+            }
             return playback;
         }
 
@@ -100,9 +105,10 @@ namespace Gameplay
         {
             if (!_tablesModel.SequenceTable.TryGet(sequenceId, out var sequenceEntry))
             {
-                throw new KeyNotFoundException($"Sequence [{sequenceId}] was not found.");
+                Debug.LogError($"[Sequence] 找不到演出配置 [{sequenceId}]");
+                return;
             }
-            await _scriptCache.PreloadAsync(sequenceEntry.ScriptLocation, cancellationToken);
+            await UniTask.WhenAll(_scriptCache.PreloadAsync(sequenceEntry.ScriptLocation, cancellationToken), _localizationSystem.PreloadSequenceTextAsync(sequenceEntry.TextLocation, cancellationToken));
         }
 
         public void Cancel(SequenceToken token)
@@ -151,42 +157,7 @@ namespace Gameplay
         {
             StopCurrentPlayback(SequencePlaybackStatus.Cancelled);
             _scriptCache.Clear();
-        }
-
-        private async UniTask LoadAndStartPlaybackAsync(SequenceToken token, string location, string textLocation, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var localizationTask = _localizationSystem.SetSequenceTextSourceAsync(textLocation, cancellationToken);
-                var scriptTask = PreparePlaybackThreadAsync(token, location, cancellationToken);
-                // 两个任务均由 WhenAll 观察；任一失败后收尾会取消另一个任务。
-                await UniTask.WhenAll(localizationTask, scriptTask);
-                if (!IsPlaying(token))
-                {
-                    return;
-                }
-                StartPlayer(_currentThread, location);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-            }
-            catch (Exception exception)
-            {
-                HandlePlaybackException(token, exception);
-            }
-        }
-
-        private async UniTask PreparePlaybackThreadAsync(SequenceToken token, string location, CancellationToken cancellationToken)
-        {
-            var mainThread = _mainThread;
-            var thread = await _scriptCache.CreateThreadAsync(location, cancellationToken);
-            if (!IsPlaying(token))
-            {
-                SequenceLuaAPI.CloseThread(thread, mainThread);
-                return;
-            }
-            // 等待文本期间也由播放收尾负责关闭协程。
-            _currentThread = thread;
+            _localizationSystem.ClearSequenceTextCache();
         }
 
         private void OnSequenceTableReloaded(TableReloadedEvent<SequenceTable> _)
@@ -271,22 +242,19 @@ namespace Gameplay
             var mainThread = _mainThread;
             var playerHandle = _currentPlayerHandle;
             var inputModeToken = _inputModeToken;
-            var loadCancellation = _playbackLoadCancellation;
-            var localizationSystem = _localizationSystem;
+            var textSourceToken = _textSourceToken;
 
-            // 先移交到局部变量，使取消回调和旧异步任务无法再接管当前播放。
+            // 先移交并清空当前身份，旧播放的收尾只释放自己持有的资源。
             _currentPlayback = null;
             _currentPlayer = null;
             _currentThread = IntPtr.Zero;
             _currentPlayerHandle = default;
             _inputModeToken = default;
-            _playbackLoadCancellation = null;
+            _textSourceToken = default;
             _currentToken = SequenceToken.None;
             _currentOnCompletedActionId = null;
 
             inputModeToken.Cancel();
-            loadCancellation?.Cancel();
-            loadCancellation?.Dispose();
             player?.Stop();
             if (thread != IntPtr.Zero)
             {
@@ -296,10 +264,7 @@ namespace Gameplay
             {
                 playerHandle.Free();
             }
-            if (_currentPlayback == null)
-            {
-                localizationSystem?.ClearSequenceTextSource();
-            }
+            textSourceToken.Cancel();
             playback?.Complete(status);
         }
     }
