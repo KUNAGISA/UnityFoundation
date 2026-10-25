@@ -41,6 +41,7 @@
 - [0013：保留剧情播放所有权并复用独立 ADV 状态](../ADR/0013-keep-playback-ownership-and-reuse-adv-state.md)
 - [0014：UI 过渡由 View 收束，Entry 决策与 Host 编排分离](../ADR/0014-separate-ui-transition-completion-and-close-decisions.md)
 - [0015：同步资源加载作为服务接口并保留 operation 所有权](../ADR/0015-expose-synchronous-asset-loading-with-operations.md)
+- [0016：信任已验证契约并将防御保留在真实边界](../ADR/0016-trust-validated-contracts-at-runtime-boundaries.md)
 
 ## 新增文档
 

@@ -35,7 +35,7 @@ namespace Gameplay
         protected override async UniTask OnEnterAsync(GameProcedureEnterOptions options)
         {
             Context.GetService<IInputService>().PushMode(InputModeCatalog.Game).CancelWhenProcedureDestroy(Context);
-            var saveData = options?.SaveData;
+            var saveData = options.SaveData;
 
             Context.ExecuteCommand(new InitializeCharacterStateCommand());
             if (saveData != null)
@@ -43,7 +43,7 @@ namespace Gameplay
                 Context.ExecuteCommand(new RestoreGameSaveDataCommand(saveData));
             }
 
-            var sceneId = saveData?.SceneId ?? options?.InitialSceneId ?? Context.GetModel<TablesModel>().GlobalTable.InitialSceneId;
+            var sceneId = saveData?.SceneId ?? options.InitialSceneId ?? Context.GetModel<TablesModel>().GlobalTable.InitialSceneId;
             await StartSceneTransitionAsync(new SceneTransitionRequest(sceneId, SceneTransitionReason.System), saveData != null);
         }
 

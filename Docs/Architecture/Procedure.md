@@ -19,6 +19,8 @@ Procedure 提供互斥流程切换、流程生命周期、帧时间、取消和�
 
 流程切换入口为 `ProcedureSystem.Transition(in TransitionProcedureRequest request)`。新流程类型需要在 `ProcedureType` 和 `ProcedureSystem.CreateProcedure` 中注册。
 
+`Procedure<TOptions>` 在进入具体 Hook 前拒绝 null 或不匹配类型的参数，具体 `OnEnterAsync(TOptions)` 可直接访问 options。参数成员自身是否可空由对应 Options 类型约定；`LaunchProcedureOptions` 构造时还会保证 Splash 非空。
+
 ## 生命周期与核心语义
 
 Procedure 生命周期顺序为：

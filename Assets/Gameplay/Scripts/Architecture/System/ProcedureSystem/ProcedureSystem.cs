@@ -224,12 +224,9 @@ namespace Gameplay
                     await viewToken.WaitForShownAsync(cancellationToken);
                 }
 
-                if (_uiSystem.IsInitialized)
-                {
-                    _uiSystem.CloseAll(UILayer.HUD, true);
-                    _uiSystem.CloseAll(UILayer.View, true);
-                    _uiSystem.CloseAll(UILayer.Popup, true);
-                }
+                _uiSystem.CloseAll(UILayer.HUD, true);
+                _uiSystem.CloseAll(UILayer.View, true);
+                _uiSystem.CloseAll(UILayer.Popup, true);
 
                 await CleanupCurrentProcedureAsync();
                 cancellationToken.ThrowIfCancellationRequested();

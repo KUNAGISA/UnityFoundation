@@ -36,7 +36,7 @@ namespace Gameplay
                 Context.GetSystem<LocalizationSystem>().InitializeAsync(cancellationToken, localizationProgress),
                 Context.GetSystem<ConsoleSystem>().InitializeAsync(cancellationToken, consoleProgress)).Preserve();
 
-            await (options?.Splash?.WaitForSplashAsync(cancellationToken) ?? UniTask.CompletedTask);
+            await options.Splash.WaitForSplashAsync(cancellationToken);
 
             var loadingViewShownAt = -1d;
             if (!loadingTask.Status.IsCompleted())
@@ -45,7 +45,7 @@ namespace Gameplay
                 _launchLoadingViewToken = uiSystem.OpenView(new LaunchLoadingView.Data(progress));
                 await _launchLoadingViewToken.WaitForShownAsync(cancellationToken);
                 loadingViewShownAt = Time.realtimeSinceStartupAsDouble;
-                options?.Splash?.HideSplash();
+                options.Splash.HideSplash();
             }
 
             await loadingTask;
@@ -59,7 +59,7 @@ namespace Gameplay
                 }
             }
 
-            var previewSceneId = options?.PreviewSceneId;
+            var previewSceneId = options.PreviewSceneId;
             Context.GetSystem<ProcedureSystem>().Transition(new TransitionProcedureRequest(previewSceneId.HasValue ? ProcedureType.Game : ProcedureType.MainMenu)
             {
                 Reason = TransitionProcedureReason.Initialize,

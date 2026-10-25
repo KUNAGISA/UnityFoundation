@@ -206,11 +206,6 @@ namespace Gameplay
 
         private void ResolveTokens(StringBuilder builder, LocalizationToken[] tokens, TextSourceFlags allowed, int depth)
         {
-            if (depth >= MaxDepth)
-            {
-                return;
-            }
-
             for (var index = 0; index < tokens.Length; index++)
             {
                 var token = tokens[index];

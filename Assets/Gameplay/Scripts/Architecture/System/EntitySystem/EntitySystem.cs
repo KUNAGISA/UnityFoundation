@@ -211,10 +211,6 @@ namespace Gameplay
             {
                 var location = GetActorLocation(actorId);
                 operation = _assetService.LoadAssetAsync<GameObject>(location);
-                if (operation == null)
-                {
-                    throw new InvalidOperationException($"Asset service returned no actor operation. ActorId: {actorId}, Location: {location}");
-                }
                 _actorOperations.Add(actorId, operation);
                 var prefab = await operation.ToUniTask(cancellationToken: cancellationToken, cancelImmediately: true);
                 if (prefab == null)

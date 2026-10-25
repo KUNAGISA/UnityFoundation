@@ -18,7 +18,6 @@ namespace Gameplay
         private const string SettingsPath = "Settings/global.json";
 
         public GameLanguage Language { get; private set; } = GameLanguage.Chinese;
-        public bool IsLoaded { get; private set; }
 
         private IStorageService _storageService;
 
@@ -26,24 +25,20 @@ namespace Gameplay
         {
             _storageService = this.GetService<IStorageService>();
             Language = GameLanguage.Chinese;
-            IsLoaded = false;
         }
 
         protected override void OnShutdown()
         {
             _storageService = null;
             Language = GameLanguage.Chinese;
-            IsLoaded = false;
         }
 
         public async UniTask LoadAsync(CancellationToken cancellationToken = default)
         {
             Language = GameLanguage.Chinese;
-            IsLoaded = false;
 
             if (!_storageService.Exists(SettingsPath))
             {
-                IsLoaded = true;
                 return;
             }
 
@@ -66,8 +61,6 @@ namespace Gameplay
             {
                 Debug.LogWarning($"[Settings] Global settings [{SettingsPath}] is invalid JSON. Falling back to zh. {exception.Message}");
             }
-
-            IsLoaded = true;
         }
 
         internal async UniTask SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken)

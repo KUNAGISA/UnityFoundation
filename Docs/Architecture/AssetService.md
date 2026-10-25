@@ -21,6 +21,7 @@
 - 单资源加载按 location 定位，批量加载按 Addressables Label 定位。
 - 找不到资源时通过 logger 记录错误。
 - 加载返回封装 operation，创建者负责在生命周期结束时释放。
+- `LoadAssetAsync<T>` 正常返回非空 operation；加载失败通过 operation 的状态、异常或结果表达，也可能在创建 operation 前直接抛出异常，不以返回 null 表示失败。
 - 同步加载是 `IAssetService` 的正式接口，由后端实现；返回与异步入口相同类型的 operation。正常返回表示操作已完成，不代表成功，调用方通过 `Status`、`OperationException` 和 `Result` 判断结果。
 - `AddressableAssetService` 复用异步入口创建 operation 并同步等待；等待抛异常时释放未交付的 operation，再传播异常。初始化要求、资源定位、类型筛选和批量失败策略与异步入口一致。
 - `AssetLoader` 是可重复使用的资源作用域，缓存多个单资源 operation；`Clear()` 会取消未完成等待、释放缓存并允许后续复用。

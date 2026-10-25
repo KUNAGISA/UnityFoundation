@@ -100,7 +100,7 @@ namespace Gameplay
 
         private void OnProcedureLateTick(in FrameTime time)
         {
-            _playerInputChannel?.ResetTransient();
+            _playerInputChannel.ResetTransient();
         }
     }
 }
