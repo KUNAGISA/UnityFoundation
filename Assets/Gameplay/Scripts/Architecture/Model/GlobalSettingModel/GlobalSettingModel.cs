@@ -63,13 +63,13 @@ namespace Gameplay
             }
         }
 
-        internal async UniTask SetLanguageAsync(GameLanguage language, CancellationToken cancellationToken)
+        internal void SetLanguage(GameLanguage language)
         {
             var json = JsonUtility.ToJson(new SettingsFile
             {
                 language = language.GetCode(),
             }, true);
-            await _storageService.WriteTextAsync(SettingsPath, json, StorageWriteMode.Atomic, cancellationToken);
+            _storageService.WriteText(SettingsPath, json, StorageWriteMode.Atomic);
             Language = language;
         }
     }

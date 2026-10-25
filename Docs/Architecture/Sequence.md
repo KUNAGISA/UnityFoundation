@@ -66,6 +66,10 @@ Session 在 `BeginDialogue` 解析本地化文本并传入配表参数。`AdvDia
 
 View 分别订阅选项、对白与立绘通知；`Dialogue.Changed` 使用 `AdvDialogueChange` 的 `Text`、`CharacterName`、`AdvancePrompt` 标记，`All` 仅包含这三项。View 只负责显示与 TMP 测量，显示字数读取 `VisibleCharacterCount`；通过 `ReportCharacterCount(version, contentRevision, characterCount)` 回报具体版本、具体内容的字符数。尚未测量时不推进对白，过期测量不会回写。语言变化由 Session 重新解析内容并调用 `UpdateLocalizedContent`：进行中的对白清空测量并重置进度，已结束但仍留屏的对白保持完成并完整显示新译文，不重新启动 Action。
 
+主动切换语言由同步 `SetLanguageCommand` 编排：相同语言直接返回，否则先调用 `GlobalSettingModel.SetLanguage(language)` 原子保存语言设置，再调用 `LocalizationSystem.Reload()` 按当前设置同步加载全局及当前剧情文本、替换目录并统一发送 `CatalogChanged`。System 不写入语言设置，不拆分准备与提交接口，不做失败回滚；保存或加载异常直接向调用方传播，资源 operation 始终释放。切换不申请专用输入模式或 Procedure 暂停。重载递增请求版本，阻止旧剧情文本请求回写；同步加载期间若剧情源被替换或系统关闭，本次重载终止。启动初始化和剧情首次文本加载继续异步，并保留既有取消与请求版本检查。
+
+同步切换与 Command 编排的决策背景见 [ADR-0017](../ADR/0017-synchronous-language-switch-command.md)。
+
 立绘状态的修改、通道 Token 和通知集中在 `AdvPortraitRegistry`。Lua 与 Tween Action 经其方法写入，View 订阅 `Portraits.Changed` 并读取 `Entries`；`AdvPortraitEntry.VisualState` 对外为只读引用，避免绕过通道与通知修改。`AcquireChannel` 获取指定动画通道的控制权；`GetVisualStateOrDefault` 在立绘缺失时返回默认状态。翻转设置使用 `SetHorizontalFlip`、`SetVerticalFlip`，旋转设置使用 `SetRotationDegrees`，单位为度。相同通道的新动作替换旧动作，不同通道可并行。
 
 Lua 中的 `set` 指令立即设置状态，`move` 等持续动作入队并在启动时读取起点；脚本在同一次恢复中先写 `move` 再写 `set`，表示先设置到该位置，再从该位置向动作目标移动。`wait` 保持 Action/Yield 的既有等待语义。

@@ -29,7 +29,6 @@ namespace Gameplay
         private IAssetService _assetService;
         private GlobalSettingModel _globalSettingModel;
         private LocalizationCompiler _compiler;
-        private CancellationTokenSource _lifetimeCancellation;
         private string _sequenceLocation = string.Empty;
         private long _sequenceRequestVersion;
 
@@ -38,7 +37,6 @@ namespace Gameplay
             BindContext(_resolveContext);
             _assetService = this.GetService<IAssetService>();
             _globalSettingModel = this.GetModel<GlobalSettingModel>();
-            _lifetimeCancellation = new CancellationTokenSource();
 
             _resolverRegistry.Register("item", new ItemNameLocalizationResolver());
             _compiler = new LocalizationCompiler(_resolverRegistry);
@@ -46,10 +44,6 @@ namespace Gameplay
 
         protected override void OnShutdown()
         {
-            _lifetimeCancellation?.Cancel();
-            _lifetimeCancellation?.Dispose();
-            _lifetimeCancellation = null;
-
             _globalCatalog.Clear();
             _sequenceCatalog.Clear();
             _catalogChanged.Clear();
@@ -87,36 +81,32 @@ namespace Gameplay
             }
         }
 
-        public async UniTask ReloadAsync(CancellationToken cancellationToken = default)
+        public void Reload()
         {
             if (!IsInitialized)
             {
                 throw new InvalidOperationException($"{nameof(LocalizationSystem)} is not initialized.");
             }
 
-            using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCancellation.Token);
-            var operationToken = linkedCancellation.Token;
             var language = _globalSettingModel.Language;
             var sequenceLocation = _sequenceLocation;
             var sequenceVersion = ++_sequenceRequestVersion;
-            var globalTask = LoadCatalogAsync(TextSourceFlags.Global, language, GlobalCatalogLocation, operationToken, null);
+            var globalCatalog = LoadCatalog(TextSourceFlags.Global, language, GlobalCatalogLocation);
+            EnsureSequenceRequest(sequenceVersion, sequenceLocation);
+            var sequenceCatalog = string.IsNullOrEmpty(sequenceLocation) ? null : LoadCatalog(TextSourceFlags.Sequence, language, sequenceLocation);
+            EnsureSequenceRequest(sequenceVersion, sequenceLocation);
 
-            if (string.IsNullOrEmpty(sequenceLocation))
+            _globalCatalog = globalCatalog;
+            if (sequenceCatalog == null)
             {
-                var globalCatalog = await globalTask;
-                EnsureSequenceRequest(sequenceVersion, sequenceLocation, operationToken);
-                _globalCatalog = globalCatalog;
                 _sequenceCatalog.Clear();
-                EmitCatalogChanged(language, TextSourceFlags.Global);
-                return;
+            }
+            else
+            {
+                _sequenceCatalog = sequenceCatalog;
             }
 
-            var sequenceTask = LoadCatalogAsync(TextSourceFlags.Sequence, language, sequenceLocation, operationToken, null);
-            var catalogs = await UniTask.WhenAll(globalTask, sequenceTask);
-            EnsureSequenceRequest(sequenceVersion, sequenceLocation, operationToken);
-            _globalCatalog = catalogs.Item1;
-            _sequenceCatalog = catalogs.Item2;
-            EmitCatalogChanged(language, TextSourceFlags.Global | TextSourceFlags.Sequence);
+            EmitCatalogChanged(language, sequenceCatalog == null ? TextSourceFlags.Global : TextSourceFlags.Global | TextSourceFlags.Sequence);
         }
 
         public async UniTask SetSequenceTextSourceAsync(string location, CancellationToken cancellationToken = default)
@@ -179,6 +169,33 @@ namespace Gameplay
             finally
             {
                 _stringBuilderPool.Release(builder);
+            }
+        }
+
+        private LocalizationCatalog LoadCatalog(TextSourceFlags flags, GameLanguage language, string location)
+        {
+            var path = $"Localizations/{language.GetCode()}/{location}";
+            var operation = _assetService.LoadAssetSync<TextAsset>(path);
+            try
+            {
+                if (operation.Status != AsyncOperationStatus.Succeeded)
+                {
+                    throw new InvalidOperationException($"Failed to load localization catalog [{path}].", operation.OperationException);
+                }
+
+                var textAsset = operation.Result;
+                if (textAsset == null)
+                {
+                    throw new InvalidOperationException($"Localization catalog [{path}] returned null.");
+                }
+
+                var catalog = new LocalizationCatalog(flags);
+                catalog.Load(location, new ByteBuf(textAsset.bytes));
+                return catalog;
+            }
+            finally
+            {
+                operation.Release();
             }
         }
 
@@ -269,12 +286,11 @@ namespace Gameplay
             return (catalog.Flags & allowed) == catalog.Flags && catalog.TryGet(key, out entry);
         }
 
-        private void EnsureSequenceRequest(long version, string location, CancellationToken cancellationToken)
+        private void EnsureSequenceRequest(long version, string location)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (!IsSequenceRequestCurrent(version, location))
             {
-                throw new OperationCanceledException("Sequence localization request was replaced.", cancellationToken);
+                throw new OperationCanceledException("Sequence localization request was replaced.");
             }
         }
 

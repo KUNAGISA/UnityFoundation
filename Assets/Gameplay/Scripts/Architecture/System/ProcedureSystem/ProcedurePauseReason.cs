@@ -7,6 +7,5 @@ namespace Gameplay
     {
         None = 0,
         SceneTransition = 1 << 0,
-        LanguageSwitch = 1 << 1,
     }
 }

@@ -9,6 +9,5 @@ namespace Gameplay
         public static readonly InputModeDefinition UINavigation = new(150, InputChannelMask.UIModal, InputChannelMask.None);
         public static readonly InputModeDefinition Pause = new(200, InputChannelMask.None, InputChannelMask.Player | InputChannelMask.HotKey);
         public static readonly InputModeDefinition Console = new(300, InputChannelMask.UIGlobal, InputChannelMask.Player | InputChannelMask.HotKey | InputChannelMask.UIModal);
-        public static readonly InputModeDefinition LanguageSwitch = new(400, InputChannelMask.None, InputChannelMask.All);
     }
 }
