@@ -1,12 +1,5 @@
 namespace Gameplay.Sequence
 {
-    public enum AdvPortraitChangeType
-    {
-        Visual,
-        Asset,
-        SortingOrder
-    }
-
     public readonly struct AdvPortraitChange
     {
         public int PortraitId { get; }

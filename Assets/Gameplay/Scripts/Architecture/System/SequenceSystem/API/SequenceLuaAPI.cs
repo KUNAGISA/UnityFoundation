@@ -187,7 +187,7 @@ namespace Gameplay.Sequence
             }
             
             var player = GetBoundPlayer(l);
-            var portraits = player.GetModule<AdvSession>().Portraits;
+            var portraits = player.GetModule<AdvPortraitSession>();
             
             var location = LuaAPI.lua_tostring(l, 2);
             var position = portraits.GetVisualStateOrDefault(portraitId).Position;
@@ -261,7 +261,7 @@ namespace Gameplay.Sequence
             }
             
             var player = GetBoundPlayer(l);
-            player.GetModule<AdvSession>().Portraits.SetSortingOrder(portraitId, order);
+            player.GetModule<AdvPortraitSession>().SetSortingOrder(portraitId, order);
             return 0;
         }
         
@@ -307,7 +307,7 @@ namespace Gameplay.Sequence
             }
             
             var player = GetBoundPlayer(l);
-            player.GetModule<AdvSession>().Portraits.SetOrigin(portraitId, origin);
+            player.GetModule<AdvPortraitSession>().SetOrigin(portraitId, origin);
             return 0;
         }
 
@@ -322,7 +322,7 @@ namespace Gameplay.Sequence
             var isHorizontal = LuaAPI.lua_toboolean(l, 3);
 
             var player = GetBoundPlayer(l);
-            var portraits = player.GetModule<AdvSession>().Portraits;
+            var portraits = player.GetModule<AdvPortraitSession>();
             
             if (isHorizontal)
             {

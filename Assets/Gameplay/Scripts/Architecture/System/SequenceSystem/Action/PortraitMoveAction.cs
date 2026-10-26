@@ -8,6 +8,6 @@ namespace Gameplay.Sequence
         protected override AdvPortraitChannel Channel => AdvPortraitChannel.Position;
         protected override Vector2 Read(in AdvPortraitVisualState state) => state.Position;
         protected override Vector2 Interpolate(Vector2 start, Vector2 target, float progress) => Vector2.Lerp(start, target, progress);
-        protected override void Write(AdvPortraitRegistry portraits, in AdvPortraitChannelToken token, Vector2 value) => portraits.SetPosition(token, value);
+        protected override void Write(AdvPortraitSession portraits, in AdvPortraitChannelToken token, Vector2 value) => portraits.SetPosition(token, value);
     }
 }

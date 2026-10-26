@@ -9,13 +9,13 @@ namespace Gameplay.Sequence
 {
     internal sealed class AdvViewPreparation : SequencePreparation
     {
-        private readonly AdvSession _session;
+        private readonly AdvViewSession _session;
         private readonly UIViewToken _token;
         private CancellationTokenSource _cancellation;
         private Exception _exception;
         private bool _isCompleted;
 
-        internal AdvViewPreparation(AdvSession session, UIViewToken token)
+        internal AdvViewPreparation(AdvViewSession session, UIViewToken token)
         {
             _session = session;
             _token = token;

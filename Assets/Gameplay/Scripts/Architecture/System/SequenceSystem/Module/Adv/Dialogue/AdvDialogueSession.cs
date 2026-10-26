@@ -1,12 +1,16 @@
 using System;
 using Aoiro;
+using Aoiro.Sequence;
 using Gameplay.Common;
+using Gameplay.Tables;
 
 namespace Gameplay.Sequence
 {
-    public sealed class AdvDialogue
+    public sealed class AdvDialogueSession : SequenceModule<ISequenceContext>
     {
-        private readonly Signal<AdvDialogueChange> _changed = new Signal<AdvDialogueChange>();
+        private readonly Signal<AdvDialogueChangeFlags> _changed = new Signal<AdvDialogueChangeFlags>();
+        private LocalizationSystem _localizationSystem;
+        private SubscriptionToken _localizationChangedToken;
         private VersionGate _version;
         private VersionGate _contentRevision;
         private double _characterIntervalMs;
@@ -16,54 +20,61 @@ namespace Gameplay.Sequence
         private int _characterCount;
         private bool _autoAdvance;
         private bool _measurementReady;
-        private bool _textCompleted;
-        private bool _completed;
+        private bool _revealCompleted;
+        private bool _hasDialogue;
+        private string _textKey = string.Empty;
+        private string _characterNameKey = string.Empty;
 
-        public bool HasDialogue { get; private set; }
-        public bool IsCompleted => _completed;
-        public string TextKey { get; private set; } = string.Empty;
-        public string CharacterNameKey { get; private set; } = string.Empty;
+        public bool IsCompleted { get; private set; }
         public string Text { get; private set; } = string.Empty;
         public string CharacterName { get; private set; } = string.Empty;
         public int VisibleCharacterCount { get; private set; }
         public bool AdvancePromptVisible { get; private set; }
         public VersionToken Version => _version.Current;
         public VersionToken ContentRevision => _contentRevision.Current;
-        public ISignal<AdvDialogueChange> Changed => _changed;
+        public ISignal<AdvDialogueChangeFlags> Changed => _changed;
 
-        public VersionToken Begin(string textKey, string characterNameKey, string text, string characterName, double characterIntervalMs, double advanceWaitMs, bool autoAdvance)
+        protected override SequencePreparation OnPrepare()
         {
-            HasDialogue = true;
-            TextKey = textKey;
-            CharacterNameKey = characterNameKey;
+            _localizationSystem = Player.Context.GetSystem<LocalizationSystem>();
+            _localizationChangedToken = _localizationSystem.CatalogChanged.Subscribe(OnLocalizationCatalogChanged);
+            return null;
+        }
+
+        public VersionToken Begin(string textKey, string characterNameKey, bool autoAdvance)
+        {
+            textKey ??= string.Empty;
+            characterNameKey ??= string.Empty;
+            var text = _localizationSystem.Get(textKey, TextSourceFlags.Sequence | TextSourceFlags.Global);
+            var characterName = ResolveCharacterName(characterNameKey);
+            var settings = Player.Context.GetModel<TablesModel>().SequenceSettingsTable;
+            _hasDialogue = true;
+            _textKey = textKey;
+            _characterNameKey = characterNameKey;
             Text = text;
             CharacterName = characterName;
-            _characterIntervalMs = characterIntervalMs;
-            _advanceWaitMs = advanceWaitMs;
+            _characterIntervalMs = settings.MessageCharIntervalMs;
+            _advanceWaitMs = settings.MessageAdvanceableWaitTimeMs;
             _autoAdvance = autoAdvance;
             ResetProgress();
             var version = _version.Bump();
             _contentRevision.Bump();
-            _changed.Emit(AdvDialogueChange.All);
+            _changed.Emit(AdvDialogueChangeFlags.All);
             return version;
         }
 
-        public void UpdateLocalizedContent(string text, string characterName)
+        private void UpdateLocalizedContent(string text, string characterName)
         {
-            if (!HasDialogue)
-            {
-                return;
-            }
-            var completed = _completed;
+            var completed = IsCompleted;
             Text = text;
             CharacterName = characterName;
             ResetProgress();
-            _completed = completed;
+            IsCompleted = completed;
             // 已结束的 Action 不再 Tick，换语言后直接完整显示新译文。
             VisibleCharacterCount = completed ? int.MaxValue : 0;
             AdvancePromptVisible = completed;
             _contentRevision.Bump();
-            _changed.Emit(AdvDialogueChange.All);
+            _changed.Emit(AdvDialogueChangeFlags.All);
         }
 
         public void ReportCharacterCount(in VersionToken version, in VersionToken contentRevision, int characterCount)
@@ -75,7 +86,7 @@ namespace Gameplay.Sequence
             _characterCount = characterCount;
             _durationMs = characterCount * _characterIntervalMs + _advanceWaitMs;
             _measurementReady = true;
-            if (_completed)
+            if (IsCompleted)
             {
                 VisibleCharacterCount = characterCount;
             }
@@ -88,27 +99,27 @@ namespace Gameplay.Sequence
                 return;
             }
             _elapsedMs += deltaTime * 1000f;
-            var changed = AdvDialogueChange.None;
-            if (!_textCompleted)
+            var changed = AdvDialogueChangeFlags.None;
+            if (!_revealCompleted)
             {
                 var visibleCharacterCount = Math.Min((int)Math.Floor(_elapsedMs / _characterIntervalMs), _characterCount);
                 if (VisibleCharacterCount != visibleCharacterCount)
                 {
                     VisibleCharacterCount = visibleCharacterCount;
-                    changed |= AdvDialogueChange.Text;
+                    changed |= AdvDialogueChangeFlags.Text;
                 }
                 if (visibleCharacterCount >= _characterCount)
                 {
-                    _textCompleted = true;
+                    _revealCompleted = true;
                     AdvancePromptVisible = true;
-                    changed |= AdvDialogueChange.AdvancePrompt;
+                    changed |= AdvDialogueChangeFlags.AdvancePrompt;
                 }
             }
             if (_autoAdvance && _elapsedMs >= _durationMs)
             {
-                _completed = true;
+                IsCompleted = true;
             }
-            if (changed != AdvDialogueChange.None)
+            if (changed != AdvDialogueChangeFlags.None)
             {
                 _changed.Emit(changed);
             }
@@ -121,28 +132,45 @@ namespace Gameplay.Sequence
                 return;
             }
             // 保留原推进规则：未到允许继续的时点时，先补全文字并跳过等待。
-            _completed = _elapsedMs >= _durationMs;
+            IsCompleted = _elapsedMs >= _durationMs;
             _elapsedMs = _durationMs;
-            _textCompleted = true;
+            _revealCompleted = true;
             VisibleCharacterCount = _characterCount;
             AdvancePromptVisible = true;
-            _changed.Emit(AdvDialogueChange.Text | AdvDialogueChange.AdvancePrompt);
+            _changed.Emit(AdvDialogueChangeFlags.Text | AdvDialogueChangeFlags.AdvancePrompt);
         }
 
         public bool IsCurrent(in VersionToken version)
         {
-            return HasDialogue && version == Version;
+            return _hasDialogue && version == Version;
         }
 
-        public void Clear()
+        protected override void OnCleanup()
         {
+            _localizationChangedToken.Cancel();
+            _localizationChangedToken = default;
+            _localizationSystem = null;
             _changed.Clear();
-            HasDialogue = false;
-            TextKey = string.Empty;
-            CharacterNameKey = string.Empty;
+            _hasDialogue = false;
+            _textKey = string.Empty;
+            _characterNameKey = string.Empty;
             Text = string.Empty;
             CharacterName = string.Empty;
             ResetProgress();
+        }
+
+        private void OnLocalizationCatalogChanged(LocalizationCatalogChanged change)
+        {
+            if (_hasDialogue && (change.Sources & (TextSourceFlags.Global | TextSourceFlags.Sequence)) != 0)
+            {
+                var text = _localizationSystem.Get(_textKey, TextSourceFlags.Sequence | TextSourceFlags.Global);
+                UpdateLocalizedContent(text, ResolveCharacterName(_characterNameKey));
+            }
+        }
+
+        private string ResolveCharacterName(string key)
+        {
+            return string.IsNullOrEmpty(key) ? string.Empty : _localizationSystem.Get(key, TextSourceFlags.Sequence | TextSourceFlags.Global);
         }
 
         private void ResetProgress()
@@ -151,8 +179,8 @@ namespace Gameplay.Sequence
             _durationMs = 0;
             _characterCount = 0;
             _measurementReady = false;
-            _textCompleted = false;
-            _completed = false;
+            _revealCompleted = false;
+            IsCompleted = false;
             VisibleCharacterCount = 0;
             AdvancePromptVisible = false;
         }

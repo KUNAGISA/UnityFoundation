@@ -5,7 +5,7 @@ namespace Gameplay.Sequence
         private readonly int _portraitId;
         private readonly int[] _channelVersions = new int[(int)AdvPortraitChannel.Count];
         
-        private AdvPortraitVisualState _visualState;
+        private AdvPortraitVisualState _visualState = AdvPortraitVisualState.Default;
         public ref readonly AdvPortraitVisualState VisualState => ref _visualState;
         internal ref AdvPortraitVisualState MutableVisualState => ref _visualState;
         
@@ -15,7 +15,6 @@ namespace Gameplay.Sequence
         internal AdvPortraitEntry(int portraitId)
         {
             _portraitId = portraitId;
-            _visualState.Reset();
         }
         
         internal AdvPortraitChannelToken AcquireChannel(AdvPortraitChannel channel)
@@ -27,7 +26,7 @@ namespace Gameplay.Sequence
         internal bool IsValid(in AdvPortraitChannelToken token)
         {
             var channel = (int)token.Channel;
-            return channel >= 0 && channel < _channelVersions.Length && _channelVersions[channel] == token.Version;
+            return token.Version != 0 && channel >= 0 && channel < _channelVersions.Length && _channelVersions[channel] == token.Version;
         }
     }
 }

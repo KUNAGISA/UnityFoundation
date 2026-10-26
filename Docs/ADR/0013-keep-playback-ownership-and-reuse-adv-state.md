@@ -1,8 +1,10 @@
 ---
-status: accepted
+status: superseded by ADR-0019
 ---
 
 # 保留剧情播放所有权并复用独立 ADV 状态
+
+ADV 状态的组织方式由 [ADR-0019](0019-split-adv-sessions-and-widgets-with-action-driven-dialogue.md) 调整；单次播放资源仍由 SequenceSystem 完整持有，对白继续通过 Action 参与调度。
 
 SequenceSystem 的播放资源没有独立于当前播放的使用者，而 AdvSession 同时承载对白、选项和立绘状态，使动作与 View 容易跨越职责边界。决定由 SequenceSystem 保留单次播放资源的完整所有权，AdvSession 持有并在整段剧情中复用普通对象 AdvDialogue 与 AdvPortraitRegistry，分别集中对白状态和立绘修改。这样将确有独立规则的状态从会话编排中分离，同时避免仅为搬移私有方法而新增播放所有者或架构模块。
 

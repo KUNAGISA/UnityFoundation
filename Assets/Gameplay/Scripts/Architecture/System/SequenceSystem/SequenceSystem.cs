@@ -207,7 +207,10 @@ namespace Gameplay
             var routine = new LuaSequenceRoutine(_mainThread, thread);
             _currentPlayer = new SequencePlayer<ISequenceContext>(_context, routine, builder =>
             {
-                builder.Register(new AdvSession());
+                builder.Register(new AdvDialogueSession());
+                builder.Register(new AdvChoiceSession());
+                builder.Register(new AdvPortraitSession());
+                builder.Register(new AdvViewSession());
             });
             _currentPlayerHandle = GCHandle.Alloc(_currentPlayer, GCHandleType.Normal);
             SequenceLuaAPI.BindPlayer(thread, GCHandle.ToIntPtr(_currentPlayerHandle));

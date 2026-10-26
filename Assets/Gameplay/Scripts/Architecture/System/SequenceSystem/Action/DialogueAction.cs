@@ -8,7 +8,7 @@ namespace Gameplay.Sequence
         private readonly string _textKey;
         private readonly string _nameKey;
         private readonly bool _autoAdvance;
-        private AdvDialogue _dialogue;
+        private AdvDialogueSession _dialogue;
         private VersionToken _dialogueVersion;
 
         internal DialogueAction(string textKey, string nameKey = null, int? audioId = null, bool autoAdvance = false)
@@ -20,9 +20,8 @@ namespace Gameplay.Sequence
 
         protected override void OnStart()
         {
-            var session = Player.GetModule<AdvSession>();
-            _dialogue = session.Dialogue;
-            _dialogueVersion = session.BeginDialogue(_textKey, _nameKey, _autoAdvance);
+            _dialogue = Player.GetModule<AdvDialogueSession>();
+            _dialogueVersion = _dialogue.Begin(_textKey, _nameKey, _autoAdvance);
         }
 
         protected override bool EvaluateCompletion() => !_dialogue.IsCurrent(_dialogueVersion) || _dialogue.IsCompleted;

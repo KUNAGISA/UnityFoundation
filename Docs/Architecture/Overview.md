@@ -38,12 +38,13 @@
 - [0010：拆分条件观察与同步行为分发，行为发起即视为成功](../ADR/0010-separate-condition-observation-and-action-dispatch.md)
 - [0011：剧情正常结束后执行可选配表行为](../ADR/0011-run-configured-action-after-sequence-completion.md)
 - [0012：将剧情脚本加载与编译缓存交给独立对象](../ADR/0012-isolate-sequence-script-loading-and-cache.md)
-- [0013：保留剧情播放所有权并复用独立 ADV 状态](../ADR/0013-keep-playback-ownership-and-reuse-adv-state.md)
+- [0013：保留剧情播放所有权并复用独立 ADV 状态（已取代）](../ADR/0013-keep-playback-ownership-and-reuse-adv-state.md)
 - [0014：UI 过渡由 View 收束，Entry 决策与 Host 编排分离](../ADR/0014-separate-ui-transition-completion-and-close-decisions.md)
 - [0015：同步资源加载作为服务接口并保留 operation 所有权](../ADR/0015-expose-synchronous-asset-loading-with-operations.md)
 - [0016：信任已验证契约并将防御保留在真实边界](../ADR/0016-trust-validated-contracts-at-runtime-boundaries.md)
 - [0017：主动语言切换同步执行并由 Command 编排](../ADR/0017-synchronous-language-switch-command.md)
 - [0018：剧情资源异步预加载，同步启动并用 Token 管理文本源](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)
+- [0019：按能力拆分 ADV Session 与 Widget，并保留 Action 驱动对白](../ADR/0019-split-adv-sessions-and-widgets-with-action-driven-dialogue.md)
 
 ## 新增文档
 

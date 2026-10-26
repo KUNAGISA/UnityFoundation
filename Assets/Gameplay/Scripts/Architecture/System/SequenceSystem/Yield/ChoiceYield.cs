@@ -17,22 +17,22 @@ namespace Gameplay.Sequence
 
         protected override void OnBegin()
         {
-            _choiceToken = Player.GetModule<AdvSession>().ShowChoices(_choiceId, _choices);
+            _choiceToken = Player.GetModule<AdvChoiceSession>().Show(_choiceId, _choices);
         }
 
         protected override void OnCleanup()
         {
-            Player.GetModule<AdvSession>().HideChoices(_choiceToken);
+            Player.GetModule<AdvChoiceSession>().Hide(_choiceToken);
         }
 
         protected override bool EvaluateCompletion()
         {
-            return Player.GetModule<AdvSession>().TryGetSelectedChoice(_choiceToken, out _);
+            return Player.GetModule<AdvChoiceSession>().TryGetSelectedIndex(_choiceToken, out _);
         }
 
         protected override int? CreateResult()
         {
-            return Player.GetModule<AdvSession>().TryGetSelectedChoice(_choiceToken, out var index) ? index + 1 : 1;
+            return Player.GetModule<AdvChoiceSession>().TryGetSelectedIndex(_choiceToken, out var index) ? index + 1 : 1;
         }
     }
 }

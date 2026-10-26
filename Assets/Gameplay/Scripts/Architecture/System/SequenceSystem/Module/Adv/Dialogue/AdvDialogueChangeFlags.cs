@@ -3,7 +3,7 @@ using System;
 namespace Gameplay.Sequence
 {
     [Flags]
-    public enum AdvDialogueChange
+    public enum AdvDialogueChangeFlags
     {
         None = 0,
         Text = 1 << 0,

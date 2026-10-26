@@ -1,25 +1,21 @@
 using System.Collections.Generic;
 using Aoiro;
+using Aoiro.Sequence;
 using Gameplay.Common;
 using UnityEngine;
 
 namespace Gameplay.Sequence
 {
-    public sealed class AdvPortraitRegistry
+    public sealed class AdvPortraitSession : SequenceModule<ISequenceContext>
     {
         private readonly Dictionary<int, AdvPortraitEntry> _entries = new Dictionary<int, AdvPortraitEntry>();
         private readonly Signal<AdvPortraitChange> _changed = new Signal<AdvPortraitChange>();
-        private readonly AdvPortraitVisualState _defaultVisualState;
+        private readonly AdvPortraitVisualState _defaultVisualState = AdvPortraitVisualState.Default;
 
         public IReadOnlyDictionary<int, AdvPortraitEntry> Entries => _entries;
         public ISignal<AdvPortraitChange> Changed => _changed;
 
-        public AdvPortraitRegistry()
-        {
-            _defaultVisualState.Reset();
-        }
-
-        public void Clear()
+        protected override void OnCleanup()
         {
             _changed.Clear();
             _entries.Clear();
