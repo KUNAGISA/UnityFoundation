@@ -107,6 +107,8 @@ namespace Gameplay
             
             RegisterModule(new CharacterModel());
             RegisterModule(new GameStateModel());
+            RegisterModule(new GameVariableModel());
+            RegisterModule(new GlobalVariableModel());
             RegisterModule(new SpawnPointModel());
             RegisterModule(new MovementRouteModel());
             

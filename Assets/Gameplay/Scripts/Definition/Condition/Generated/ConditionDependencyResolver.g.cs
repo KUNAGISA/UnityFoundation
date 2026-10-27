@@ -45,6 +45,18 @@ namespace Gameplay
                 case global::Gameplay.Tables.FalseConditionDef.__ID__:
                     global::Gameplay.FalseConditionResolver.CollectDependencies((global::Gameplay.Tables.FalseConditionDef)condition, collector);
                     break;
+                case global::Gameplay.Tables.GameBoolVariableConditionDef.__ID__:
+                    global::Gameplay.GameBoolVariableConditionResolver.CollectDependencies((global::Gameplay.Tables.GameBoolVariableConditionDef)condition, collector);
+                    break;
+                case global::Gameplay.Tables.GameIntVariableConditionDef.__ID__:
+                    global::Gameplay.GameIntVariableConditionResolver.CollectDependencies((global::Gameplay.Tables.GameIntVariableConditionDef)condition, collector);
+                    break;
+                case global::Gameplay.Tables.GlobalBoolVariableConditionDef.__ID__:
+                    global::Gameplay.GlobalBoolVariableConditionResolver.CollectDependencies((global::Gameplay.Tables.GlobalBoolVariableConditionDef)condition, collector);
+                    break;
+                case global::Gameplay.Tables.GlobalIntVariableConditionDef.__ID__:
+                    global::Gameplay.GlobalIntVariableConditionResolver.CollectDependencies((global::Gameplay.Tables.GlobalIntVariableConditionDef)condition, collector);
+                    break;
                 case global::Gameplay.Tables.TrueConditionDef.__ID__:
                     global::Gameplay.TrueConditionResolver.CollectDependencies((global::Gameplay.Tables.TrueConditionDef)condition, collector);
                     break;

@@ -29,6 +29,10 @@ public abstract partial class ActionDef : Luban.BeanBase
         switch (buffer.ReadInt())
         {
             case PlaySequenceActionDef.__ID__: return new PlaySequenceActionDef(buffer);
+            case SetGameIntVariableActionDef.__ID__: return new SetGameIntVariableActionDef(buffer);
+            case SetGameBoolVariableActionDef.__ID__: return new SetGameBoolVariableActionDef(buffer);
+            case SetGlobalIntVariableActionDef.__ID__: return new SetGlobalIntVariableActionDef(buffer);
+            case SetGlobalBoolVariableActionDef.__ID__: return new SetGlobalBoolVariableActionDef(buffer);
             default: throw new SerializationException();
         }
     }

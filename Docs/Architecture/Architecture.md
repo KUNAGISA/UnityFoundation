@@ -6,6 +6,7 @@
 
 - `Service` 封装底层能力或外部服务，通过接口注册和访问。
 - `Model` 持有共享状态与运行时数据。
+- Model 不访问同层 Model；跨 Model 的数据准备、初始化和写入由 Command 编排。
 - `System` 承担业务能力和长期生命周期，不默认拥有访问其他 System 的权限。
 - `Command` 编排无状态写操作，尤其适合需要多个 System 协作的流程。
 - `Query<TResult>` 承担读操作或无副作用推导。

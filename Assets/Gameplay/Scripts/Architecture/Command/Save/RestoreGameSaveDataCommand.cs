@@ -61,7 +61,7 @@ namespace Gameplay
                 }
             }
 
-            context.GetModel<GameStateModel>().LoadCompletedSceneEvents(_saveData.CompletedSceneEvents);
+            context.GetModel<GameVariableModel>().Restore(_saveData.Variables);
         }
 
         private static void ApplyPlayerCharacter(PlayerCharacterSaveData saveData, PlayerCharacterState state)

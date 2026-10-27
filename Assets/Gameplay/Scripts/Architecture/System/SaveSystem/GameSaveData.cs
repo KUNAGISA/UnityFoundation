@@ -10,6 +10,6 @@ namespace Gameplay
         [Key(1)] public long SaveTimeUtcTicks { get; set; }
         [Key(2)] public PlayerCharacterSaveData PlayerCharacter { get; set; }
         [Key(3)] public List<NpcSaveData> Npcs { get; set; }
-        [Key(4)] public List<int> CompletedSceneEvents { get; set; }
+        [Key(4)] public VariableSaveData Variables { get; set; }
     }
 }

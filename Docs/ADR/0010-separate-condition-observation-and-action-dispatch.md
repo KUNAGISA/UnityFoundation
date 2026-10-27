@@ -8,6 +8,8 @@ Condition 与 Action 已使用各自总表，但条件观察和 Action 监视仍
 
 本决定取代 [ADR-0009](0009-centralize-condition-observation-in-rule-system.md)，当前接口见 [ConditionSystem](../Architecture/Conditions.md) 和 [ActionSystem](../Architecture/Actions.md)。
 
+后续场景事件完成记录改由业务条件表达，见 [ADR-0022](0022-condition-driven-scene-event-availability.md)；配表重载后的条件缓存改为显式刷新，见 [ADR-0023](0023-explicit-condition-configuration-refresh.md)。本记录保留当时的取舍与影响。
+
 ## 备选方案
 
 - 单一 RuleSystem 同时提供条件观察与无状态行为分发：接口入口较少，但没有体现跨来源同步重入的协调职责；选择分开维护观察生命周期和行为执行顺序。

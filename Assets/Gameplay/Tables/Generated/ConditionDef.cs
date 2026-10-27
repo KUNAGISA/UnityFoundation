@@ -32,6 +32,10 @@ public abstract partial class ConditionDef : Luban.BeanBase
             case FalseConditionDef.__ID__: return new FalseConditionDef(buffer);
             case AllConditionDef.__ID__: return new AllConditionDef(buffer);
             case AnyConditionDef.__ID__: return new AnyConditionDef(buffer);
+            case GameIntVariableConditionDef.__ID__: return new GameIntVariableConditionDef(buffer);
+            case GameBoolVariableConditionDef.__ID__: return new GameBoolVariableConditionDef(buffer);
+            case GlobalIntVariableConditionDef.__ID__: return new GlobalIntVariableConditionDef(buffer);
+            case GlobalBoolVariableConditionDef.__ID__: return new GlobalBoolVariableConditionDef(buffer);
             default: throw new SerializationException();
         }
     }

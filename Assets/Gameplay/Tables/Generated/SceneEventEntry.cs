@@ -20,7 +20,6 @@ public sealed partial class SceneEventEntry : Luban.BeanBase
     {
         EventId = buffer.ReadInt();
         Desc = buffer.ReadString();
-        RepeatMode = (SceneEventRepeatMode)buffer.ReadInt();
         ConditionId = buffer.ReadInt();
         ActionId = buffer.ReadInt();
     }
@@ -42,8 +41,6 @@ public sealed partial class SceneEventEntry : Luban.BeanBase
     [LabelText("事件描述")]
     [ShowInInspector]
     public readonly string Desc;
-    [ShowInInspector]
-    public readonly SceneEventRepeatMode RepeatMode;
     /// <summary>
     /// 条件
     /// </summary>
@@ -65,7 +62,6 @@ public sealed partial class SceneEventEntry : Luban.BeanBase
         return "{ "
         + "EventId:" + EventId + ","
         + "Desc:" + Desc + ","
-        + "RepeatMode:" + RepeatMode + ","
         + "ConditionId:" + ConditionId + ","
         + "ActionId:" + ActionId + ","
         + "}";

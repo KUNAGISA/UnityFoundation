@@ -31,7 +31,10 @@ namespace Gameplay
         private readonly ConditionDependencyCollector _dependencyCollector = new();
         private ConditionContext _context;
         private TablesModel _tablesModel;
-        private SubscriptionToken _tableReloadedToken;
+        private SubscriptionToken _gameIntVariableChangedToken;
+        private SubscriptionToken _gameBoolVariableChangedToken;
+        private SubscriptionToken _globalIntVariableChangedToken;
+        private SubscriptionToken _globalBoolVariableChangedToken;
         private long _nextRegistrationId;
         private bool _isRefreshing;
 
@@ -39,13 +42,22 @@ namespace Gameplay
         {
             _context = BindContext(new ConditionContext());
             _tablesModel = this.GetModel<TablesModel>();
-            _tableReloadedToken = this.SubscribeEvent<TableReloadedEvent<ConditionTable>>(OnTableReloaded);
+            _gameIntVariableChangedToken = this.SubscribeEvent<GameIntVariableChangedEvent>(_ => Refresh(ConditionChangeType.GameIntVariable));
+            _gameBoolVariableChangedToken = this.SubscribeEvent<GameBoolVariableChangedEvent>(_ => Refresh(ConditionChangeType.GameBoolVariable));
+            _globalIntVariableChangedToken = this.SubscribeEvent<GlobalIntVariableChangedEvent>(_ => Refresh(ConditionChangeType.GlobalIntVariable));
+            _globalBoolVariableChangedToken = this.SubscribeEvent<GlobalBoolVariableChangedEvent>(_ => Refresh(ConditionChangeType.GlobalBoolVariable));
         }
 
         protected override void OnShutdown()
         {
-            _tableReloadedToken.Cancel();
-            _tableReloadedToken = default;
+            _gameIntVariableChangedToken.Cancel();
+            _gameIntVariableChangedToken = default;
+            _gameBoolVariableChangedToken.Cancel();
+            _gameBoolVariableChangedToken = default;
+            _globalIntVariableChangedToken.Cancel();
+            _globalIntVariableChangedToken = default;
+            _globalBoolVariableChangedToken.Cancel();
+            _globalBoolVariableChangedToken = default;
             _registrations.Clear();
             _observations.Clear();
             _observationsByChangeType.Clear();
@@ -150,9 +162,9 @@ namespace Gameplay
             ProcessRefreshes();
         }
 
-        private void OnTableReloaded(TableReloadedEvent<ConditionTable> evt)
+        public void RefreshAll()
         {
-            // 配表重载由 EarlyTick 发起，不会重入正在执行的刷新。
+            // 外部入口在主线程调用，不支持从条件通知回调重入。
             _isRefreshing = true;
             try
             {

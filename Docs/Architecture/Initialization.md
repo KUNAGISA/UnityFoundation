@@ -34,6 +34,7 @@
 
 - 只依赖资源服务的任务放入资源服务完成后的并行组。
 - 依赖其他模块或运行时 Root 的任务在对应依赖就绪后启动。
+- 变量不复制或初始化配表默认值，读取时由 Query 从表取得。Launch 在配表加载完成后等待 GlobalVariableModel.LoadAsync，由 Model 内部完成独立文件读取和覆盖值整体应用，不检查变量配置 ID；具体接口见[变量模块](Variables.md)。
 - 仅由具体 Procedure 或场景使用的资源归属对应生命周期，不加入全局启动。
 - 模块持有 operation 和清理逻辑；Launch 只表达依赖、启动任务和进度。
 - 初始化链路保持异步，不使用 `WaitForCompletion`。

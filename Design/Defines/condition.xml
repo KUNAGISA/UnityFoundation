@@ -11,4 +11,30 @@
     <bean name="AnyConditionDef" sep="," parent="ConditionDef" comment="任一成立" alias="任一成立">
         <var name="conditions" type="(array#sep=|),ConditionDef" comment="条件列表"/>
     </bean>
+    <enum name="IntVariableComparisonOperator">
+        <var name="Equal" value="0" alias="等于"/>
+        <var name="NotEqual" value="1" alias="不等于"/>
+        <var name="Greater" value="2" alias="大于"/>
+        <var name="GreaterOrEqual" value="3" alias="大于等于"/>
+        <var name="Less" value="4" alias="小于"/>
+        <var name="LessOrEqual" value="5" alias="小于等于"/>
+    </enum>
+    <bean name="GameIntVariableConditionDef" sep="," parent="ConditionDef" comment="游戏整数变量" alias="游戏整数变量">
+        <var name="variableId" type="int#ref=GameIntVariableTable"/>
+        <var name="comparison" type="IntVariableComparisonOperator"/>
+        <var name="value" type="int"/>
+    </bean>
+    <bean name="GameBoolVariableConditionDef" sep="," parent="ConditionDef" comment="游戏布尔变量" alias="游戏布尔变量">
+        <var name="variableId" type="int#ref=GameBoolVariableTable"/>
+        <var name="value" type="bool"/>
+    </bean>
+    <bean name="GlobalIntVariableConditionDef" sep="," parent="ConditionDef" comment="全局整数变量" alias="全局整数变量">
+        <var name="variableId" type="int#ref=GlobalIntVariableTable"/>
+        <var name="comparison" type="IntVariableComparisonOperator"/>
+        <var name="value" type="int"/>
+    </bean>
+    <bean name="GlobalBoolVariableConditionDef" sep="," parent="ConditionDef" comment="全局布尔变量" alias="全局布尔变量">
+        <var name="variableId" type="int#ref=GlobalBoolVariableTable"/>
+        <var name="value" type="bool"/>
+    </bean>
 </module>

@@ -181,16 +181,10 @@ namespace Gameplay
 
         private void RefreshTriggerableState(SceneEventState state, bool useCache = true)
         {
-            var completed = state.Config.RepeatMode == SceneEventRepeatMode.Once && this.GetModel<GameStateModel>().IsSceneEventCompleted(state.EventId);
-            state.IsTriggerable = !completed && _conditionSystem.Evaluate(state.Config.ConditionId, useCache);
-            NotifyTriggerableState(state);
-        }
-
-        private void NotifyTriggerableState(SceneEventState state)
-        {
+            state.IsTriggerable = _conditionSystem.Evaluate(state.Config.ConditionId, useCache);
             if (state.Point != null)
             {
-                state.Point.NotifyStateChanged(state.IsTriggerable && !_scheduledEventIds.Contains(state.EventId));
+                state.Point.NotifyStateChanged(state.IsTriggerable);
             }
         }
 
@@ -201,12 +195,6 @@ namespace Gameplay
                 return false;
             }
 
-            var version = _registrationVersion;
-            NotifyTriggerableState(state);
-            if (!IsCurrent(state, version))
-            {
-                return false;
-            }
             _actionSystem.Submit(state.Config.ActionId, state.OnExecuted);
             return true;
         }
@@ -219,13 +207,6 @@ namespace Gameplay
             }
 
             _scheduledEventIds.Remove(state.EventId);
-            if (success && state.Config.RepeatMode == SceneEventRepeatMode.Once)
-            {
-                this.GetModel<GameStateModel>().MarkSceneEventCompleted(state.EventId);
-                state.IsTriggerable = false;
-                NotifyTriggerableState(state);
-                return;
-            }
             if (!success)
             {
                 Debug.LogError($"[SceneEvent] 场景事件 [{state.EventId}] 行为发起失败。");

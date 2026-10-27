@@ -42,6 +42,10 @@ namespace Gameplay
             {
                 Context.ExecuteCommand(new RestoreGameSaveDataCommand(saveData));
             }
+            else
+            {
+                Context.GetModel<GameVariableModel>().Clear();
+            }
 
             var sceneId = saveData?.SceneId ?? options.InitialSceneId ?? Context.GetModel<TablesModel>().GlobalTable.InitialSceneId;
             await StartSceneTransitionAsync(new SceneTransitionRequest(sceneId, SceneTransitionReason.System), saveData != null);

@@ -11,16 +11,32 @@
 
 namespace Gameplay.Tables
 { 
-    public enum SceneEventRepeatMode
+    public enum IntVariableComparisonOperator
     {
         /// <summary>
-        /// 单次
+        /// 等于
         /// </summary>
-        Once = 0,
+        Equal = 0,
         /// <summary>
-        /// 重复
+        /// 不等于
         /// </summary>
-        Repeatable = 1,
+        NotEqual = 1,
+        /// <summary>
+        /// 大于
+        /// </summary>
+        Greater = 2,
+        /// <summary>
+        /// 大于等于
+        /// </summary>
+        GreaterOrEqual = 3,
+        /// <summary>
+        /// 小于
+        /// </summary>
+        Less = 4,
+        /// <summary>
+        /// 小于等于
+        /// </summary>
+        LessOrEqual = 5,
     }
 
 } 

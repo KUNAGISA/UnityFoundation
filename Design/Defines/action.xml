@@ -4,4 +4,20 @@
     <bean name="PlaySequenceActionDef" sep="," parent="ActionDef" comment="播放演出脚本" alias="播放演出脚本">
         <var name="sequenceId" type="int#ref=SequenceTable"/>
     </bean>
+    <bean name="SetGameIntVariableActionDef" sep="," parent="ActionDef" comment="设置游戏整数变量" alias="设置游戏整数变量">
+        <var name="variableId" type="int#ref=GameIntVariableTable"/>
+        <var name="value" type="int"/>
+    </bean>
+    <bean name="SetGameBoolVariableActionDef" sep="," parent="ActionDef" comment="设置游戏布尔变量" alias="设置游戏布尔变量">
+        <var name="variableId" type="int#ref=GameBoolVariableTable"/>
+        <var name="value" type="bool"/>
+    </bean>
+    <bean name="SetGlobalIntVariableActionDef" sep="," parent="ActionDef" comment="设置全局整数变量" alias="设置全局整数变量">
+        <var name="variableId" type="int#ref=GlobalIntVariableTable"/>
+        <var name="value" type="int"/>
+    </bean>
+    <bean name="SetGlobalBoolVariableActionDef" sep="," parent="ActionDef" comment="设置全局布尔变量" alias="设置全局布尔变量">
+        <var name="variableId" type="int#ref=GlobalBoolVariableTable"/>
+        <var name="value" type="bool"/>
+    </bean>
 </module>

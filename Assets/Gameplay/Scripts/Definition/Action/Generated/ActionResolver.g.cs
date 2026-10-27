@@ -27,6 +27,14 @@ namespace Gameplay
                 {
                     case global::Gameplay.Tables.PlaySequenceActionDef.__ID__:
                         return global::Gameplay.PlaySequenceActionResolver.Execute((global::Gameplay.Tables.PlaySequenceActionDef)action, context);
+                    case global::Gameplay.Tables.SetGameBoolVariableActionDef.__ID__:
+                        return global::Gameplay.SetGameBoolVariableActionResolver.Execute((global::Gameplay.Tables.SetGameBoolVariableActionDef)action, context);
+                    case global::Gameplay.Tables.SetGameIntVariableActionDef.__ID__:
+                        return global::Gameplay.SetGameIntVariableActionResolver.Execute((global::Gameplay.Tables.SetGameIntVariableActionDef)action, context);
+                    case global::Gameplay.Tables.SetGlobalBoolVariableActionDef.__ID__:
+                        return global::Gameplay.SetGlobalBoolVariableActionResolver.Execute((global::Gameplay.Tables.SetGlobalBoolVariableActionDef)action, context);
+                    case global::Gameplay.Tables.SetGlobalIntVariableActionDef.__ID__:
+                        return global::Gameplay.SetGlobalIntVariableActionResolver.Execute((global::Gameplay.Tables.SetGlobalIntVariableActionDef)action, context);
                     default:
                         Debug.LogError($"[ActionResolver] ActionResolver 未支持行为 [{action.GetType()}]");
                         return false;

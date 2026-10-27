@@ -13,6 +13,7 @@
 - [IAssetService](AssetService.md)
 - [IStorageService](StorageService.md)
 - [配表与生成代码](Tables.md)
+- [游戏变量与全局变量](Variables.md)
 - [ConditionSystem](Conditions.md)
 - [ActionSystem](Actions.md)
 - [InputService](InputService.md)
@@ -46,6 +47,10 @@
 - [0018：剧情资源异步预加载，同步启动并用 Token 管理文本源](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)
 - [0019：按能力拆分 ADV Session 与 Widget，并保留 Action 驱动对白](../ADR/0019-split-adv-sessions-and-widgets-with-action-driven-dialogue.md)
 - [0020：全局设置修改与显式保存分离](../ADR/0020-separate-global-settings-mutation-from-persistence.md)
+
+- [0021：游戏与全局变量仅保存覆盖值，默认值由 Query 提供](../ADR/0021-variable-overrides-and-query-defaults.md)
+- [0022：场景事件由业务条件控制，不记录执行历史](../ADR/0022-condition-driven-scene-event-availability.md)
+- [0023：条件配置刷新由 GM 显式发起](../ADR/0023-explicit-condition-configuration-refresh.md)
 
 ## 新增文档
 

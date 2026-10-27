@@ -123,36 +123,76 @@ public partial class TablesModel : ModelBase
     public ActionTable ActionTable => _actionTable;
 #endif
 
+    [ShowInInspector, FoldoutGroup("GameIntVariableTable"), HideLabel, HideReferenceObjectPicker]
+    private GameIntVariableTable _gameIntVariableTable = null;
+#if UNITY_EDITOR
+    public GameIntVariableTable GameIntVariableTable => _gameIntVariableTable ??= new GameIntVariableTable(LoadBuff("Configs/gameintvariabletable"));
+#else
+    public GameIntVariableTable GameIntVariableTable => _gameIntVariableTable;
+#endif
+
+    [ShowInInspector, FoldoutGroup("GameBoolVariableTable"), HideLabel, HideReferenceObjectPicker]
+    private GameBoolVariableTable _gameBoolVariableTable = null;
+#if UNITY_EDITOR
+    public GameBoolVariableTable GameBoolVariableTable => _gameBoolVariableTable ??= new GameBoolVariableTable(LoadBuff("Configs/gameboolvariabletable"));
+#else
+    public GameBoolVariableTable GameBoolVariableTable => _gameBoolVariableTable;
+#endif
+
+    [ShowInInspector, FoldoutGroup("GlobalIntVariableTable"), HideLabel, HideReferenceObjectPicker]
+    private GlobalIntVariableTable _globalIntVariableTable = null;
+#if UNITY_EDITOR
+    public GlobalIntVariableTable GlobalIntVariableTable => _globalIntVariableTable ??= new GlobalIntVariableTable(LoadBuff("Configs/globalintvariabletable"));
+#else
+    public GlobalIntVariableTable GlobalIntVariableTable => _globalIntVariableTable;
+#endif
+
+    [ShowInInspector, FoldoutGroup("GlobalBoolVariableTable"), HideLabel, HideReferenceObjectPicker]
+    private GlobalBoolVariableTable _globalBoolVariableTable = null;
+#if UNITY_EDITOR
+    public GlobalBoolVariableTable GlobalBoolVariableTable => _globalBoolVariableTable ??= new GlobalBoolVariableTable(LoadBuff("Configs/globalboolvariabletable"));
+#else
+    public GlobalBoolVariableTable GlobalBoolVariableTable => _globalBoolVariableTable;
+#endif
+
 
     public async UniTask LoadAllAsync(CancellationToken cancellationToken = default, IProgress<float> progress = null)
     {
         progress?.Report(0f);
         _globalTable ??= new GlobalTable(await LoadBuffAsync("Configs/globaltable", cancellationToken));
-        progress?.Report(1/13f);
+        progress?.Report(1/17f);
         _sequenceTable ??= new SequenceTable(await LoadBuffAsync("Configs/sequencetable", cancellationToken));
-        progress?.Report(2/13f);
+        progress?.Report(2/17f);
         _sequenceSettingsTable ??= new SequenceSettingsTable(await LoadBuffAsync("Configs/sequencesettingstable", cancellationToken));
-        progress?.Report(3/13f);
+        progress?.Report(3/17f);
         _itemTable ??= new ItemTable(await LoadBuffAsync("Configs/itemtable", cancellationToken));
-        progress?.Report(4/13f);
+        progress?.Report(4/17f);
         _sceneTable ??= new SceneTable(await LoadBuffAsync("Configs/scenetable", cancellationToken));
-        progress?.Report(5/13f);
+        progress?.Report(5/17f);
         _sceneNpcTable ??= new SceneNpcTable(await LoadBuffAsync("Configs/scenenpctable", cancellationToken));
-        progress?.Report(6/13f);
+        progress?.Report(6/17f);
         _sceneEventTable ??= new SceneEventTable(await LoadBuffAsync("Configs/sceneeventtable", cancellationToken));
-        progress?.Report(7/13f);
+        progress?.Report(7/17f);
         _emotionTable ??= new EmotionTable(await LoadBuffAsync("Configs/emotiontable", cancellationToken));
-        progress?.Report(8/13f);
+        progress?.Report(8/17f);
         _playerCharacterTable ??= new PlayerCharacterTable(await LoadBuffAsync("Configs/playercharactertable", cancellationToken));
-        progress?.Report(9/13f);
+        progress?.Report(9/17f);
         _npcTable ??= new NpcTable(await LoadBuffAsync("Configs/npctable", cancellationToken));
-        progress?.Report(10/13f);
+        progress?.Report(10/17f);
         _actorTable ??= new ActorTable(await LoadBuffAsync("Configs/actortable", cancellationToken));
-        progress?.Report(11/13f);
+        progress?.Report(11/17f);
         _conditionTable ??= new ConditionTable(await LoadBuffAsync("Configs/conditiontable", cancellationToken));
-        progress?.Report(12/13f);
+        progress?.Report(12/17f);
         _actionTable ??= new ActionTable(await LoadBuffAsync("Configs/actiontable", cancellationToken));
-        progress?.Report(13/13f);
+        progress?.Report(13/17f);
+        _gameIntVariableTable ??= new GameIntVariableTable(await LoadBuffAsync("Configs/gameintvariabletable", cancellationToken));
+        progress?.Report(14/17f);
+        _gameBoolVariableTable ??= new GameBoolVariableTable(await LoadBuffAsync("Configs/gameboolvariabletable", cancellationToken));
+        progress?.Report(15/17f);
+        _globalIntVariableTable ??= new GlobalIntVariableTable(await LoadBuffAsync("Configs/globalintvariabletable", cancellationToken));
+        progress?.Report(16/17f);
+        _globalBoolVariableTable ??= new GlobalBoolVariableTable(await LoadBuffAsync("Configs/globalboolvariabletable", cancellationToken));
+        progress?.Report(17/17f);
     }
 
     public void LoadAll()
@@ -170,6 +210,10 @@ public partial class TablesModel : ModelBase
         _actorTable ??= new ActorTable(LoadBuff("Configs/actortable"));
         _conditionTable ??= new ConditionTable(LoadBuff("Configs/conditiontable"));
         _actionTable ??= new ActionTable(LoadBuff("Configs/actiontable"));
+        _gameIntVariableTable ??= new GameIntVariableTable(LoadBuff("Configs/gameintvariabletable"));
+        _gameBoolVariableTable ??= new GameBoolVariableTable(LoadBuff("Configs/gameboolvariabletable"));
+        _globalIntVariableTable ??= new GlobalIntVariableTable(LoadBuff("Configs/globalintvariabletable"));
+        _globalBoolVariableTable ??= new GlobalBoolVariableTable(LoadBuff("Configs/globalboolvariabletable"));
     }
     
     internal void Reload(string file)
@@ -189,6 +233,10 @@ public partial class TablesModel : ModelBase
             case "actortable" : if (_actorTable != null) { _actorTable = new ActorTable(LoadBuff("Configs/actortable")); this.PublishEvent(new TableReloadedEvent<ActorTable>(_actorTable)); } break;
             case "conditiontable" : if (_conditionTable != null) { _conditionTable = new ConditionTable(LoadBuff("Configs/conditiontable")); this.PublishEvent(new TableReloadedEvent<ConditionTable>(_conditionTable)); } break;
             case "actiontable" : if (_actionTable != null) { _actionTable = new ActionTable(LoadBuff("Configs/actiontable")); this.PublishEvent(new TableReloadedEvent<ActionTable>(_actionTable)); } break;
+            case "gameintvariabletable" : if (_gameIntVariableTable != null) { _gameIntVariableTable = new GameIntVariableTable(LoadBuff("Configs/gameintvariabletable")); this.PublishEvent(new TableReloadedEvent<GameIntVariableTable>(_gameIntVariableTable)); } break;
+            case "gameboolvariabletable" : if (_gameBoolVariableTable != null) { _gameBoolVariableTable = new GameBoolVariableTable(LoadBuff("Configs/gameboolvariabletable")); this.PublishEvent(new TableReloadedEvent<GameBoolVariableTable>(_gameBoolVariableTable)); } break;
+            case "globalintvariabletable" : if (_globalIntVariableTable != null) { _globalIntVariableTable = new GlobalIntVariableTable(LoadBuff("Configs/globalintvariabletable")); this.PublishEvent(new TableReloadedEvent<GlobalIntVariableTable>(_globalIntVariableTable)); } break;
+            case "globalboolvariabletable" : if (_globalBoolVariableTable != null) { _globalBoolVariableTable = new GlobalBoolVariableTable(LoadBuff("Configs/globalboolvariabletable")); this.PublishEvent(new TableReloadedEvent<GlobalBoolVariableTable>(_globalBoolVariableTable)); } break;
         }
     }
 }

@@ -3,6 +3,7 @@
     "rootNamespace": "Gameplay.GM",
     "references": [
         "GUID:132fee8f854c08d469e7281964dab1b8",
+        "GUID:cec0e4e12333c2c40906fa4335f87764",
         "GUID:ef41a2207ff80a14aaa0ed560bcfb6aa",
         "GUID:f51ebe6a0ceec4240a699833d6309b23",
         "GUID:fb24642277b1db2449da7ac148ce939d"

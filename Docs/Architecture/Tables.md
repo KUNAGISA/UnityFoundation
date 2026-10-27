@@ -33,9 +33,13 @@
 
 运行时 ID 入口由 [ConditionSystem](Conditions.md) 和 [ActionSystem](Actions.md) 提供。System 从表模型查找定义，生成的 ConditionResolver / ActionResolver / ConditionDependencyResolver 保留接收定义的类型分发入口，不再重复提供总表 ID 查询。找不到 ID 时记录错误，条件返回 false，行为结果回调反馈 false。
 
-上下文复用 Aoiro 的架构能力和绑定生命周期，目前不携带调用来源。ConditionSystem 持有只读 ConditionContext；ActionSystem 持有 ActionContext，以同步 FIFO 防止重入插队。ActionResolver 返回 bool，true 表示已成功发起；持续行为的状态、替换和取消归所属系统，不向调用方返回 Action 监视器。消费方负责触发判断、去重及业务完成记录。
+上下文复用 Aoiro 的架构能力和绑定生命周期，目前不携带调用来源。ConditionSystem 持有只读 ConditionContext；ActionSystem 持有 ActionContext，以同步 FIFO 防止重入插队。ActionResolver 返回 bool，true 表示已成功发起；持续行为的状态、替换和取消归所属系统，不向调用方返回 Action 监视器。场景事件不记录执行历史，不配置 repeatMode；是否可触发由条件决定，只保留行为提交期间的临时防重入。需要限制重复执行时，通过变量条件与业务行为表达，决策背景见 [ADR-0022](../ADR/0022-condition-driven-scene-event-availability.md)。
 
-条件总表重载由 ConditionSystem 统一重建正在观察的依赖并重新求值，仅通知布尔结果变化；消费方不再订阅条件总表重载。行为每次实际执行时查询最新定义，行为总表重载不替换已经发起的行为。
+游戏/全局各有整数、布尔两张[变量表](Variables.md)，字段为 id、desc、defaultValue，ID 在各表内独立。设置变量行为、变量判断条件均通过 Luban ref 引用对应的强类型变量表。
+
+进入触发器模式只响应玩家的 OnTriggerEnter2D。SceneEventTrigger 根据条件结果开关 Collider；提交期间的临时防重入不影响对外可触发状态、Collider 或表现对象。条件持续成立时，提交与完成不会重新产生进入事件；条件从不成立恢复为成立时，重新启用 Collider 可以让仍在区域内的玩家再次触发。行为发起成功不代表剧情播放完成，需要在剧情正常结束后通过业务行为修改变量，使条件失效。
+
+ConditionSystem 不订阅条件总表或变量表重载。开发期配置重载后，通过 condition.refresh GM 显式重建已观察条件的依赖并重新求值，仅通知布尔结果变化；即时求值始终读取最新配置。行为每次实际执行时查询最新定义，行为总表重载不替换已经发起的行为。
 
 新增定义沿用 `DefinitionResolverAttribute` 和现有生成模板，通过 `Tools/Gameplay/Generate Definition Resolvers` 重新生成统一分发器，不手工编辑生成结果。配表不再按调用领域限定定义类型，Luban 标准 ID、格式和定义内部引用校验继续生效。新增总表数据资源沿现有 `Configs/<table>` Addressables 规则注册，并由正式初始化流程加载。
 
