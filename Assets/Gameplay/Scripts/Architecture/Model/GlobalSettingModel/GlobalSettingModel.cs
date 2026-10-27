@@ -20,22 +20,33 @@ namespace Gameplay
         public GameLanguage Language { get; private set; } = GameLanguage.Chinese;
 
         private IStorageService _storageService;
+        private bool _isDirty;
 
         protected override void OnInitialize()
         {
             _storageService = this.GetService<IStorageService>();
             Language = GameLanguage.Chinese;
+            _isDirty = false;
         }
 
         protected override void OnShutdown()
         {
-            _storageService = null;
-            Language = GameLanguage.Chinese;
+            try
+            {
+                SaveIfDirty();
+            }
+            finally
+            {
+                _storageService = null;
+                Language = GameLanguage.Chinese;
+                _isDirty = false;
+            }
         }
 
         public async UniTask LoadAsync(CancellationToken cancellationToken = default)
         {
             Language = GameLanguage.Chinese;
+            _isDirty = false;
 
             if (!_storageService.Exists(SettingsPath))
             {
@@ -65,12 +76,28 @@ namespace Gameplay
 
         internal void SetLanguage(GameLanguage language)
         {
+            if (Language == language)
+            {
+                return;
+            }
+
+            Language = language;
+            _isDirty = true;
+        }
+
+        public void SaveIfDirty()
+        {
+            if (!_isDirty)
+            {
+                return;
+            }
+
             var json = JsonUtility.ToJson(new SettingsFile
             {
-                language = language.GetCode(),
+                language = Language.GetCode(),
             }, true);
             _storageService.WriteText(SettingsPath, json, StorageWriteMode.Atomic);
-            Language = language;
+            _isDirty = false;
         }
     }
 }

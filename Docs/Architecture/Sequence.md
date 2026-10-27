@@ -88,9 +88,11 @@ ADV 按顺序注册 `AdvDialogueSession`、`AdvChoiceSession`、`AdvPortraitSess
 
 `AdvChoiceSession` 私有保存选项 Key，对外只提供 `Count`、`Token` 和选择结果，通过 `Show`、`Select`、`TryGetSelectedIndex`、`Hide` 管理选择，通过 `GetText(index)` 解析当前语言文本；其无参数信号 `Changed` 通知选项与语言刷新。旧 Token 不能选择或隐藏新选项。选项 Widget 先订阅并刷新，View 再订阅同一信号，确保焦点指向已可用的目标。有有效选项时，View 禁用对白推进并聚焦首个选项；选项为空或隐藏时恢复推进按钮及焦点。对白 Widget 的点击经 `AdvViewSession.RequestAdvance` 缓存，在 Module Tick 中调用 `Player.Advance()`，保留对当前 Action 和 Yield 的统一推进语义。
 
-主动切换语言由同步 `SetLanguageCommand` 编排：相同语言直接返回，否则先调用 `GlobalSettingModel.SetLanguage(language)` 原子保存语言设置，再调用 `LocalizationSystem.Reload()` 按当前设置同步加载全局、所有预加载剧情目录及未缓存的当前剧情目录。相同路径只加载一次，完成后替换目录并统一发送 `CatalogChanged`；当前文本源 Token 保持有效，Lua 缓存不变。System 不写入语言设置，不拆分准备与提交接口，不做失败回滚；保存或加载异常直接向调用方传播，资源 operation 始终释放。切换不申请专用输入模式或 Procedure 暂停。启动初始化和显式预加载继续异步，剧情文本激活同步执行；不为预加载期间切语言增加请求版本或并发状态。
+主动切换语言由同步 `SetLanguageCommand` 编排：相同语言直接返回，否则先调用 `GlobalSettingModel.SetLanguage(language)` 更新内存并标记待保存，再调用 `LocalizationSystem.Reload()` 按当前设置同步加载全局、所有预加载剧情目录及未缓存的当前剧情目录。相同路径只加载一次，完成后替换目录并统一发送 `CatalogChanged`；当前文本源 Token 保持有效，Lua 缓存不变。System 不写入语言设置，不拆分准备与提交接口，不做失败回滚；加载异常直接向调用方传播，内存设置保留，资源 operation 始终释放。切换不申请专用输入模式或 Procedure 暂停。启动初始化和显式预加载继续异步，剧情文本激活同步执行；不为预加载期间切语言增加请求版本或并发状态。
 
-同步切换与 Command 编排的决策背景见 [ADR-0017](../ADR/0017-synchronous-language-switch-command.md)，剧情预加载、同步启动与文本源 Token 的取舍见 [ADR-0018](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)。
+设置落盘由 `GlobalSettingModel.SaveIfDirty()` 显式执行：没有修改时不写文件，有修改时同步原子写入 `Settings/global.json`，仅在成功后清除待保存标记；保存异常向调用方传播并保留标记。初始化与读取不标记待保存，缺失或无效文件的默认回退不会自动写回。GM 语言命令成功完成切换后调用保存；Model 在架构关闭、释放存储服务引用前补存，并在保存失败时仍完成自身清理。退出沿用 `GameplayBootstrap` 的架构关闭链路，不增加延迟保存或额外退出监听。
+
+同步切换与 Command 编排的决策背景见 [ADR-0017](../ADR/0017-synchronous-language-switch-command.md)，剧情预加载、同步启动与文本源 Token 的取舍见 [ADR-0018](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)，全局设置显式保存的取舍见 [ADR-0020](../ADR/0020-separate-global-settings-mutation-from-persistence.md)。
 
 立绘状态的修改、通道 Token 和通知集中在 `AdvPortraitSession`。Lua 与 Tween Action 经其方法写入，立绘 Widget 订阅 `Changed` 并读取 `Entries`；`AdvPortraitEntry.VisualState` 对外为只读引用，避免绕过通道与通知修改。`AcquireChannel` 获取指定动画通道的控制权；`GetVisualStateOrDefault` 在立绘缺失时返回默认状态。翻转设置使用 `SetHorizontalFlip`、`SetVerticalFlip`，旋转设置使用 `SetRotationDegrees`，单位为度。`AdvPortraitVisualState.Default` 提供初始视觉状态（不透明、白色、单位缩放、无翻转）。零版本通道 Token 无效，不能修改包括 0 号立绘在内的任何条目；相同通道的新动作替换旧动作，不同通道可并行。
 

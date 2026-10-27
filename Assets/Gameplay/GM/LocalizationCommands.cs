@@ -19,6 +19,7 @@ namespace Gameplay.GM
             }
 
             GmContext.Shared.ExecuteCommand(new SetLanguageCommand(language));
+            GmContext.Shared.GetModel<GlobalSettingModel>().SaveIfDirty();
         }
     }
 }

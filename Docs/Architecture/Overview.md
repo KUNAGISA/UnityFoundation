@@ -45,6 +45,7 @@
 - [0017：主动语言切换同步执行并由 Command 编排](../ADR/0017-synchronous-language-switch-command.md)
 - [0018：剧情资源异步预加载，同步启动并用 Token 管理文本源](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)
 - [0019：按能力拆分 ADV Session 与 Widget，并保留 Action 驱动对白](../ADR/0019-split-adv-sessions-and-widgets-with-action-driven-dialogue.md)
+- [0020：全局设置修改与显式保存分离](../ADR/0020-separate-global-settings-mutation-from-persistence.md)
 
 ## 新增文档
 
