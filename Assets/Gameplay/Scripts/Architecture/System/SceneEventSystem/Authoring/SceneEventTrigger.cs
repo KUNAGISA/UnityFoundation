@@ -43,7 +43,7 @@ namespace Gameplay
                 return;
             }
 
-            this.GetSystem<SceneEventSystem>().TryTrigger(_point);
+            this.GetSystem<SceneEventSystem>().Trigger(_point);
         }
 
         public void OnSceneEventStateChanged(bool isTriggerable)

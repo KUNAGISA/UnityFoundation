@@ -37,7 +37,7 @@
 
 游戏/全局各有整数、布尔两张[变量表](Variables.md)，字段为 id、desc、defaultValue，ID 在各表内独立。设置变量行为、变量判断条件均通过 Luban ref 引用对应的强类型变量表。
 
-进入触发器模式只响应玩家的 OnTriggerEnter2D。SceneEventTrigger 根据条件结果开关 Collider；提交期间的临时防重入不影响对外可触发状态、Collider 或表现对象。条件持续成立时，提交与完成不会重新产生进入事件；条件从不成立恢复为成立时，重新启用 Collider 可以让仍在区域内的玩家再次触发。行为发起成功不代表剧情播放完成，需要在剧情正常结束后通过业务行为修改变量，使条件失效。
+进入触发器模式只响应玩家的 OnTriggerEnter2D，通过 SceneEventSystem.Trigger(SceneEventPoint) 发起触发请求，该入口返回 void，不向调用方反馈是否提交。SceneEventTrigger 根据条件结果开关 Collider；提交期间的临时防重入不影响对外可触发状态、Collider 或表现对象。SceneEventSystem 的分发回调忽略行为成败，仅释放当前登记的临时防重入标记；条件状态由登记初始化和条件变化通知更新，Trigger 使用已维护的 IsTriggerable，触发尝试和分发结束均不重复求值或通知表现对象。开发期配置重载后需执行 condition.refresh 更新观察结果，触发尝试不会绕过观察状态读取最新配置。条件持续成立时，提交与分发结束不会重新产生进入事件；条件从不成立恢复为成立时，重新启用 Collider 可以让仍在区域内的玩家再次触发。行为发起成功不代表剧情播放完成，需要在剧情正常结束后通过业务行为修改变量，使条件失效。
 
 ConditionSystem 不订阅条件总表或变量表重载。开发期配置重载后，通过 condition.refresh GM 显式重建已观察条件的依赖并重新求值，仅通知布尔结果变化；即时求值始终读取最新配置。行为每次实际执行时查询最新定义，行为总表重载不替换已经发起的行为。
 

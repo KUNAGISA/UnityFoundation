@@ -9,6 +9,6 @@ namespace Gameplay
         public SceneEventEntry Config;
         public SceneEventPoint Point;
         public bool IsTriggerable;
-        public Action<bool> OnExecuted;
+        public Action<bool> OnDispatched;
     }
 }

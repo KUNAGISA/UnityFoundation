@@ -87,7 +87,12 @@ namespace Gameplay
                     Debug.LogError($"[Action] 行为配置不存在 [{actionId}]");
                     return false;
                 }
-                return ActionResolver.Execute(entry.Action, _context);
+                var result = ActionResolver.Execute(entry.Action, _context);
+                if (!result)
+                {
+                    Debug.LogError($"[Action] 行为 [{actionId}] 发起失败。");
+                }
+                return result;
             }
             catch (Exception exception)
             {

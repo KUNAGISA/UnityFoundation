@@ -64,25 +64,23 @@ namespace Gameplay
             return UniTask.CompletedTask;
         }
 
-        public bool TryTrigger(SceneEventPoint point)
+        public void Trigger(SceneEventPoint point)
         {
             if (!_isActive || point == null)
             {
-                return false;
+                return;
             }
             if (!_events.TryGetValue(point.EventId, out var state))
             {
                 Debug.LogError($"[SceneEvent] 场景事件 [{point.EventId}] 未注册");
-                return false;
+                return;
             }
             if (state.Point.TriggerMode != SceneEventTriggerMode.EnterTrigger)
             {
-                return false;
+                return;
             }
 
-            var version = _registrationVersion;
-            RefreshTriggerableState(state, useCache: false);
-            return IsCurrent(state, version) && SubmitEvent(state);
+            SubmitEvent(state);
         }
 
         private void OnConditionResultChanged(ConditionResultChangedEvent evt)
@@ -136,7 +134,7 @@ namespace Gameplay
                 }
 
                 var state = new SceneEventState { EventId = point.EventId, Point = point, Config = config };
-                state.OnExecuted = success => CompleteEvent(state, version, success);
+                state.OnDispatched = _ => OnActionDispatched(state, version);
                 _events.Add(state.EventId, state);
                 _sortedEvents.Add(state);
                 if (!_eventsByCondition.TryGetValue(config.ConditionId, out var states))
@@ -179,27 +177,26 @@ namespace Gameplay
             }
         }
 
-        private void RefreshTriggerableState(SceneEventState state, bool useCache = true)
+        private void RefreshTriggerableState(SceneEventState state)
         {
-            state.IsTriggerable = _conditionSystem.Evaluate(state.Config.ConditionId, useCache);
+            state.IsTriggerable = _conditionSystem.Evaluate(state.Config.ConditionId);
             if (state.Point != null)
             {
                 state.Point.NotifyStateChanged(state.IsTriggerable);
             }
         }
 
-        private bool SubmitEvent(SceneEventState state)
+        private void SubmitEvent(SceneEventState state)
         {
             if (!_isActive || state.Point == null || !state.IsTriggerable || !_scheduledEventIds.Add(state.EventId))
             {
-                return false;
+                return;
             }
 
-            _actionSystem.Submit(state.Config.ActionId, state.OnExecuted);
-            return true;
+            _actionSystem.Submit(state.Config.ActionId, state.OnDispatched);
         }
 
-        private void CompleteEvent(SceneEventState state, int version, bool success)
+        private void OnActionDispatched(SceneEventState state, int version)
         {
             if (!IsCurrent(state, version))
             {
@@ -207,11 +204,6 @@ namespace Gameplay
             }
 
             _scheduledEventIds.Remove(state.EventId);
-            if (!success)
-            {
-                Debug.LogError($"[SceneEvent] 场景事件 [{state.EventId}] 行为发起失败。");
-            }
-            RefreshTriggerableState(state);
         }
 
         private bool IsCurrent(SceneEventState state, int version)
