@@ -50,7 +50,8 @@
 
 - [0021：游戏与全局变量仅保存覆盖值，默认值由 Query 提供](../ADR/0021-variable-overrides-and-query-defaults.md)
 - [0022：场景事件由业务条件控制，不记录执行历史](../ADR/0022-condition-driven-scene-event-availability.md)
-- [0023：条件配置刷新由 GM 显式发起](../ADR/0023-explicit-condition-configuration-refresh.md)
+- [0023：条件配置刷新由 GM 显式发起（已取代）](../ADR/0023-explicit-condition-configuration-refresh.md)
+- [0024：条件集中求值，消费方分帧轮询](../ADR/0024-consumer-owned-condition-polling.md)
 
 ## 新增文档
 

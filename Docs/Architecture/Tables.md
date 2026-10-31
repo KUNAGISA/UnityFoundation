@@ -31,15 +31,21 @@
 
 演出表的 `onCompletedActionId` 是可选的行为总表引用，类型为 `int?#ref=ActionTable`，生成成员为 `SequenceEntry.OnCompletedActionId`。留空表示无结束行为，非空值必须通过行为总表引用校验；运行时在本次剧情正常完成并清理后经 ActionSystem 提交，取消和失败不提交，生命周期详见 [Sequence 框架](Sequence.md)。
 
-运行时 ID 入口由 [ConditionSystem](Conditions.md) 和 [ActionSystem](Actions.md) 提供。System 从表模型查找定义，生成的 ConditionResolver / ActionResolver / ConditionDependencyResolver 保留接收定义的类型分发入口，不再重复提供总表 ID 查询。找不到 ID 时记录错误，条件返回 false，行为结果回调反馈 false。
+运行时 ID 入口由 [ConditionSystem](Conditions.md) 和 [ActionSystem](Actions.md) 提供。System 从表模型查找定义，生成的 ConditionResolver / ActionResolver 保留接收定义的类型分发入口，不再重复提供总表 ID 查询。找不到 ID 时记录错误，条件返回 false，行为结果回调反馈 false。
 
 上下文复用 Aoiro 的架构能力和绑定生命周期，目前不携带调用来源。ConditionSystem 持有只读 ConditionContext；ActionSystem 持有 ActionContext，以同步 FIFO 防止重入插队。ActionResolver 返回 bool，true 表示已成功发起；持续行为的状态、替换和取消归所属系统，不向调用方返回 Action 监视器。场景事件不记录执行历史，不配置 repeatMode；是否可触发由条件决定，只保留行为提交期间的临时防重入。需要限制重复执行时，通过变量条件与业务行为表达，决策背景见 [ADR-0022](../ADR/0022-condition-driven-scene-event-availability.md)。
 
 游戏/全局各有整数、布尔两张[变量表](Variables.md)，字段为 id、desc、defaultValue，ID 在各表内独立。设置变量行为、变量判断条件均通过 Luban ref 引用对应的强类型变量表。
 
-进入触发器模式只响应玩家的 OnTriggerEnter2D，通过 SceneEventSystem.Trigger(SceneEventPoint) 发起触发请求，该入口返回 void，不向调用方反馈是否提交。SceneEventTrigger 根据条件结果开关 Collider；提交期间的临时防重入不影响对外可触发状态、Collider 或表现对象。SceneEventSystem 的分发回调忽略行为成败，仅释放当前登记的临时防重入标记；条件状态由登记初始化和条件变化通知更新，Trigger 使用已维护的 IsTriggerable，触发尝试和分发结束均不重复求值或通知表现对象。开发期配置重载后需执行 condition.refresh 更新观察结果，触发尝试不会绕过观察状态读取最新配置。条件持续成立时，提交与分发结束不会重新产生进入事件；条件从不成立恢复为成立时，重新启用 Collider 可以让仍在区域内的玩家再次触发。行为发起成功不代表剧情播放完成，需要在剧情正常结束后通过业务行为修改变量，使条件失效。
+SceneEventSystem 在场景进入及业务表重建时先同步初始化全部事件状态，再按 EventId 顺序尝试提交初始成立的自动事件。之后通过 SchedulerSystem 时间片任务轮询，仅在采样结果变化时更新 Collider、表现及状态接收方；自动事件仅在检测到 false→true 时再次尝试提交，持续成立不重复提交。离场、流程脱离及重建时取消旧任务，通过登记版本检查中止旧遍历与旧分发回调。
 
-ConditionSystem 不订阅条件总表或变量表重载。开发期配置重载后，通过 condition.refresh GM 显式重建已观察条件的依赖并重新求值，仅通知布尔结果变化；即时求值始终读取最新配置。行为每次实际执行时查询最新定义，行为总表重载不替换已经发起的行为。
+进入触发器模式只响应玩家的 OnTriggerEnter2D，通过 SceneEventSystem.Trigger(SceneEventPoint) 发起请求，该入口返回 void。所有行为提交前即时求值，拒绝已失效条件；即时复核不更新采样状态或通知表现。提交期间的临时防重入不影响 Collider 或表现，分发回调忽略行为成败，仅释放当前登记的防重入标记。条件恢复后，轮询重新启用 Collider 可以让仍在区域内的玩家再次触发；提交与分发结束不会主动切换 Collider。行为发起成功不代表剧情播放完成，需要在正常结束后通过业务行为修改变量，使条件失效。
+
+SceneNpcSystem 按 NPC 分帧选择当前最高优先级的有效配置；仅在配置切换时应用位置或路线，配置不变时不重复定位。没有有效配置时移除实体，有有效配置且实体缺失时重新生成；业务表重建使用新配置重新选择和应用。两个消费系统均同步完成初始化后再开始轮询，不保证对象间快照一致或捕获采样间的短暂变化。
+
+两个消费系统在 OnProcedureAttach 订阅业务表重载及流程暂停变化，在 OnProcedureDetach 取消订阅、任务并清空登记，不维护额外活动布尔状态；旧回调由登记版本检查排除。通过 Pause/Resume 控制全局时间片 Token，恢复后继续原游标。Attach 时通过 context.IsPaused 读取已生效暂停状态，暂停期间重建的任务立即暂停；同步初始化及显式提交不因轮询暂停而改变。
+
+ConditionSystem 不订阅状态变化、条件总表或变量表重载，不维护结果缓存。配置重载后，后续求值直接读取最新定义和变量默认值，消费状态随轮询更新，无需 condition.refresh GM。行为每次实际执行时查询最新定义，行为总表重载不替换已经发起的行为。
 
 新增定义沿用 `DefinitionResolverAttribute` 和现有生成模板，通过 `Tools/Gameplay/Generate Definition Resolvers` 重新生成统一分发器，不手工编辑生成结果。配表不再按调用领域限定定义类型，Luban 标准 ID、格式和定义内部引用校验继续生效。新增总表数据资源沿现有 `Configs/<table>` Addressables 规则注册，并由正式初始化流程加载。
 

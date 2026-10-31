@@ -10,9 +10,5 @@ namespace Gameplay
         {
             return true;
         }
-
-        public static void CollectDependencies(TrueConditionDef condition, ConditionDependencyCollector collector)
-        {
-        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Aoiro;
 using Cysharp.Threading.Tasks;
+using Gameplay.Scheduler;
 using Gameplay.Tables;
 using UnityEngine;
 
@@ -11,33 +12,25 @@ namespace Gameplay
     {
         private readonly Dictionary<int, List<SceneNpcEntry>> _configsByNpc = new();
         private readonly Dictionary<int, SceneNpcState> _activeNpcs = new();
-        private readonly Dictionary<int, HashSet<int>> _npcIdsByCondition = new();
-        private readonly Dictionary<int, ConditionWatchToken> _conditionWatches = new();
+        private readonly List<int> _npcIds = new();
         
-        private SubscriptionToken _conditionChangedToken;
+        private TimeSliceToken _pollToken;
         private SubscriptionToken _sceneNpcTableReloadedToken;
+        private SubscriptionToken _procedurePauseChangedToken;
         private ConditionSystem _conditionSystem;
-        private bool _isActive;
+        private bool _isPaused;
         private int _configVersion;
+        private int _pollCursor;
 
         protected override void OnInitialize()
         {
             _conditionSystem = this.GetSystem<ConditionSystem>();
-            _conditionChangedToken = this.SubscribeEvent<ConditionResultChangedEvent>(OnConditionResultChanged);
-            _sceneNpcTableReloadedToken = this.SubscribeEvent<TableReloadedEvent<SceneNpcTable>>(OnSceneNpcTableReloaded);
         }
 
         protected override void OnShutdown()
         {
-            _sceneNpcTableReloadedToken.Cancel();
-            _sceneNpcTableReloadedToken = default;
-
-            _conditionChangedToken.Cancel();
-            _conditionChangedToken = default;
-            
             Clear();
             _conditionSystem = null;
-            _isActive = false;
         }
 
         UniTask ISceneAfterEnter.AfterEnterSceneAsync(SceneTransitionContext context, CancellationToken cancellationToken)
@@ -62,45 +55,64 @@ namespace Gameplay
 
         protected override void OnProcedureAttach(IProcedureContext context)
         {
-            _isActive = true;
+            _sceneNpcTableReloadedToken = this.SubscribeEvent<TableReloadedEvent<SceneNpcTable>>(OnSceneNpcTableReloaded);
+            _procedurePauseChangedToken = this.SubscribeEvent<ProcedurePauseChangedEvent>(OnProcedurePauseChanged);
+            _isPaused = context.IsPaused;
         }
 
         protected override void OnProcedureDetach(IProcedureContext context)
         {
-            _isActive = false;
+            _sceneNpcTableReloadedToken.Cancel();
+            _sceneNpcTableReloadedToken = default;
+            _procedurePauseChangedToken.Cancel();
+            _procedurePauseChangedToken = default;
             Clear();
         }
 
-        private void OnConditionResultChanged(ConditionResultChangedEvent evt)
+        private void OnProcedurePauseChanged(ProcedurePauseChangedEvent evt)
         {
-            if (!_isActive || !_npcIdsByCondition.TryGetValue(evt.ConditionId, out var npcIds))
+            _isPaused = evt.IsPaused;
+            if (_isPaused)
+            {
+                _pollToken.Pause();
+            }
+            else
+            {
+                _pollToken.Resume();
+            }
+        }
+
+        private void PollConditions(in TimeSliceBudget budget)
+        {
+            if (_npcIds.Count == 0)
             {
                 return;
             }
 
             var version = _configVersion;
-            foreach (var npcId in npcIds)
+            var count = _npcIds.Count;
+            for (var processed = 0; processed < count; ++processed)
             {
-                if (version != _configVersion)
+                var npcId = _npcIds[_pollCursor];
+                _pollCursor = (_pollCursor + 1) % count;
+                RefreshNpc(npcId);
+                if (version != _configVersion || budget.ShouldYield)
                 {
                     return;
                 }
-                RefreshNpc(npcId);
             }
         }
 
         private void OnSceneNpcTableReloaded(TableReloadedEvent<SceneNpcTable> evt)
         {
-            if (_isActive)
-            {
-                RebuildSceneNpc();
-            }
+            RebuildSceneNpc();
         }
 
         private void RebuildSceneNpc()
         {
             _configsByNpc.Clear();
-            ClearConditionWatches();
+            CancelPolling();
+            var version = _configVersion;
 
             var sceneId = this.GetModel<GameStateModel>().CurrentSceneId;
             foreach (var entry in this.GetModel<TablesModel>().SceneNpcTable.DataList)
@@ -114,14 +126,9 @@ namespace Gameplay
                 {
                     configs = new List<SceneNpcEntry>();
                     _configsByNpc.Add(entry.NpcId, configs);
+                    _npcIds.Add(entry.NpcId);
                 }
                 configs.Add(entry);
-                if (!_npcIdsByCondition.TryGetValue(entry.ConditionId, out var npcIds))
-                {
-                    npcIds = new HashSet<int>();
-                    _npcIdsByCondition.Add(entry.ConditionId, npcIds);
-                }
-                npcIds.Add(entry.NpcId);
             }
 
             foreach (var (_, configs) in _configsByNpc)
@@ -129,30 +136,37 @@ namespace Gameplay
                 configs.Sort(static (left, right) => right.Priority.CompareTo(left.Priority));
             }
 
-            foreach (var conditionId in _npcIdsByCondition.Keys)
-            {
-                _conditionWatches.Add(conditionId, _conditionSystem.WatchCondition(conditionId, out _));
-            }
-
+            _npcIds.Sort();
             RefreshAll();
+            if (version == _configVersion && _npcIds.Count > 0)
+            {
+                _pollToken = this.GetSystem<SchedulerSystem>().AddTimeSliceTask(PollConditions);
+                if (_isPaused)
+                {
+                    _pollToken.Pause();
+                }
+            }
         }
 
-        private void ClearConditionWatches()
+        private void CancelPolling()
         {
-            ++_configVersion;
-            foreach (var token in _conditionWatches.Values)
-            {
-                token.Cancel();
-            }
-            _conditionWatches.Clear();
-            _npcIdsByCondition.Clear();
+            _configVersion = unchecked(_configVersion + 1);
+            _pollToken.Cancel();
+            _pollToken = default;
+            _pollCursor = 0;
+            _npcIds.Clear();
         }
 
         private void RefreshAll()
         {
-            foreach (var npcId in _configsByNpc.Keys)
+            var version = _configVersion;
+            for (var index = 0; index < _npcIds.Count; ++index)
             {
-                RefreshNpc(npcId);
+                RefreshNpc(_npcIds[index]);
+                if (version != _configVersion)
+                {
+                    return;
+                }
             }
 
             var activeIds = new List<int>(_activeNpcs.Keys);
@@ -161,6 +175,10 @@ namespace Gameplay
                 if (!_configsByNpc.ContainsKey(npcId))
                 {
                     RemoveNpc(npcId);
+                    if (version != _configVersion)
+                    {
+                        return;
+                    }
                 }
             }
         }
@@ -182,7 +200,11 @@ namespace Gameplay
             
             if (_activeNpcs.TryGetValue(npcId, out var state) && state.Entity != null && state.Entity.IsValid)
             {
-                ApplyConfigLocation(selected, state.Entity);
+                if (!ReferenceEquals(state.Config, selected))
+                {
+                    state.Config = selected;
+                    ApplyConfigLocation(selected, state.Entity);
+                }
                 return;
             }
 
@@ -217,6 +239,7 @@ namespace Gameplay
             {
                 NpcId = config.NpcId,
                 Entity = entity,
+                Config = config,
             };
         }
 
@@ -260,7 +283,7 @@ namespace Gameplay
         {
             _configsByNpc.Clear();
             _activeNpcs.Clear();
-            ClearConditionWatches();
+            CancelPolling();
         }
     }
 }

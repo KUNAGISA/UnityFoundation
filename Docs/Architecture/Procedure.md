@@ -37,9 +37,11 @@ Procedure 生命周期顺序为：
 
 ### ProcedureContext
 
-`ProcedureContext` 提供当前流程时间源、生命周期取消令牌、帧任务、Timer、外部 Token 托管和所需的 Aoiro 能力接口。Enter/Ready 中的长生命周期异步操作直接使用 `Context.LifetimeCancellationToken`。
+`ProcedureContext` 提供当前流程时间源、只读暂停状态、生命周期取消令牌、帧任务、Timer、外部 Token 托管和所需的 Aoiro 能力接口。创建时由所属 ProcedureSystem 通过构造函数注入自身，IsPaused 直接读取该所有者，不通过架构查询模块。Enter/Ready 中的长生命周期异步操作直接使用 `Context.LifetimeCancellationToken`。
 
 暂停通过 `ProcedureSystem.Pause` 申请并返回 `ProcedurePauseToken`。同一暂停原因只能有一个持有者，每次申请只包含一个原因；Token 取消后释放暂停。暂停期间流程时间、Context 帧任务、Timer 和 Procedure 帧回调停止推进，并通过对应输入模式阻断输入。
+
+暂停申请与释放在 Running 状态下的 EarlyTick 统一生效。`IProcedureContext.IsPaused` 提供当前已生效暂停状态的只读视图，直接读取 ProcedureSystem 的实际状态，不在 Context 中维护副本；暂停原因与 Token 仍由 ProcedureSystem 管理。整体状态从运行变为暂停或从暂停变为运行时，在对应 Procedure Hook 完成后发布 `ProcedurePauseChangedEvent(IsPaused)`，暂停原因之间的变更不重复通知。该事件不表示流程进入、切换、失败或退出，也不由清理暂停状态触发。
 
 ### Capacity System
 
@@ -51,6 +53,8 @@ Procedure 通过 `EnsureCapacity<TSystem>()` 附加能力系统：
 - Procedure 销毁时按注册反序执行 `OnProcedureDetach`。
 
 只在部分流程工作、需要流程帧任务或持有流程资源的系统应实现为 Capacity System，而不是常驻后再判断当前流程。
+
+需要共用全局时间片预算的 Capacity 可继续向 SchedulerSystem 注册分帧任务，在 OnProcedureAttach 订阅 ProcedurePauseChangedEvent 并通过传入的 context.IsPaused 读取初值，在 OnProcedureDetach 取消订阅和任务。暂停与恢复通过 TimeSliceToken.Pause/Resume 保留任务及游标；暂停期间新建或重建任务时立即同步暂停状态。该机制只约束增量调度，不阻止显式场景初始化或外部业务入口。
 
 ### 场景加载
 

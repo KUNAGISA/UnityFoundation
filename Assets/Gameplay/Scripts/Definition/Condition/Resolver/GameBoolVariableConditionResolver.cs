@@ -11,10 +11,5 @@ namespace Gameplay
             var value = context.ExecuteQuery<GetGameBoolVariableQuery, bool>(new GetGameBoolVariableQuery(condition.VariableId));
             return value == condition.Value;
         }
-
-        public static void CollectDependencies(GameBoolVariableConditionDef condition, ConditionDependencyCollector collector)
-        {
-            collector.Add(ConditionChangeType.GameBoolVariable);
-        }
     }
 }

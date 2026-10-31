@@ -1,8 +1,10 @@
 ---
-status: accepted
+status: superseded by ADR-0024
 ---
 
 # 条件配置刷新由 GM 显式发起
+
+当前已移除观察缓存和显式条件刷新，后续求值直接读取最新配置，消费状态由分帧轮询更新，见 [ADR-0024](0024-consumer-owned-condition-polling.md)。下文保留历史决定。
 
 变量默认值通过 Query 读取最新配置，开发期配表重载无需修改 Model，也不应让 ConditionSystem 承担变量同步或表监听工作。决定由 ConditionSystem 只订阅运行时依赖变化；配置变更后的观察缓存和依赖重建通过 condition.refresh GM 显式发起，沿用现有批次缓存提交与 FIFO 通知机制。
 

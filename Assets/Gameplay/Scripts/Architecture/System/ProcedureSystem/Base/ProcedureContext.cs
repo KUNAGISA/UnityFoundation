@@ -15,6 +15,11 @@ namespace Gameplay
         ITimeSource Time { get; }
 
         /// <summary>
+        /// 当前流程已生效的暂停状态，不包含等待下一次 EarlyTick 生效的申请。
+        /// </summary>
+        bool IsPaused { get; }
+
+        /// <summary>
         /// 获取与当前上下文生命周期相关的取消令牌。
         /// 该令牌用于在上下文销毁时通知依赖于该上下文的任务或操作应当被取消。
         /// </summary>
@@ -53,6 +58,7 @@ namespace Gameplay
 
     public sealed class ProcedureContext : ArchitectureContext, IProcedureContext, ISystemAccessor, IModelAccessor, IServiceAccessor, IEventSubscriber, IEventPublisher, ICommandExecutor, IQueryExecutor
     {
+        private readonly ProcedureSystem _procedureSystem;
         private readonly Action<Exception> _failureHandler;
         private readonly FrameTickScheduler _earlyTickScheduler = new FrameTickScheduler();
         private readonly FrameTickScheduler _frameTickScheduler = new FrameTickScheduler();
@@ -63,10 +69,12 @@ namespace Gameplay
         private CancellationTokenSource _lifetimeCancellationTokenSource;
 
         public ITimeSource Time { get; }
+        public bool IsPaused => _procedureSystem.IsPaused;
         public CancellationToken LifetimeCancellationToken => _lifetimeCancellationTokenSource?.Token ?? new CancellationToken(true);
 
-        public ProcedureContext(ITimeSource timeSource, CancellationToken token, Action<Exception> failureHandler)
+        public ProcedureContext(ProcedureSystem procedureSystem, ITimeSource timeSource, CancellationToken token, Action<Exception> failureHandler)
         {
+            _procedureSystem = procedureSystem;
             Time = timeSource;
             _failureHandler = failureHandler;
             _lifetimeCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);

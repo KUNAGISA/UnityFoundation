@@ -28,6 +28,7 @@ namespace Gameplay
 
         public IProcedureContext Context => _context;
         public ProcedureState State { get; private set; } = ProcedureState.Idle;
+        public bool IsPaused => _activePauseReason != ProcedurePauseReason.None;
         public ITimeSource Time => _timeSource;
 
         protected override void OnInitialize()
@@ -233,7 +234,7 @@ namespace Gameplay
                 ResetPauseState();
                 _timeSource.Reset();
 
-                _context = BindContext(new ProcedureContext(_timeSource, cancellationToken, EnterFailedState));
+                _context = BindContext(new ProcedureContext(this, _timeSource, cancellationToken, EnterFailedState));
                 _current = CreateProcedure(request.TargetProcedure);
                 _current.Initialize(_context);
                 await _current.EnterAsync(request.Options);
@@ -336,12 +337,14 @@ namespace Gameplay
             {
                 _pauseInputModeCancelToken = this.GetService<IInputService>().PushMode(InputModeCatalog.Pause);
                 _current.Paused();
+                this.PublishEvent(new ProcedurePauseChangedEvent(true));
             }
             else if (previousPauseReason != ProcedurePauseReason.None && _activePauseReason == ProcedurePauseReason.None)
             {
                 _pauseInputModeCancelToken.Cancel();
                 _pauseInputModeCancelToken = default;
                 _current.Resumed();
+                this.PublishEvent(new ProcedurePauseChangedEvent(false));
             }
         }
         

@@ -11,10 +11,5 @@ namespace Gameplay
             var value = context.ExecuteQuery<GetGameIntVariableQuery, int>(new GetGameIntVariableQuery(condition.VariableId));
             return IntVariableComparison.Evaluate(value, condition.Comparison, condition.Value);
         }
-
-        public static void CollectDependencies(GameIntVariableConditionDef condition, ConditionDependencyCollector collector)
-        {
-            collector.Add(ConditionChangeType.GameIntVariable);
-        }
     }
 }

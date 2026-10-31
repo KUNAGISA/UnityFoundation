@@ -2,6 +2,7 @@ using System.Threading;
 using System.Collections.Generic;
 using Aoiro;
 using Cysharp.Threading.Tasks;
+using Gameplay.Scheduler;
 using Gameplay.Tables;
 using UnityEngine;
 
@@ -10,32 +11,25 @@ namespace Gameplay
     public sealed class SceneEventSystem : ProcedureCapacitySystem, ISystemAccessor, ISceneAfterEnter, ISceneBeforeLeave
     {
         private readonly Dictionary<int, SceneEventState> _events = new();
-        private readonly Dictionary<int, List<SceneEventState>> _eventsByCondition = new();
-        private readonly Dictionary<int, ConditionWatchToken> _conditionWatches = new();
         private readonly HashSet<int> _scheduledEventIds = new();
         private readonly List<SceneEventState> _sortedEvents = new();
-        private SubscriptionToken _conditionChangedToken;
+        private TimeSliceToken _pollToken;
         private SubscriptionToken _sceneEventTableReloadedToken;
+        private SubscriptionToken _procedurePauseChangedToken;
         private ConditionSystem _conditionSystem;
         private ActionSystem _actionSystem;
-        private bool _isActive;
+        private bool _isPaused;
         private int _registrationVersion;
+        private int _pollCursor;
 
         protected override void OnInitialize()
         {
             _conditionSystem = this.GetSystem<ConditionSystem>();
             _actionSystem = this.GetSystem<ActionSystem>();
-            _conditionChangedToken = this.SubscribeEvent<ConditionResultChangedEvent>(OnConditionResultChanged);
-            _sceneEventTableReloadedToken = this.SubscribeEvent<TableReloadedEvent<SceneEventTable>>(OnSceneEventTableReloaded);
         }
 
         protected override void OnShutdown()
         {
-            _isActive = false;
-            _sceneEventTableReloadedToken.Cancel();
-            _sceneEventTableReloadedToken = default;
-            _conditionChangedToken.Cancel();
-            _conditionChangedToken = default;
             Clear();
             _conditionSystem = null;
             _actionSystem = null;
@@ -43,13 +37,31 @@ namespace Gameplay
 
         protected override void OnProcedureAttach(IProcedureContext context)
         {
-            _isActive = true;
+            _sceneEventTableReloadedToken = this.SubscribeEvent<TableReloadedEvent<SceneEventTable>>(OnSceneEventTableReloaded);
+            _procedurePauseChangedToken = this.SubscribeEvent<ProcedurePauseChangedEvent>(OnProcedurePauseChanged);
+            _isPaused = context.IsPaused;
         }
 
         protected override void OnProcedureDetach(IProcedureContext context)
         {
-            _isActive = false;
+            _sceneEventTableReloadedToken.Cancel();
+            _sceneEventTableReloadedToken = default;
+            _procedurePauseChangedToken.Cancel();
+            _procedurePauseChangedToken = default;
             Clear();
+        }
+
+        private void OnProcedurePauseChanged(ProcedurePauseChangedEvent evt)
+        {
+            _isPaused = evt.IsPaused;
+            if (_isPaused)
+            {
+                _pollToken.Pause();
+            }
+            else
+            {
+                _pollToken.Resume();
+            }
         }
 
         UniTask ISceneAfterEnter.AfterEnterSceneAsync(SceneTransitionContext context, CancellationToken cancellationToken)
@@ -66,7 +78,7 @@ namespace Gameplay
 
         public void Trigger(SceneEventPoint point)
         {
-            if (!_isActive || point == null)
+            if (point == null)
             {
                 return;
             }
@@ -83,36 +95,34 @@ namespace Gameplay
             SubmitEvent(state);
         }
 
-        private void OnConditionResultChanged(ConditionResultChangedEvent evt)
+        private void PollConditions(in TimeSliceBudget budget)
         {
-            if (!_isActive || !_eventsByCondition.TryGetValue(evt.ConditionId, out var states))
+            if (_sortedEvents.Count == 0)
             {
                 return;
             }
 
-            // 映射列表只在重建时替换，回调重入不会改写正在遍历的列表。
             var version = _registrationVersion;
-            for (var index = 0; index < states.Count; ++index)
+            var count = _sortedEvents.Count;
+            for (var processed = 0; processed < count; ++processed)
             {
-                if (version != _registrationVersion)
-                {
-                    return;
-                }
-                var state = states[index];
-                RefreshTriggerableState(state);
-                if (IsCurrent(state, version) && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
+                var state = _sortedEvents[_pollCursor];
+                _pollCursor = (_pollCursor + 1) % count;
+                var changed = RefreshTriggerableState(state);
+                if (changed && state.IsTriggerable && IsCurrent(state, version) && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
                 {
                     SubmitEvent(state);
+                }
+                if (version != _registrationVersion || budget.ShouldYield)
+                {
+                    return;
                 }
             }
         }
 
         private void OnSceneEventTableReloaded(TableReloadedEvent<SceneEventTable> evt)
         {
-            if (_isActive)
-            {
-                RebuildSceneEvents();
-            }
+            RebuildSceneEvents();
         }
 
         private void RebuildSceneEvents()
@@ -137,23 +147,9 @@ namespace Gameplay
                 state.OnDispatched = _ => OnActionDispatched(state, version);
                 _events.Add(state.EventId, state);
                 _sortedEvents.Add(state);
-                if (!_eventsByCondition.TryGetValue(config.ConditionId, out var states))
-                {
-                    states = new List<SceneEventState>();
-                    _eventsByCondition.Add(config.ConditionId, states);
-                }
-                states.Add(state);
             }
 
-            foreach (var states in _eventsByCondition.Values)
-            {
-                states.Sort(static (left, right) => left.EventId.CompareTo(right.EventId));
-            }
             _sortedEvents.Sort(static (left, right) => left.EventId.CompareTo(right.EventId));
-            foreach (var conditionId in _eventsByCondition.Keys)
-            {
-                _conditionWatches.Add(conditionId, _conditionSystem.WatchCondition(conditionId, out _));
-            }
 
             for (var index = 0; index < _sortedEvents.Count; ++index)
             {
@@ -161,7 +157,7 @@ namespace Gameplay
                 {
                     return;
                 }
-                RefreshTriggerableState(_sortedEvents[index]);
+                RefreshTriggerableState(_sortedEvents[index], true);
             }
             for (var index = 0; index < _sortedEvents.Count; ++index)
             {
@@ -170,25 +166,40 @@ namespace Gameplay
                     return;
                 }
                 var state = _sortedEvents[index];
-                if (state.Point.TriggerMode == SceneEventTriggerMode.Auto)
+                if (state.IsTriggerable && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
                 {
                     SubmitEvent(state);
                 }
             }
+            if (version == _registrationVersion && _sortedEvents.Count > 0)
+            {
+                _pollToken = this.GetSystem<SchedulerSystem>().AddTimeSliceTask(PollConditions);
+                if (_isPaused)
+                {
+                    _pollToken.Pause();
+                }
+            }
         }
 
-        private void RefreshTriggerableState(SceneEventState state)
+        private bool RefreshTriggerableState(SceneEventState state, bool initialize = false)
         {
-            state.IsTriggerable = _conditionSystem.Evaluate(state.Config.ConditionId);
+            var result = _conditionSystem.Evaluate(state.Config.ConditionId);
+            if (!initialize && state.IsTriggerable == result)
+            {
+                return false;
+            }
+
+            state.IsTriggerable = result;
             if (state.Point != null)
             {
                 state.Point.NotifyStateChanged(state.IsTriggerable);
             }
+            return true;
         }
 
         private void SubmitEvent(SceneEventState state)
         {
-            if (!_isActive || state.Point == null || !state.IsTriggerable || !_scheduledEventIds.Add(state.EventId))
+            if (state.Point == null || !_conditionSystem.Evaluate(state.Config.ConditionId) || !_scheduledEventIds.Add(state.EventId))
             {
                 return;
             }
@@ -208,19 +219,16 @@ namespace Gameplay
 
         private bool IsCurrent(SceneEventState state, int version)
         {
-            return _isActive && version == _registrationVersion && state.Point != null;
+            return version == _registrationVersion && state.Point != null;
         }
 
         private void Clear()
         {
             _registrationVersion = unchecked(_registrationVersion + 1);
-            foreach (var token in _conditionWatches.Values)
-            {
-                token.Cancel();
-            }
-            _conditionWatches.Clear();
+            _pollToken.Cancel();
+            _pollToken = default;
+            _pollCursor = 0;
             _events.Clear();
-            _eventsByCondition.Clear();
             _scheduledEventIds.Clear();
             _sortedEvents.Clear();
         }

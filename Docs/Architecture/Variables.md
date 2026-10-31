@@ -33,10 +33,10 @@ GlobalVariableModel 完整负责独立文件的加载、保存和脏标记。Lau
 
 - 新变量修改 Design 下对应源表并重新生成，沿用 Configs 地址和正式配表加载；Model 无需同步默认值。
 - 四种设置变量 ActionDef 分别引用对应表，经 Command 执行；四种变量 ConditionDef 经 Query 读取。bool 判断与配置值是否相等；整数支持六种常规比较。
-- ConditionSystem 只监听运行时覆盖变化，不监听配置重载，也不更新 Model。开发期修改配置后执行 condition.refresh GM，手动重建已观察条件的依赖并刷新缓存；只有条件布尔结果变化才通知消费方。
+- ConditionSystem 通过 Query 即时读取变量，不订阅覆盖变化或配置重载，也不更新 Model。消费系统分帧轮询条件；修改配置后后续求值使用最新默认值，无需显式条件刷新。变量变化事件仍保留自身的通知契约。
 - GM 使用 variable.game、variable.global 前缀，各提供 get-int、get-bool、set-int、set-bool、reset-int、reset-bool 和 reset-all。reset 直接调用 ClearInt、ClearBool、Clear；允许清理配置已删除的 ID，不存在的记录为空操作。全局清除后立即尝试保存。
 - 未覆盖变量随 Query 使用最新默认值；已有覆盖值不受默认值修改影响。存档只保存覆盖值，不冻结未赋值变量当时的默认值。
 
 ## 验证
 
-覆盖无需默认值初始化的读取、配置 ID 校验、覆盖优先、同值设置、清除失效 ID、覆盖变化通知、批量提交、存档及失效 ID 往返、全局加载整体提交、缺失变量数据跳过恢复、合法空快照清空覆盖、失败和取消不修改状态、保存失败重试、配置重载不自动刷新、condition.refresh、运行时类型刷新 FIFO 和正式游戏流程。
+覆盖无需默认值初始化的读取、配置 ID 校验、覆盖优先、同值设置、清除失效 ID、覆盖变化通知、批量提交、存档及失效 ID 往返、全局加载整体提交、缺失变量数据跳过恢复、合法空快照清空覆盖、失败和取消不修改状态、保存失败重试、配置重载后的即时读取及消费方轮询更新和正式游戏流程。

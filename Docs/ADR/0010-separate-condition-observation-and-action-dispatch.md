@@ -8,7 +8,7 @@ Condition 与 Action 已使用各自总表，但条件观察和 Action 监视仍
 
 本决定取代 [ADR-0009](0009-centralize-condition-observation-in-rule-system.md)，当前接口见 [ConditionSystem](../Architecture/Conditions.md) 和 [ActionSystem](../Architecture/Actions.md)。
 
-后续场景事件完成记录改由业务条件表达，见 [ADR-0022](0022-condition-driven-scene-event-availability.md)；配表重载后的条件缓存改为显式刷新，见 [ADR-0023](0023-explicit-condition-configuration-refresh.md)。本记录保留当时的取舍与影响。
+后续场景事件完成记录改由业务条件表达，见 [ADR-0022](0022-condition-driven-scene-event-availability.md)；配表重载后的条件缓存曾改为显式刷新，见 [ADR-0023](0023-explicit-condition-configuration-refresh.md)。集中条件观察、缓存及通知部分已由 [ADR-0024](0024-consumer-owned-condition-polling.md) 的消费方分帧轮询取代，同步行为分发决定仍有效。本记录保留当时的取舍与影响。
 
 ## 备选方案
 
