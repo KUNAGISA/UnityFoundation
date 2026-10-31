@@ -106,7 +106,7 @@ namespace Gameplay
         {
             if (!_operations.TryGetValue(location, out var operation))
             {
-                operation = _assetService.LoadAssetSync<GameObject>(location) ?? throw new InvalidOperationException($"UI prefab provider returned no operation for [{location}].");
+                operation = _assetService.LoadAssetSync<GameObject>(location);
                 _operations.Add(location, operation);
             }
 

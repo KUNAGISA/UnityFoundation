@@ -25,11 +25,7 @@ namespace Gameplay
                     continue;
                 }
 
-                var npcSaveData = CaptureNpc(npc);
-                if (npcSaveData != null)
-                {
-                    npcs.Add(npcSaveData);
-                }
+                npcs.Add(CaptureNpc(npc));
             }
 
             return new GameSaveData
@@ -87,11 +83,6 @@ namespace Gameplay
 
         private static NpcSaveData CaptureNpc(NpcCharacterState state)
         {
-            if (state == null)
-            {
-                return null;
-            }
-
             return new NpcSaveData
             {
                 Id = state.CharacterId,

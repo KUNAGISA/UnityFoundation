@@ -19,7 +19,6 @@ namespace Gameplay
         private SubscriptionToken _procedurePauseChangedToken;
         private ConditionSystem _conditionSystem;
         private bool _isPaused;
-        private int _configVersion;
         private int _pollCursor;
 
         protected override void OnInitialize()
@@ -43,7 +42,7 @@ namespace Gameplay
         {
             foreach (var (_, state) in _activeNpcs)
             {
-                if (state.Entity != null && state.Entity.IsValid)
+                if (state.Entity.IsValid)
                 {
                     this.GetSystem<EntitySystem>().RemoveEntity(state.Entity.EntityId);
                 }
@@ -89,14 +88,13 @@ namespace Gameplay
                 return;
             }
 
-            var version = _configVersion;
             var count = _npcIds.Count;
             for (var processed = 0; processed < count; ++processed)
             {
                 var npcId = _npcIds[_pollCursor];
                 _pollCursor = (_pollCursor + 1) % count;
                 RefreshNpc(npcId);
-                if (version != _configVersion || budget.ShouldYield)
+                if (budget.ShouldYield)
                 {
                     return;
                 }
@@ -112,7 +110,6 @@ namespace Gameplay
         {
             _configsByNpc.Clear();
             CancelPolling();
-            var version = _configVersion;
 
             var sceneId = this.GetModel<GameStateModel>().CurrentSceneId;
             foreach (var entry in this.GetModel<TablesModel>().SceneNpcTable.DataList)
@@ -138,7 +135,7 @@ namespace Gameplay
 
             _npcIds.Sort();
             RefreshAll();
-            if (version == _configVersion && _npcIds.Count > 0)
+            if (_npcIds.Count > 0)
             {
                 _pollToken = this.GetSystem<SchedulerSystem>().AddTimeSliceTask(PollConditions);
                 if (_isPaused)
@@ -150,7 +147,6 @@ namespace Gameplay
 
         private void CancelPolling()
         {
-            _configVersion = unchecked(_configVersion + 1);
             _pollToken.Cancel();
             _pollToken = default;
             _pollCursor = 0;
@@ -159,14 +155,9 @@ namespace Gameplay
 
         private void RefreshAll()
         {
-            var version = _configVersion;
             for (var index = 0; index < _npcIds.Count; ++index)
             {
                 RefreshNpc(_npcIds[index]);
-                if (version != _configVersion)
-                {
-                    return;
-                }
             }
 
             var activeIds = new List<int>(_activeNpcs.Keys);
@@ -175,30 +166,20 @@ namespace Gameplay
                 if (!_configsByNpc.ContainsKey(npcId))
                 {
                     RemoveNpc(npcId);
-                    if (version != _configVersion)
-                    {
-                        return;
-                    }
                 }
             }
         }
 
         private void RefreshNpc(int npcId)
         {
-            if (!_configsByNpc.TryGetValue(npcId, out var configs))
-            {
-                RemoveNpc(npcId);
-                return;
-            }
-
-            var selected = SelectConfig(configs);
+            var selected = SelectConfig(_configsByNpc[npcId]);
             if (selected == null)
             {
                 RemoveNpc(npcId);
                 return;
             }
             
-            if (_activeNpcs.TryGetValue(npcId, out var state) && state.Entity != null && state.Entity.IsValid)
+            if (_activeNpcs.TryGetValue(npcId, out var state) && state.Entity.IsValid)
             {
                 if (!ReferenceEquals(state.Config, selected))
                 {
@@ -273,7 +254,7 @@ namespace Gameplay
                 return;
             }
 
-            if (state.Entity != null && state.Entity.IsValid)
+            if (state.Entity.IsValid)
             {
                 this.GetSystem<EntitySystem>().RemoveEntity(state.Entity.EntityId);
             }

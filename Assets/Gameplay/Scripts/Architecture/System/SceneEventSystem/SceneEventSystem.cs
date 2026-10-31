@@ -19,7 +19,6 @@ namespace Gameplay
         private ConditionSystem _conditionSystem;
         private ActionSystem _actionSystem;
         private bool _isPaused;
-        private int _registrationVersion;
         private int _pollCursor;
 
         protected override void OnInitialize()
@@ -102,18 +101,17 @@ namespace Gameplay
                 return;
             }
 
-            var version = _registrationVersion;
             var count = _sortedEvents.Count;
             for (var processed = 0; processed < count; ++processed)
             {
                 var state = _sortedEvents[_pollCursor];
                 _pollCursor = (_pollCursor + 1) % count;
                 var changed = RefreshTriggerableState(state);
-                if (changed && state.IsTriggerable && IsCurrent(state, version) && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
+                if (changed && state.IsTriggerable && state.Point != null && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
                 {
                     SubmitEvent(state);
                 }
-                if (version != _registrationVersion || budget.ShouldYield)
+                if (budget.ShouldYield)
                 {
                     return;
                 }
@@ -128,7 +126,6 @@ namespace Gameplay
         private void RebuildSceneEvents()
         {
             Clear();
-            var version = _registrationVersion;
             var sceneEventTable = this.GetModel<TablesModel>().SceneEventTable;
             foreach (var point in UnityEngine.Object.FindObjectsByType<SceneEventPoint>(FindObjectsSortMode.None))
             {
@@ -144,7 +141,7 @@ namespace Gameplay
                 }
 
                 var state = new SceneEventState { EventId = point.EventId, Point = point, Config = config };
-                state.OnDispatched = _ => OnActionDispatched(state, version);
+                state.OnDispatched = _ => OnActionDispatched(state);
                 _events.Add(state.EventId, state);
                 _sortedEvents.Add(state);
             }
@@ -153,25 +150,17 @@ namespace Gameplay
 
             for (var index = 0; index < _sortedEvents.Count; ++index)
             {
-                if (version != _registrationVersion)
-                {
-                    return;
-                }
                 RefreshTriggerableState(_sortedEvents[index], true);
             }
             for (var index = 0; index < _sortedEvents.Count; ++index)
             {
-                if (version != _registrationVersion)
-                {
-                    return;
-                }
                 var state = _sortedEvents[index];
                 if (state.IsTriggerable && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
                 {
                     SubmitEvent(state);
                 }
             }
-            if (version == _registrationVersion && _sortedEvents.Count > 0)
+            if (_sortedEvents.Count > 0)
             {
                 _pollToken = this.GetSystem<SchedulerSystem>().AddTimeSliceTask(PollConditions);
                 if (_isPaused)
@@ -207,24 +196,13 @@ namespace Gameplay
             _actionSystem.Submit(state.Config.ActionId, state.OnDispatched);
         }
 
-        private void OnActionDispatched(SceneEventState state, int version)
+        private void OnActionDispatched(SceneEventState state)
         {
-            if (!IsCurrent(state, version))
-            {
-                return;
-            }
-
             _scheduledEventIds.Remove(state.EventId);
-        }
-
-        private bool IsCurrent(SceneEventState state, int version)
-        {
-            return version == _registrationVersion && state.Point != null;
         }
 
         private void Clear()
         {
-            _registrationVersion = unchecked(_registrationVersion + 1);
             _pollToken.Cancel();
             _pollToken = default;
             _pollCursor = 0;

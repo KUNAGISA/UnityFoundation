@@ -53,10 +53,7 @@ namespace Gameplay
                 _collider = GetComponent<Collider2D>();
             }
 
-            if (_collider != null)
-            {
-                _collider.enabled = isTriggerable;
-            }
+            _collider.enabled = isTriggerable;
         }
     }
 }

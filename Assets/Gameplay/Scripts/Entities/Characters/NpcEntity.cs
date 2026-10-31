@@ -4,7 +4,7 @@ namespace Gameplay
     {
         public new NpcCharacterState State => (NpcCharacterState)base.State;
 
-        public NpcEntity(NpcCharacterState state, SpatialState spatial) : base(state ?? throw new System.ArgumentNullException(nameof(state)), spatial)
+        public NpcEntity(NpcCharacterState state, SpatialState spatial) : base(state, spatial)
         {
         }
     }

@@ -76,10 +76,7 @@ namespace Gameplay
                 ApplyEmotion(saveData.Emotion, state.Emotion);
             }
 
-            if (saveData.Spatial != null)
-            {
-                ApplySpatial(saveData.Spatial, state.Spatial);
-            }
+            ApplySpatial(saveData.Spatial, state.Spatial);
         }
 
         private static void ApplyNpc(NpcSaveData saveData, NpcCharacterState state)
