@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-0025
 ---
 
 # 条件集中求值，消费方分帧轮询
@@ -9,6 +9,8 @@ status: accepted
 轮询任务继续共用全局 SchedulerSystem 的时间片预算，由消费系统随 Procedure Attach/Detach 订阅和解除暂停及业务表重载通知，并通过 Token 暂停、恢复和取消。ProcedureContext 由所属 ProcedureSystem 构造注入，提供已生效暂停状态的只读视图；消费方不另维护活动布尔状态，以订阅、任务和登记版本表达生命周期。
 
 本决定取代 [ADR-0010](0010-separate-condition-observation-and-action-dispatch.md) 的条件观察、缓存与通知部分，保留 ActionSystem 同步 FIFO 分发；同时取代 [ADR-0023](0023-explicit-condition-configuration-refresh.md)，删除观察缓存及 condition.refresh GM。当前接口与扩展约束见 [ConditionSystem](../Architecture/Conditions.md)。
+
+本决定由 [ADR-0025](0025-declarative-condition-sources-and-batched-observation.md) 取代；下文保留当时选择与影响。
 
 ## 备选方案
 

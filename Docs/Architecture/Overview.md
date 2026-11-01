@@ -15,6 +15,7 @@
 - [配表与生成代码](Tables.md)
 - [游戏变量与全局变量](Variables.md)
 - [ConditionSystem](Conditions.md)
+- [Action / Condition 代码生成](DefinitionGeneration.md)
 - [ActionSystem](Actions.md)
 - [InputService](InputService.md)
 - [Entity 系统](Entity.md)
@@ -51,7 +52,9 @@
 - [0021：游戏与全局变量仅保存覆盖值，默认值由 Query 提供](../ADR/0021-variable-overrides-and-query-defaults.md)
 - [0022：场景事件由业务条件控制，不记录执行历史](../ADR/0022-condition-driven-scene-event-availability.md)
 - [0023：条件配置刷新由 GM 显式发起（已取代）](../ADR/0023-explicit-condition-configuration-refresh.md)
-- [0024：条件集中求值，消费方分帧轮询](../ADR/0024-consumer-owned-condition-polling.md)
+- [0024：条件集中求值，消费方分帧轮询（已取代）](../ADR/0024-consumer-owned-condition-polling.md)
+
+- [0025：声明式条件来源与 LateTick 批量观察](../ADR/0025-declarative-condition-sources-and-batched-observation.md)
 
 ## 新增文档
 

@@ -1,44 +1,49 @@
 # ConditionSystem
 
-ConditionSystem 提供按条件总表 ID 即时求值的统一入口，复用只读 ConditionContext。消费方自行决定检查时机、维护采样结果并响应业务变化；不集中登记观察或监听状态源。决策背景见 [ADR-0024](../ADR/0024-consumer-owned-condition-polling.md)。
+ConditionSystem 提供即时条件求值和按条件 ID 共享的条件观察。观察依赖由生成代码收集，数据源分类和变更事件映射由项目人工维护；运行时在 LateTick 合并刷新。决策背景见 [ADR-0025](../ADR/0025-declarative-condition-sources-and-batched-observation.md)。
 
 ## 职责与边界
 
-System 负责按 ID 查表和上下文生命周期；ConditionResolver 接收 ConditionDef 与 IQueryContext，负责具体类型的只读求值。条件解析不执行写操作，也不携带调用来源。ConditionContext 是查询入口，不是状态快照；共用 Context 不表示多次求值读取同一时刻的数据。
+System 持有只读 ConditionContext、观察缓存、来源集合和观察登记。ConditionResolver 只读求值，CollectSources 只收集配置依赖；两者都不执行业务写操作。NPC、场景事件等消费方拥有业务状态、观察 Token 与实际应用逻辑。Context 是查询入口，不是事务快照。
 
-ConditionSystem 不持有结果缓存、观察登记或依赖索引，不发布结果变化事件，不订阅业务状态和配置重载，也不修改变量。变量读写与持久化见[变量模块](Variables.md)，业务状态更新及事件触发见[配表与生成代码](Tables.md)，行为分发见 [ActionSystem](Actions.md)。
+ConditionSource 为手工维护的 Flags 枚举，当前包含 None、GameIntVariables、GameBoolVariables、GlobalIntVariables、GlobalBoolVariables，不细化到变量 ID。ConditionSystem 手工订阅四类变量变更及其默认值表重载，各自标记对应来源；同一来源可由多个业务事件标记失效。
 
 ## 主要类型与入口
 
-- `Evaluate(int conditionId)`：读取当前配置并通过统一 Resolver 即时求值；找不到配置或求值失败时记录错误并返回 false。
-- `ConditionContext`：由 System 私有持有并复用的只读查询上下文；消费方只使用 Evaluate，不直接取得或修改 Context。
+- `Evaluate(int conditionId)`：即时读取当前定义和状态，不使用或更新观察缓存；缺失配置或求值失败返回 false 并记录错误。
+- `Observe(int conditionId, Action<bool> onChanged, out bool initialValue)`：即时返回初值，登记时不调用回调；相同 ID 共享后续求值，各观察者独立保存最后通知值。
+- `ConditionObservationToken.Cancel/Pause/Resume`：取消、暂停和恢复单次观察。默认 Token 和重复取消为空操作；恢复后安排重新检查，相对最后通知值决定是否通知。
+- `ConditionBatchCompletedEvent`：本批所有变化通知完成后发布，供消费方统一应用已收集的变化。
 
 ## 生命周期与核心语义
 
-架构初始化时绑定上下文并取得 TablesModel，Shutdown 时释放引用。Evaluate 遵循架构生命周期契约，由调用方保证只在初始化及配表加载完成后、Shutdown 前调用。
+架构初始化绑定 Context 并订阅状态和表重载。Shutdown 取消全部订阅，释放观察缓存；消费方在离场、重建、流程脱离时取消自己的 Token。内部登记 ID 在 System 实例内不复用，取消或重建不会让旧通知命中新登记；最后一个观察者取消时释放该条件的观察状态。
 
-每次求值都读取当前定义与状态，不建立观察、不更新缓存或发布通知。条件定义和变量默认值重载后，后续求值直接使用新配置，无需显式条件刷新。
+FlushDirty 在有效架构生命周期内同步完成，刷新及回调期间不执行 Shutdown；关闭由架构停止帧驱动后统一收束。ConditionSystem 信任该约定，不维护关闭版本；通知派发前仍检查观察是否已取消或暂停。
 
-需要持续更新的消费方持有自身的时间片任务、稳定对象列表、游标和采样结果，使用现有 SchedulerSystem 分帧轮询。每次回调至少处理一个对象，之后依据 TimeSliceBudget.ShouldYield 让出，最多完成一轮；下一次调度继续，无定时等待。沿用调度器总预算 500μs、单任务时间片上限 100μs，不为条件另建调度框架。
+GameplayArchitecture 在 LateTick 的 Procedure、Scheduler 之后、Camera 之前调用 FlushDirty。没有待处理变化时直接返回；刷新开始截取来源和待检查条件，先完成本批全部求值并提交缓存，再派发变化回调，最后发布批次完成事件。回调或业务应用产生的新 dirty 留到下一次 LateTick，不递归刷新，不使用分帧时间片。
 
-场景进入或业务表重建时同步完成初始状态后再启动轮询；离场、流程脱离、重建及 Shutdown 时取消旧任务，通过版本检查阻止同步业务回调后的旧遍历继续处理。业务只在采样结果或有效配置变化时应用，避免每次求值都重复执行副作用。
+FlushDirty 统一管理批次截取、完成事件和集合清理；内部按 CollectDirtyConditions、EvaluateBatch、DispatchNotifications 三个阶段执行。各观察的 LastNotifiedValue 以注册初值为比较基准，仅在通知派发时推进；暂停期间保留该基准。
 
-SceneNpcSystem 和 SceneEventSystem 在 OnProcedureAttach 订阅业务表重载与流程暂停变化，并通过 context.IsPaused 读取当前已生效状态，在 OnProcedureDetach 取消订阅、任务并清空登记。未附加时不接收重载回调，不额外维护活动布尔状态；清理时递增版本，使旧遍历及旧行为回调失效。暂停时通过 TimeSliceToken.Pause 停止轮询，恢复时 Resume 从原游标继续，共用全局调度预算。暂停期间重建的任务立即暂停。同步场景初始化、业务表重建及显式事件触发入口仍按各自契约执行，不由暂停通知阻断。
+暂停的观察者不接收变化；其他观察者仍可正常更新。消费方在流程暂停事件中操作自身 Token，暂停期间重建的新 Token 立即暂停。同步初始化和显式 Evaluate 继续按入口契约执行。
+
+条件总表重载在下一次刷新重建所有已观察条件的来源并重新求值，包括 None 来源条件。默认值表重载只标记对应变量来源。观察注册读取最新初值，不吞掉既有观察者尚未收到的变化。
 
 ## 使用与扩展规则
 
-- 消费方通过 System 的 ID 入口读取条件；具体 Resolver 使用定义入口，不重复查询总表。
-- 新条件沿用 DefinitionResolverAttribute 和现有生成模板，仅实现只读 Evaluate，不增加依赖收集或 ConditionSystem 状态源监听。
-- 保持 All/Any 短路与现有空组合语义；不扫描整张总表或维护跨帧条件缓存。
-- 条件表达可采样的当前状态；两次检查之间的短暂变化可能被跳过，一次性事实使用业务事件或所属系统记录的持续状态。
-- 接受不同对象在不同时刻更新，轮询不保证固定响应延迟或状态事务。实际业务提交可即时复核条件，但复核不等于刷新其他消费对象。
+- 使用 `[ConditionResolver(typeof(SomeConditionDef), ConditionSource.SomeSource)]` 声明条件与来源，通过专用生成菜单更新求值分发和来源收集，详见[生成流程](DefinitionGeneration.md)。来源必填；常量条件显式写 None。
+- All/Any 保持求值短路，收集来源则遍历所有子条件；空 All 成立、空 Any 不成立。
+- CollectSources 对未支持的条件类型记录 Error 并返回 None，不中断组合中其余分支的收集；None 不提供来源驱动的自动刷新，需要修正对应声明并重新生成。
+- 新增数据源时人工维护枚举及通知映射，不从事件名称推断来源，不要求 Model 发布条件框架专用事件。
+- 观察回调只更新本地结果、收集待处理对象；在批次完成事件中去重应用。提交业务行为前使用 Evaluate 即时复核，复核不改变观察缓存。
+- 批处理可能合并两次刷新之间的短暂真假变化；一次性事实使用业务事件或所属系统的持续状态。LateTick 之后及刷新回调内的变化延至下一批，不承诺 setter 返回前已响应。
 
 ## 性能与排错
 
-消费方只遍历当前需要维护的业务对象，不按条件总表全量扫描；热路径不创建临时集合或闭包。同 ID 在不同消费方可能重复求值，不为消除重复引入跨帧缓存。
+只维护当前已观察条件，不扫描整张条件总表；同 ID 在一个 dirty 批次中只求值一次。集合在热路径复用，闭包仅在注册阶段创建。集中刷新不限制固定 CPU 预算，昂贵求值和业务应用需要分别测量。
 
-时间片是协作式预算，不能中断一个 NPC 的完整配置选择或一次事件处理；生成实体、通知表现及发起行为可能超出预算。状态更新延迟时检查对象数量、轮询游标推进和任务生命周期；求值持续失败时检查配置与 Resolver 日志。
+状态未更新时，依次检查 Token 生命周期/暂停状态、Resolver 来源声明、变更事件映射和最新生成产物。来源声明和事件覆盖仍属于人工契约，生成器不分析 Evaluate 的全部实际读取。
 
 ## 验证
 
-验证即时读取最新定义和变量默认值、组合短路及空组合、缺失配置和求值失败；验证新增条件不依赖状态源监听。消费方验证同步初始化、轮询推进和取消、业务回调中的旧版本失效、结果不变无重复副作用、配置重载后更新、NPC 配置切换及自动事件上升沿触发。运行验证与编译检查结果应明确区分。
+验证四类来源独立失效、组合完整收集、共享求值、初始化无回调、独立暂停恢复、取消待派发观察、重建/关闭失效、同批合并与回调新增 dirty 延后；验证变量默认值和条件表重载，以及消费方业务批处理。编译、隔离探针与 Unity 场景验证分别报告。

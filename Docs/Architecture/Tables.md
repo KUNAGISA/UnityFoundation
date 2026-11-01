@@ -37,17 +37,21 @@
 
 游戏/全局各有整数、布尔两张[变量表](Variables.md)，字段为 id、desc、defaultValue，ID 在各表内独立。设置变量行为、变量判断条件均通过 Luban ref 引用对应的强类型变量表。
 
-SceneEventSystem 在场景进入及业务表重建时先同步初始化全部事件状态，再按 EventId 顺序尝试提交初始成立的自动事件。之后通过 SchedulerSystem 时间片任务轮询，仅在采样结果变化时更新 Collider、表现及状态接收方；自动事件仅在检测到 false→true 时再次尝试提交，持续成立不重复提交。离场、流程脱离及重建时取消旧任务，通过登记版本检查中止旧遍历与旧分发回调。
+SceneEventSystem 在场景进入及业务表重建时同步初始化全部事件状态，再按 EventId 顺序提交初始成立的 Auto。之后通过条件观察维护本地结果，在 ConditionBatchCompletedEvent 中去重、按 EventId 应用；持续成立不重复提交，只在 false→true 时再次自动提交。
 
-进入触发器模式只响应玩家的 OnTriggerEnter2D，通过 SceneEventSystem.Trigger(SceneEventPoint) 发起请求，该入口返回 void。所有行为提交前即时求值，拒绝已失效条件；即时复核不更新采样状态或通知表现。提交期间的临时防重入不影响 Collider 或表现，分发回调忽略行为成败，仅释放当前登记的防重入标记。条件恢复后，轮询重新启用 Collider 可以让仍在区域内的玩家再次触发；提交与分发结束不会主动切换 Collider。行为发起成功不代表剧情播放完成，需要在正常结束后通过业务行为修改变量，使条件失效。
+进入触发器只响应玩家 OnTriggerEnter2D；提交前即时 Evaluate，拒绝已失效条件，不刷新观察缓存。提交临时防重入不改变 Collider 或表现，分发回调只释放当前登记的标记。真实条件变化控制 Collider，恢复后区域内玩家可以再次触发；限制重复由变量和业务行为表达，不记录事件完成历史。
 
-SceneNpcSystem 按 NPC 分帧选择当前最高优先级的有效配置；仅在配置切换时应用位置或路线，配置不变时不重复定位。没有有效配置时移除实体，有有效配置且实体缺失时重新生成；业务表重建使用新配置重新选择和应用。两个消费系统均同步完成初始化后再开始轮询，不保证对象间快照一致或捕获采样间的短暂变化。
+SceneNpcSystem 观察当前场景全部候选配置条件，批次结束按 NPC ID 重新选择最高优先级有效配置。配置不变不重复定位，无有效配置时移除实体。配置重建或条件结果变化时可为缺失实体补建；条件不变且 Entity 被外部移除时，不再由持续轮询自动补建。
 
-两个消费系统在 OnProcedureAttach 订阅业务表重载及流程暂停变化，在 OnProcedureDetach 取消订阅、任务并清空登记，不维护额外活动布尔状态；旧回调由登记版本检查排除。通过 Pause/Resume 控制全局时间片 Token，恢复后继续原游标。Attach 时通过 context.IsPaused 读取已生效暂停状态，暂停期间重建的任务立即暂停；同步初始化及显式提交不因轮询暂停而改变。
+NPC 候选配置按 NPC ID 分组，每条 SceneNpcConfigState 一并保存配置、条件结果和观察 Token；重建先取消旧观察再清理配置状态，已登记 Entity 保留到配置刷新时比较。两个消费方将 dirty ID 去重收集到本批列表，排序后统一应用。
 
-ConditionSystem 不订阅状态变化、条件总表或变量表重载，不维护结果缓存。配置重载后，后续求值直接读取最新定义和变量默认值，消费状态随轮询更新，无需 condition.refresh GM。行为每次实际执行时查询最新定义，行为总表重载不替换已经发起的行为。
+两个消费系统随 Procedure Attach/Detach 订阅/解除业务表、暂停与批次事件；观察 Token 随场景登记创建和取消。暂停时暂停 Token，恢复后重新检查，暂停期间新登记立即暂停。初始化与显式提交维持同步入口语义；取消后的旧条件通知由 ConditionSystem 在派发前排除，消费方不重复校验版本。
 
-新增定义沿用 `DefinitionResolverAttribute` 和现有生成模板，通过 `Tools/Gameplay/Generate Definition Resolvers` 重新生成统一分发器，不手工编辑生成结果。配表不再按调用领域限定定义类型，Luban 标准 ID、格式和定义内部引用校验继续生效。新增总表数据资源沿现有 `Configs/<table>` Addressables 规则注册，并由正式初始化流程加载。
+SceneNpcSystem 的配置选择、位置应用和 Entity 登记沿同步调用链完成，不维护额外登记版本。SceneEventSystem 的状态接收方和 Action 分发是同步业务重入入口：调用返回后检查 _sceneEventVersion 以停止旧遍历，不可取消的 Action 分发回调也检查登记版本，避免操作重建后的防重入集合。
+
+ConditionSystem 手工维护变量事件和来源映射，在 LateTick 集中刷新观察缓存；变量默认值表重载使对应来源失效，条件总表重载重建全部观察依赖。详见[条件观察](Conditions.md)。ActionSystem 每次实际执行查询最新行为定义，不替换已经发起的行为。
+
+新增定义使用专用 ActionResolverAttribute/ConditionResolverAttribute，通过两个独立菜单生成。Condition 来源显式声明，枚举与事件映射不自动推断，详见[代码生成](DefinitionGeneration.md)。配表不按调用领域限定定义类型，继续使用 Luban 标准 ID、格式、定义内部引用校验和既有 Configs Addressables 注册/加载流程。
 
 ## Gameplay Tag 生成
 

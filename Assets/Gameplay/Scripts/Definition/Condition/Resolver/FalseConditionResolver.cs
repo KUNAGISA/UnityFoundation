@@ -3,7 +3,7 @@ using Gameplay.Tables;
 
 namespace Gameplay
 {
-    [DefinitionResolver(typeof(FalseConditionDef))]
+    [ConditionResolver(typeof(FalseConditionDef), ConditionSource.None)]
     public static class FalseConditionResolver
     {
         public static bool Evaluate(FalseConditionDef condition, IQueryContext context)

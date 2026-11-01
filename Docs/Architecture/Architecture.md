@@ -32,6 +32,8 @@
 
 `GameplayArchitecture` 在每帧 EarlyTick 开始时生成一次不可变 `FrameTime`，并将同一快照传给 Procedure、Scheduler 和 Camera 的 EarlyTick、FrameTick、LateTick。`IFrameTickable` 只接收 `in FrameTime`，Tick 中不重新采样 Unity 时间。
 
+LateTick 的顺序为 Procedure → Scheduler → ConditionSystem.FlushDirty → Camera。条件观察在镜头更新前完成一批求值、变化通知及消费方应用；回调产生的新失效留到下一次 LateTick，详见[条件模块](Conditions.md)。
+
 全局 `FrameTime` 使用 Unity 缩放时间；需要暂停或独立缩放的领域从全局快照派生并持有自己的时间域。`ProcedureSystem.Time` 是流程时间域，流程暂停、切换或未运行时停止推进。决策背景见 [ADR-0002](../ADR/0002-single-frame-time-snapshot.md)。
 
 ### 能力接口

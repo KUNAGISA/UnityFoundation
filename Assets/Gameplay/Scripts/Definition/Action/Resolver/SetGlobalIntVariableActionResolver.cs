@@ -3,7 +3,7 @@ using Gameplay.Tables;
 
 namespace Gameplay
 {
-    [DefinitionResolver(typeof(SetGlobalIntVariableActionDef))]
+    [ActionResolver(typeof(SetGlobalIntVariableActionDef))]
     public static class SetGlobalIntVariableActionResolver
     {
         public static bool Execute(SetGlobalIntVariableActionDef action, ICommandContext context)

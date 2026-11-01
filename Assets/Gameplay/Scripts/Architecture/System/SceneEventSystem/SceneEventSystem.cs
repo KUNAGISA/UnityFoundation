@@ -2,7 +2,6 @@ using System.Threading;
 using System.Collections.Generic;
 using Aoiro;
 using Cysharp.Threading.Tasks;
-using Gameplay.Scheduler;
 using Gameplay.Tables;
 using UnityEngine;
 
@@ -13,13 +12,16 @@ namespace Gameplay
         private readonly Dictionary<int, SceneEventState> _events = new();
         private readonly HashSet<int> _scheduledEventIds = new();
         private readonly List<SceneEventState> _sortedEvents = new();
-        private TimeSliceToken _pollToken;
+        private readonly HashSet<int> _dirtyEventIds = new();
+        private readonly List<int> _batchEventIds = new();
+        private SubscriptionToken _batchCompletedToken;
         private SubscriptionToken _sceneEventTableReloadedToken;
         private SubscriptionToken _procedurePauseChangedToken;
         private ConditionSystem _conditionSystem;
         private ActionSystem _actionSystem;
-        private bool _isPaused;
-        private int _pollCursor;
+        private IProcedureContext _procedureContext;
+        // 状态接收方和行为分发可同步重入；版本只保护这些调用后的遍历及分发回调。
+        private int _sceneEventVersion;
 
         protected override void OnInitialize()
         {
@@ -38,7 +40,8 @@ namespace Gameplay
         {
             _sceneEventTableReloadedToken = this.SubscribeEvent<TableReloadedEvent<SceneEventTable>>(OnSceneEventTableReloaded);
             _procedurePauseChangedToken = this.SubscribeEvent<ProcedurePauseChangedEvent>(OnProcedurePauseChanged);
-            _isPaused = context.IsPaused;
+            _procedureContext = context;
+            _batchCompletedToken = this.SubscribeEvent<ConditionBatchCompletedEvent>(OnConditionBatchCompleted);
         }
 
         protected override void OnProcedureDetach(IProcedureContext context)
@@ -47,19 +50,24 @@ namespace Gameplay
             _sceneEventTableReloadedToken = default;
             _procedurePauseChangedToken.Cancel();
             _procedurePauseChangedToken = default;
+            _batchCompletedToken.Cancel();
+            _batchCompletedToken = default;
             Clear();
+            _procedureContext = null;
         }
 
         private void OnProcedurePauseChanged(ProcedurePauseChangedEvent evt)
         {
-            _isPaused = evt.IsPaused;
-            if (_isPaused)
+            foreach (var state in _sortedEvents)
             {
-                _pollToken.Pause();
-            }
-            else
-            {
-                _pollToken.Resume();
+                if (evt.IsPaused)
+                {
+                    state.Observation.Pause();
+                }
+                else
+                {
+                    state.Observation.Resume();
+                }
             }
         }
 
@@ -94,28 +102,34 @@ namespace Gameplay
             SubmitEvent(state);
         }
 
-        private void PollConditions(in TimeSliceBudget budget)
+        private void OnConditionBatchCompleted(ConditionBatchCompletedEvent evt)
         {
-            if (_sortedEvents.Count == 0)
+            var version = _sceneEventVersion;
+            _batchEventIds.Clear();
+            foreach (var eventId in _dirtyEventIds)
             {
-                return;
+                _batchEventIds.Add(eventId);
             }
-
-            var count = _sortedEvents.Count;
-            for (var processed = 0; processed < count; ++processed)
+            _dirtyEventIds.Clear();
+            _batchEventIds.Sort();
+            for (var index = 0; index < _batchEventIds.Count; ++index)
             {
-                var state = _sortedEvents[_pollCursor];
-                _pollCursor = (_pollCursor + 1) % count;
-                var changed = RefreshTriggerableState(state);
-                if (changed && state.IsTriggerable && state.Point != null && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
-                {
-                    SubmitEvent(state);
-                }
-                if (budget.ShouldYield)
+                var state = _events[_batchEventIds[index]];
+                var changed = ApplyTriggerableState(state);
+                if (version != _sceneEventVersion)
                 {
                     return;
                 }
+                if (changed && state.IsTriggerable && state.Point != null && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
+                {
+                    SubmitEvent(state);
+                    if (version != _sceneEventVersion)
+                    {
+                        return;
+                    }
+                }
             }
+            _batchEventIds.Clear();
         }
 
         private void OnSceneEventTableReloaded(TableReloadedEvent<SceneEventTable> evt)
@@ -126,6 +140,7 @@ namespace Gameplay
         private void RebuildSceneEvents()
         {
             Clear();
+            var version = _sceneEventVersion;
             var sceneEventTable = this.GetModel<TablesModel>().SceneEventTable;
             foreach (var point in UnityEngine.Object.FindObjectsByType<SceneEventPoint>(FindObjectsSortMode.None))
             {
@@ -141,7 +156,13 @@ namespace Gameplay
                 }
 
                 var state = new SceneEventState { EventId = point.EventId, Point = point, Config = config };
-                state.OnDispatched = _ => OnActionDispatched(state);
+                state.OnDispatched = _ =>
+                {
+                    if (version == _sceneEventVersion)
+                    {
+                        OnActionDispatched(state);
+                    }
+                };
                 _events.Add(state.EventId, state);
                 _sortedEvents.Add(state);
             }
@@ -150,35 +171,44 @@ namespace Gameplay
 
             for (var index = 0; index < _sortedEvents.Count; ++index)
             {
-                RefreshTriggerableState(_sortedEvents[index], true);
+                var state = _sortedEvents[index];
+                state.Observation = _conditionSystem.Observe(state.Config.ConditionId, result =>
+                {
+                    state.ConditionResult = result;
+                    _dirtyEventIds.Add(state.EventId);
+                }, out var initialValue);
+                state.ConditionResult = initialValue;
+                if (_procedureContext.IsPaused)
+                {
+                    state.Observation.Pause();
+                }
+                ApplyTriggerableState(state, true);
+                if (version != _sceneEventVersion)
+                {
+                    return;
+                }
             }
             for (var index = 0; index < _sortedEvents.Count; ++index)
             {
                 var state = _sortedEvents[index];
-                if (state.IsTriggerable && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
+                if (state.IsTriggerable && state.Point != null && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
                 {
                     SubmitEvent(state);
-                }
-            }
-            if (_sortedEvents.Count > 0)
-            {
-                _pollToken = this.GetSystem<SchedulerSystem>().AddTimeSliceTask(PollConditions);
-                if (_isPaused)
-                {
-                    _pollToken.Pause();
+                    if (version != _sceneEventVersion)
+                    {
+                        return;
+                    }
                 }
             }
         }
 
-        private bool RefreshTriggerableState(SceneEventState state, bool initialize = false)
+        private bool ApplyTriggerableState(SceneEventState state, bool initialize = false)
         {
-            var result = _conditionSystem.Evaluate(state.Config.ConditionId);
-            if (!initialize && state.IsTriggerable == result)
+            if (!initialize && state.IsTriggerable == state.ConditionResult)
             {
                 return false;
             }
-
-            state.IsTriggerable = result;
+            state.IsTriggerable = state.ConditionResult;
             if (state.Point != null)
             {
                 state.Point.NotifyStateChanged(state.IsTriggerable);
@@ -203,9 +233,13 @@ namespace Gameplay
 
         private void Clear()
         {
-            _pollToken.Cancel();
-            _pollToken = default;
-            _pollCursor = 0;
+            ++_sceneEventVersion;
+            foreach (var state in _sortedEvents)
+            {
+                state.Observation.Cancel();
+            }
+            _dirtyEventIds.Clear();
+            _batchEventIds.Clear();
             _events.Clear();
             _scheduledEventIds.Clear();
             _sortedEvents.Clear();

@@ -18,6 +18,7 @@ namespace Gameplay
         private IFrameTickable _schedulerDriver;
         private IFrameTickable _procedureDriver;
         private IFrameTickable _cameraDriver;
+        private ConditionSystem _conditionSystem;
         private FrameTime _frameTime;
 #if UNITY_EDITOR
         private TableFileWatchSystem _tableFileWatchSystem;
@@ -52,6 +53,7 @@ namespace Gameplay
             _schedulerDriver = null;
             _procedureDriver = null;
             _cameraDriver = null;
+            _conditionSystem = null;
             _frameTime = default;
 #if UNITY_EDITOR
             _tableFileWatchSystem = null;
@@ -98,7 +100,8 @@ namespace Gameplay
             RegisterModule(new ConsoleSystem());
             RegisterModule(new SceneTransitionSystem());
             RegisterModule(new SceneSystem());
-            RegisterModule(new ConditionSystem());
+            _conditionSystem = new ConditionSystem();
+            RegisterModule(_conditionSystem);
             RegisterModule(new ActionSystem());
             RegisterModule(new SceneNpcSystem());
             RegisterModule(new SceneEventSystem());
@@ -138,6 +141,7 @@ namespace Gameplay
         {
             _procedureDriver?.LateTick(in _frameTime);
             _schedulerDriver?.LateTick(in _frameTime);
+            _conditionSystem?.FlushDirty();
             _cameraDriver?.LateTick(in _frameTime);
         }
         

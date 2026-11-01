@@ -26,11 +26,11 @@ System 作为常规 SystemBase 注册，在初始化时绑定 ActionContext，�
 
 - 配表行为统一经 Submit 发起，消费方不直接调用生成分发器绕开队列。
 - 入队代表已决定执行，出队不重新判断触发条件或调用来源；提交前完成业务判断。队列只保证单个 Action 不被重入 Action 打断，不提供状态事务。
-- 提交前准备好回调使用的状态。回调持有场景对象时由消费方检查登记身份和生命周期，防止更新旧对象。SceneEventSystem 每次离场、重建或关闭均递增登记版本，以挂载状态、登记版本及 Unity 对象有效性判断旧回调是否仍可更新状态。
+- 提交前准备好回调使用的状态。Action 分发回调不能通过条件观察 Token 取消；SceneEventSystem 在离场、重建或关闭时递增登记版本，由分发回调检查版本，避免旧回调清除新登记的防重入标记。条件变化回调则由 ConditionSystem 的登记取消契约保护，不重复做消费方版本校验。
 - 多次提交相同 ActionId 是独立执行；场景事件不维护完成记录，是否可再次触发由条件和业务变量决定，提交期间仅保留临时防重入。
-- SceneEventSystem 忽略结果 bool，分发回调仅在当前登记仍有效时释放临时防重入标记，不重新求值条件或通知表现对象。条件状态由登记初始化和条件变化通知更新；Trigger(SceneEventPoint) 为 void 入口，使用已维护的 IsTriggerable 判断是否提交，不重新求值或通知表现对象，不返回触发结果。持续行为的结束不参与标记释放。
-- 新行为沿用 DefinitionResolverAttribute 和模板生成流程，返回同步 bool，不返回执行监视器。
-- 设置游戏/全局整数、布尔变量的四种行为分别调用对应 Command，未配置变量 ID 时记录 Error 并反馈 false；全局变量立即保存，文件写入失败由现有执行异常链路反馈 false，内存修改保留，见[变量模块](Variables.md)。
+- SceneEventSystem 忽略结果 bool，分发回调仅在当前登记仍有效时释放临时防重入标记；条件状态由同步初始化和 LateTick 观察批次维护。Trigger 为 void，提交前即时复核条件，不更新观察结果或表现；持续行为结束不参与标记释放。
+- 新行为使用 ActionResolverAttribute，通过专用 Generate Action 菜单生成，返回同步 bool，不返回执行监视器。生成与条件观察分别见[代码生成](DefinitionGeneration.md)、[条件模块](Conditions.md)。
+- 设置游戏/全局整数、布尔变量的四种行为分别调用对应 Command，配置校验与全局变量持久化继续沿用[变量模块](Variables.md)。
 - 独占冲突按所属系统的语义处理；剧情沿用新播放取消旧播放。角色运动能力与 Sequence 内部 Action/Yield 的生命周期不受此接口影响。
 
 ## 验证

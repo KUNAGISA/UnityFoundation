@@ -5,13 +5,16 @@ namespace Gameplay
 {
     [Conditional("UNITY_EDITOR")]
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    public sealed class DefinitionResolverAttribute : Attribute
+    public sealed class ConditionResolverAttribute : Attribute
     {
         public Type DefinitionType { get; }
 
-        public DefinitionResolverAttribute(Type definitionType)
+        public ConditionSource Sources { get; }
+
+        public ConditionResolverAttribute(Type definitionType, ConditionSource sources)
         {
             DefinitionType = definitionType ?? throw new ArgumentNullException(nameof(definitionType));
+            Sources = sources;
         }
     }
 }

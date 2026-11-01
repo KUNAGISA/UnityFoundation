@@ -3,7 +3,7 @@ using Gameplay.Tables;
 
 namespace Gameplay
 {
-    [DefinitionResolver(typeof(GlobalBoolVariableConditionDef))]
+    [ConditionResolver(typeof(GlobalBoolVariableConditionDef), ConditionSource.GlobalBoolVariables)]
     public static class GlobalBoolVariableConditionResolver
     {
         public static bool Evaluate(GlobalBoolVariableConditionDef condition, IQueryContext context)

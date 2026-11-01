@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Aoiro;
 using Cysharp.Threading.Tasks;
-using Gameplay.Scheduler;
 using Gameplay.Tables;
 using UnityEngine;
 
@@ -10,16 +9,24 @@ namespace Gameplay
 {
     public sealed class SceneNpcSystem : ProcedureCapacitySystem, ISystemAccessor, ISceneAfterEnter, ISceneBeforeLeave
     {
-        private readonly Dictionary<int, List<SceneNpcEntry>> _configsByNpc = new();
+        private sealed class SceneNpcConfigState
+        {
+            public SceneNpcEntry Config;
+            public ConditionObservationToken Observation;
+            public bool IsConditionMet;
+        }
+
+        private readonly Dictionary<int, List<SceneNpcConfigState>> _configStatesByNpc = new();
         private readonly Dictionary<int, SceneNpcState> _activeNpcs = new();
         private readonly List<int> _npcIds = new();
+        private readonly HashSet<int> _dirtyNpcIds = new();
+        private readonly List<int> _batchNpcIds = new();
         
-        private TimeSliceToken _pollToken;
         private SubscriptionToken _sceneNpcTableReloadedToken;
         private SubscriptionToken _procedurePauseChangedToken;
         private ConditionSystem _conditionSystem;
-        private bool _isPaused;
-        private int _pollCursor;
+        private SubscriptionToken _batchCompletedToken;
+        private IProcedureContext _procedureContext;
 
         protected override void OnInitialize()
         {
@@ -34,7 +41,7 @@ namespace Gameplay
 
         UniTask ISceneAfterEnter.AfterEnterSceneAsync(SceneTransitionContext context, CancellationToken cancellationToken)
         {
-            RebuildSceneNpc();
+            RebuildSceneNpcs();
             return UniTask.CompletedTask;
         }
 
@@ -54,62 +61,66 @@ namespace Gameplay
 
         protected override void OnProcedureAttach(IProcedureContext context)
         {
+            _procedureContext = context;
             _sceneNpcTableReloadedToken = this.SubscribeEvent<TableReloadedEvent<SceneNpcTable>>(OnSceneNpcTableReloaded);
             _procedurePauseChangedToken = this.SubscribeEvent<ProcedurePauseChangedEvent>(OnProcedurePauseChanged);
-            _isPaused = context.IsPaused;
+            _batchCompletedToken = this.SubscribeEvent<ConditionBatchCompletedEvent>(OnConditionBatchCompleted);
         }
 
         protected override void OnProcedureDetach(IProcedureContext context)
         {
+            Clear();
             _sceneNpcTableReloadedToken.Cancel();
             _sceneNpcTableReloadedToken = default;
             _procedurePauseChangedToken.Cancel();
             _procedurePauseChangedToken = default;
-            Clear();
+            _batchCompletedToken.Cancel();
+            _batchCompletedToken = default;
+            _procedureContext = null;
         }
 
         private void OnProcedurePauseChanged(ProcedurePauseChangedEvent evt)
         {
-            _isPaused = evt.IsPaused;
-            if (_isPaused)
+            foreach (var (_, states) in _configStatesByNpc)
             {
-                _pollToken.Pause();
-            }
-            else
-            {
-                _pollToken.Resume();
-            }
-        }
-
-        private void PollConditions(in TimeSliceBudget budget)
-        {
-            if (_npcIds.Count == 0)
-            {
-                return;
-            }
-
-            var count = _npcIds.Count;
-            for (var processed = 0; processed < count; ++processed)
-            {
-                var npcId = _npcIds[_pollCursor];
-                _pollCursor = (_pollCursor + 1) % count;
-                RefreshNpc(npcId);
-                if (budget.ShouldYield)
+                foreach (var state in states)
                 {
-                    return;
+                    if (evt.IsPaused)
+                    {
+                        state.Observation.Pause();
+                    }
+                    else
+                    {
+                        state.Observation.Resume();
+                    }
                 }
             }
         }
 
-        private void OnSceneNpcTableReloaded(TableReloadedEvent<SceneNpcTable> evt)
+        private void OnConditionBatchCompleted(ConditionBatchCompletedEvent evt)
         {
-            RebuildSceneNpc();
+            _batchNpcIds.Clear();
+            foreach (var npcId in _dirtyNpcIds)
+            {
+                _batchNpcIds.Add(npcId);
+            }
+            _dirtyNpcIds.Clear();
+            _batchNpcIds.Sort();
+            for (var index = 0; index < _batchNpcIds.Count; ++index)
+            {
+                RefreshNpc(_batchNpcIds[index]);
+            }
+            _batchNpcIds.Clear();
         }
 
-        private void RebuildSceneNpc()
+        private void OnSceneNpcTableReloaded(TableReloadedEvent<SceneNpcTable> evt)
         {
-            _configsByNpc.Clear();
-            CancelPolling();
+            RebuildSceneNpcs();
+        }
+
+        private void RebuildSceneNpcs()
+        {
+            ClearConfigStates();
 
             var sceneId = this.GetModel<GameStateModel>().CurrentSceneId;
             foreach (var entry in this.GetModel<TablesModel>().SceneNpcTable.DataList)
@@ -119,37 +130,52 @@ namespace Gameplay
                     continue;
                 }
                 
-                if (!_configsByNpc.TryGetValue(entry.NpcId, out var configs))
+                if (!_configStatesByNpc.TryGetValue(entry.NpcId, out var states))
                 {
-                    configs = new List<SceneNpcEntry>();
-                    _configsByNpc.Add(entry.NpcId, configs);
+                    states = new List<SceneNpcConfigState>();
+                    _configStatesByNpc.Add(entry.NpcId, states);
                     _npcIds.Add(entry.NpcId);
                 }
-                configs.Add(entry);
+                states.Add(new SceneNpcConfigState { Config = entry });
             }
 
-            foreach (var (_, configs) in _configsByNpc)
+            foreach (var (_, states) in _configStatesByNpc)
             {
-                configs.Sort(static (left, right) => right.Priority.CompareTo(left.Priority));
+                states.Sort(static (left, right) => right.Config.Priority.CompareTo(left.Config.Priority));
             }
 
             _npcIds.Sort();
-            RefreshAll();
-            if (_npcIds.Count > 0)
+            foreach (var npcId in _npcIds)
             {
-                _pollToken = this.GetSystem<SchedulerSystem>().AddTimeSliceTask(PollConditions);
-                if (_isPaused)
+                foreach (var state in _configStatesByNpc[npcId])
                 {
-                    _pollToken.Pause();
+                    state.Observation = _conditionSystem.Observe(state.Config.ConditionId, result =>
+                    {
+                        state.IsConditionMet = result;
+                        _dirtyNpcIds.Add(state.Config.NpcId);
+                    }, out var initialValue);
+                    state.IsConditionMet = initialValue;
+                    if (_procedureContext.IsPaused)
+                    {
+                        state.Observation.Pause();
+                    }
                 }
             }
+            RefreshAll();
         }
 
-        private void CancelPolling()
+        private void ClearConfigStates()
         {
-            _pollToken.Cancel();
-            _pollToken = default;
-            _pollCursor = 0;
+            foreach (var (_, states) in _configStatesByNpc)
+            {
+                foreach (var state in states)
+                {
+                    state.Observation.Cancel();
+                }
+            }
+            _configStatesByNpc.Clear();
+            _dirtyNpcIds.Clear();
+            _batchNpcIds.Clear();
             _npcIds.Clear();
         }
 
@@ -163,7 +189,7 @@ namespace Gameplay
             var activeIds = new List<int>(_activeNpcs.Keys);
             foreach (var npcId in activeIds)
             {
-                if (!_configsByNpc.ContainsKey(npcId))
+                if (!_configStatesByNpc.ContainsKey(npcId))
                 {
                     RemoveNpc(npcId);
                 }
@@ -172,7 +198,7 @@ namespace Gameplay
 
         private void RefreshNpc(int npcId)
         {
-            var selected = SelectConfig(_configsByNpc[npcId]);
+            var selected = SelectConfig(_configStatesByNpc[npcId]);
             if (selected == null)
             {
                 RemoveNpc(npcId);
@@ -193,13 +219,13 @@ namespace Gameplay
             SpawnNpc(selected);
         }
 
-        private SceneNpcEntry SelectConfig(List<SceneNpcEntry> configs)
+        private SceneNpcEntry SelectConfig(List<SceneNpcConfigState> states)
         {
-            foreach (var config in configs)
+            foreach (var state in states)
             {
-                if (_conditionSystem.Evaluate(config.ConditionId))
+                if (state.IsConditionMet)
                 {
-                    return config;
+                    return state.Config;
                 }
             }
 
@@ -262,9 +288,8 @@ namespace Gameplay
 
         private void Clear()
         {
-            _configsByNpc.Clear();
+            ClearConfigStates();
             _activeNpcs.Clear();
-            CancelPolling();
         }
     }
 }

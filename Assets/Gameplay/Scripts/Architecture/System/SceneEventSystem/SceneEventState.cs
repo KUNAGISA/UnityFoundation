@@ -9,6 +9,8 @@ namespace Gameplay
         public SceneEventEntry Config;
         public SceneEventPoint Point;
         public bool IsTriggerable;
+        public bool ConditionResult;
+        public ConditionObservationToken Observation;
         public Action<bool> OnDispatched;
     }
 }
