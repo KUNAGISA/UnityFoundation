@@ -1,4 +1,3 @@
-using System;
 using Gameplay.Tables;
 
 namespace Gameplay
@@ -11,6 +10,5 @@ namespace Gameplay
         public bool IsTriggerable;
         public bool ConditionResult;
         public ConditionObservationToken Observation;
-        public Action<bool> OnDispatched;
     }
 }

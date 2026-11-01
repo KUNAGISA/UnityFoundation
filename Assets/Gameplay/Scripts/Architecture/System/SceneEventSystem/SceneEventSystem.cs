@@ -10,7 +10,6 @@ namespace Gameplay
     public sealed class SceneEventSystem : ProcedureCapacitySystem, ISystemAccessor, ISceneAfterEnter, ISceneBeforeLeave
     {
         private readonly Dictionary<int, SceneEventState> _events = new();
-        private readonly HashSet<int> _scheduledEventIds = new();
         private readonly List<SceneEventState> _sortedEvents = new();
         private readonly HashSet<int> _dirtyEventIds = new();
         private readonly List<int> _batchEventIds = new();
@@ -20,8 +19,6 @@ namespace Gameplay
         private ConditionSystem _conditionSystem;
         private ActionSystem _actionSystem;
         private IProcedureContext _procedureContext;
-        // 状态接收方和行为分发可同步重入；版本只保护这些调用后的遍历及分发回调。
-        private int _sceneEventVersion;
 
         protected override void OnInitialize()
         {
@@ -104,7 +101,6 @@ namespace Gameplay
 
         private void OnConditionBatchCompleted(ConditionBatchCompletedEvent evt)
         {
-            var version = _sceneEventVersion;
             _batchEventIds.Clear();
             foreach (var eventId in _dirtyEventIds)
             {
@@ -116,17 +112,9 @@ namespace Gameplay
             {
                 var state = _events[_batchEventIds[index]];
                 var changed = ApplyTriggerableState(state);
-                if (version != _sceneEventVersion)
-                {
-                    return;
-                }
-                if (changed && state.IsTriggerable && state.Point != null && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
+                if (changed && state.IsTriggerable && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
                 {
                     SubmitEvent(state);
-                    if (version != _sceneEventVersion)
-                    {
-                        return;
-                    }
                 }
             }
             _batchEventIds.Clear();
@@ -140,7 +128,6 @@ namespace Gameplay
         private void RebuildSceneEvents()
         {
             Clear();
-            var version = _sceneEventVersion;
             var sceneEventTable = this.GetModel<TablesModel>().SceneEventTable;
             foreach (var point in UnityEngine.Object.FindObjectsByType<SceneEventPoint>(FindObjectsSortMode.None))
             {
@@ -156,13 +143,6 @@ namespace Gameplay
                 }
 
                 var state = new SceneEventState { EventId = point.EventId, Point = point, Config = config };
-                state.OnDispatched = _ =>
-                {
-                    if (version == _sceneEventVersion)
-                    {
-                        OnActionDispatched(state);
-                    }
-                };
                 _events.Add(state.EventId, state);
                 _sortedEvents.Add(state);
             }
@@ -183,21 +163,13 @@ namespace Gameplay
                     state.Observation.Pause();
                 }
                 ApplyTriggerableState(state, true);
-                if (version != _sceneEventVersion)
-                {
-                    return;
-                }
             }
             for (var index = 0; index < _sortedEvents.Count; ++index)
             {
                 var state = _sortedEvents[index];
-                if (state.IsTriggerable && state.Point != null && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
+                if (state.IsTriggerable && state.Point.TriggerMode == SceneEventTriggerMode.Auto)
                 {
                     SubmitEvent(state);
-                    if (version != _sceneEventVersion)
-                    {
-                        return;
-                    }
                 }
             }
         }
@@ -209,31 +181,22 @@ namespace Gameplay
                 return false;
             }
             state.IsTriggerable = state.ConditionResult;
-            if (state.Point != null)
-            {
-                state.Point.NotifyStateChanged(state.IsTriggerable);
-            }
+            state.Point.NotifyStateChanged(state.IsTriggerable);
             return true;
         }
 
         private void SubmitEvent(SceneEventState state)
         {
-            if (state.Point == null || !_conditionSystem.Evaluate(state.Config.ConditionId) || !_scheduledEventIds.Add(state.EventId))
+            if (!_conditionSystem.Evaluate(state.Config.ConditionId))
             {
                 return;
             }
 
-            _actionSystem.Submit(state.Config.ActionId, state.OnDispatched);
-        }
-
-        private void OnActionDispatched(SceneEventState state)
-        {
-            _scheduledEventIds.Remove(state.EventId);
+            _actionSystem.Submit(state.Config.ActionId);
         }
 
         private void Clear()
         {
-            ++_sceneEventVersion;
             foreach (var state in _sortedEvents)
             {
                 state.Observation.Cancel();
@@ -241,7 +204,6 @@ namespace Gameplay
             _dirtyEventIds.Clear();
             _batchEventIds.Clear();
             _events.Clear();
-            _scheduledEventIds.Clear();
             _sortedEvents.Clear();
         }
     }

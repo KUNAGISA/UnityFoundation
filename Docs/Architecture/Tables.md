@@ -31,15 +31,15 @@
 
 演出表的 `onCompletedActionId` 是可选的行为总表引用，类型为 `int?#ref=ActionTable`，生成成员为 `SequenceEntry.OnCompletedActionId`。留空表示无结束行为，非空值必须通过行为总表引用校验；运行时在本次剧情正常完成并清理后经 ActionSystem 提交，取消和失败不提交，生命周期详见 [Sequence 框架](Sequence.md)。
 
-运行时 ID 入口由 [ConditionSystem](Conditions.md) 和 [ActionSystem](Actions.md) 提供。System 从表模型查找定义，生成的 ConditionResolver / ActionResolver 保留接收定义的类型分发入口，不再重复提供总表 ID 查询。找不到 ID 时记录错误，条件返回 false，行为结果回调反馈 false。
+运行时 ID 入口由 [ConditionSystem](Conditions.md) 和 [ActionSystem](Actions.md) 提供。System 从表模型查找定义，生成的 ConditionResolver / ActionResolver 保留接收定义的类型分发入口，不再重复提供总表 ID 查询。找不到 ID 时记录错误，条件返回 false，行为跳过执行并继续分发后续项，不提供结果回调。
 
-上下文复用 Aoiro 的架构能力和绑定生命周期，目前不携带调用来源。ConditionSystem 持有只读 ConditionContext；ActionSystem 持有 ActionContext，以同步 FIFO 防止重入插队。ActionResolver 返回 bool，true 表示已成功发起；持续行为的状态、替换和取消归所属系统，不向调用方返回 Action 监视器。场景事件不记录执行历史，不配置 repeatMode；是否可触发由条件决定，只保留行为提交期间的临时防重入。需要限制重复执行时，通过变量条件与业务行为表达，决策背景见 [ADR-0022](../ADR/0022-condition-driven-scene-event-availability.md)。
+上下文复用 Aoiro 的架构能力和绑定生命周期，目前不携带调用来源。ConditionSystem 持有只读 ConditionContext；ActionSystem 持有 ActionContext，以同步 FIFO 防止重入插队。ActionResolver 返回 bool，true 表示已成功发起；ActionSystem 只用该结果判断是否记录失败，不向提交方反馈结果。持续行为的状态、替换和取消归所属系统，不向调用方返回 Action 监视器。场景事件不记录执行历史，不配置 repeatMode，也不维护临时提交标记；是否可触发由条件决定，需要限制重复执行时，通过入口时机、变量条件与业务行为表达，决策背景见 [ADR-0022](../ADR/0022-condition-driven-scene-event-availability.md)。
 
 游戏/全局各有[变量表与开关表](Variables.md)，分别保存整数和布尔值，字段为 id、desc、defaultValue，ID 在各表内独立。设置行为和判断条件均通过 Luban ref 引用对应的强类型表。
 
 SceneEventSystem 在场景进入及业务表重建时同步初始化全部事件状态，再按 EventId 顺序提交初始成立的 Auto。之后通过条件观察维护本地结果，在 ConditionBatchCompletedEvent 中去重、按 EventId 应用；持续成立不重复提交，只在 false→true 时再次自动提交。
 
-进入触发器只响应玩家 OnTriggerEnter2D；提交前即时 Evaluate，拒绝已失效条件，不刷新观察缓存。提交临时防重入不改变 Collider 或表现，分发回调只释放当前登记的标记。真实条件变化控制 Collider，恢复后区域内玩家可以再次触发；限制重复由变量和业务行为表达，不记录事件完成历史。
+进入触发器只响应玩家 OnTriggerEnter2D；提交前即时 Evaluate，拒绝已失效条件，不刷新观察缓存。提交不改变 Collider 或表现，不跟踪分发完成。同一事件在前一次尚未分发完成时再次提交，会作为独立请求处理。真实条件变化控制 Collider，恢复后区域内玩家可以再次触发；限制重复由变量和业务行为表达，不记录事件完成历史。
 
 SceneNpcSystem 观察当前场景全部候选配置条件，批次结束按 NPC ID 重新选择最高优先级有效配置。配置不变不重复定位，无有效配置时移除实体。配置重建或条件结果变化时可为缺失实体补建；条件不变且 Entity 被外部移除时，不再由持续轮询自动补建。
 
@@ -47,7 +47,7 @@ NPC 候选配置按 NPC ID 分组，每条 SceneNpcConfigState 一并保存配�
 
 两个消费系统随 Procedure Attach/Detach 订阅/解除业务表、暂停与批次事件；观察 Token 随场景登记创建和取消。暂停时暂停 Token，恢复后重新检查，暂停期间新登记立即暂停。初始化与显式提交维持同步入口语义；取消后的旧条件通知由 ConditionSystem 在派发前排除，消费方不重复校验版本。
 
-SceneNpcSystem 的配置选择、位置应用和 Entity 登记沿同步调用链完成，不维护额外登记版本。SceneEventSystem 的状态接收方和 Action 分发是同步业务重入入口：调用返回后检查 _sceneEventVersion 以停止旧遍历，不可取消的 Action 分发回调也检查登记版本，避免操作重建后的防重入集合。
+SceneNpcSystem 的配置选择、位置应用和 Entity 登记沿同步调用链完成，不维护额外登记版本。SceneEventSystem 的登记初始化与条件批次应用同样同步完成，不维护登记版本；状态接收方和 Action 分发期间不允许同步清空或重建场景事件登记。登记持有的 SceneEventPoint 在登记有效期内保持有效，随离场或重建统一清理，不支持独立销毁 Point 后保留登记，内部访问不重复判空。
 
 ConditionSystem 手工维护变量事件和来源映射，在 LateTick 集中刷新观察缓存；变量默认值表重载使对应来源失效，条件总表重载重建全部观察依赖。详见[条件观察](Conditions.md)。ActionSystem 每次实际执行查询最新行为定义，不替换已经发起的行为。
 
