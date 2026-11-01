@@ -6,7 +6,7 @@ status: accepted
 
 语言切换时立即写文件适合单一低频设置，但扩展音量等连续调整后，会让每次内存修改都承担同步文件 IO。决定由 `GlobalSettingModel` 在值变化时更新内存并标脏，通过 `SaveIfDirty()` 显式合并保存，由调用流程选择保存时机，目前在 GM 命令成功后和架构正常关闭时执行。保留同步原子写入与现有模块生命周期，不增加自动保存 System 或延迟任务。
 
-该决定调整 [ADR-0017](0017-synchronous-language-switch-command.md) 中先保存再重载的持久化时机，保留同步语言切换和 Command 编排。现行接口与关闭约束见 [Sequence 框架](../Architecture/Sequence.md)。
+语言切换保持 [ADR-0017](0017-synchronous-language-switch-command.md) 的同步 Command 编排，设置修改只更新内存并标脏，落盘由显式保存入口负责。现行接口与关闭约束见 [Sequence 框架](../Architecture/Sequence.md)。
 
 ## 备选方案
 

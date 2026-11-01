@@ -6,7 +6,7 @@ status: accepted
 
 行为发起成功与剧情正常完成是不同的时点，场景事件自身记录完成历史会把业务进度与触发机制绑定。决定移除事件完成记录和 repeatMode，以条件及业务变量表达是否还能触发，剧情正常完成后的效果继续由结束行为提交。提交期间的临时防重入只作用于提交入口，对外可触发状态、Collider 和表现对象始终由条件结果决定。
 
-本决定调整 [ADR-0010](0010-separate-condition-observation-and-action-dispatch.md) 中场景事件成功发起即记完成的策略，保留其同步分发与登记版本检查；剧情结束行为继续遵循 [ADR-0011](0011-run-configured-action-after-sequence-completion.md)。现行职责见[配表与生成代码](../Architecture/Tables.md)。
+行为发起与剧情完成的区别遵循 [ADR-0010](0010-separate-condition-observation-and-action-dispatch.md) 的分发语义；剧情结束行为继续遵循 [ADR-0011](0011-run-configured-action-after-sequence-completion.md)。现行职责见[配表与生成代码](../Architecture/Tables.md)。
 
 ## 备选方案
 

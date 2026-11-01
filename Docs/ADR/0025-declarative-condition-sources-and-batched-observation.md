@@ -4,7 +4,7 @@ status: accepted
 
 # 声明式条件来源与 LateTick 批量观察
 
-分帧轮询降低条件扩展成本，但关键剧情与 NPC 配置更新没有固定检查时机。决定保留人工定义的数据源分类和已有业务事件映射，用专用 ConditionResolverAttribute 声明来源并生成完整依赖收集；ConditionSystem 集中观察，在 LateTick 合并求值，消费方按批次应用变化。本决定取代 [ADR-0024](0024-consumer-owned-condition-polling.md)，保留即时求值、条件控制业务可用性以及 Action 同步 FIFO 的契约。
+分帧轮询降低条件扩展成本，但关键剧情与 NPC 配置更新没有固定检查时机。决定保留人工定义的数据源分类和已有业务事件映射，用专用 ConditionResolverAttribute 声明来源并生成完整依赖收集；ConditionSystem 集中观察，在 LateTick 合并求值，消费方按批次应用变化。条件观察继续保留即时求值和条件控制业务可用性的契约，Action 分发继续采用同步 FIFO。
 
 Action 和 Condition 使用独立菜单、专用收集与校验，只复用底层模板/文件工具。观察以 Token 归属于业务状态，闭包仅在登记时创建，不要求消费方另建登记 ID 映射表。当前接口与扩展规则见 [ConditionSystem](../Architecture/Conditions.md) 和[生成流程](../Architecture/DefinitionGeneration.md)。
 

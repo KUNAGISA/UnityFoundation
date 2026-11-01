@@ -36,24 +36,16 @@
 - [0006：Entity 在 Ability 更新后结算本帧运动](../ADR/0006-settle-entity-motion-after-ability-frame-tick.md)
 - [0007：角色动画由 AnimationAbility 统一仲裁](../ADR/0007-centralize-character-animation-playback.md)
 - [0008：Gameplay Tag 使用稳定 ID、来源计数与同步批次通知](../ADR/0008-use-stable-source-counted-gameplay-tags.md)
-- [0009：RuleSystem 统一处理 Condition / Action（已取代）](../ADR/0009-centralize-condition-observation-in-rule-system.md)
-- [0010：拆分条件观察与同步行为分发，行为发起即视为成功](../ADR/0010-separate-condition-observation-and-action-dispatch.md)
+- [0010：行为同步 FIFO 分发，发起即视为成功](../ADR/0010-separate-condition-observation-and-action-dispatch.md)
 - [0011：剧情正常结束后执行可选配表行为](../ADR/0011-run-configured-action-after-sequence-completion.md)
-- [0012：将剧情脚本加载与编译缓存交给独立对象](../ADR/0012-isolate-sequence-script-loading-and-cache.md)
-- [0013：保留剧情播放所有权并复用独立 ADV 状态（已取代）](../ADR/0013-keep-playback-ownership-and-reuse-adv-state.md)
 - [0014：UI 过渡由 View 收束，Entry 决策与 Host 编排分离](../ADR/0014-separate-ui-transition-completion-and-close-decisions.md)
 - [0015：同步资源加载作为服务接口并保留 operation 所有权](../ADR/0015-expose-synchronous-asset-loading-with-operations.md)
-- [0016：信任已验证契约并将防御保留在真实边界](../ADR/0016-trust-validated-contracts-at-runtime-boundaries.md)
 - [0017：主动语言切换同步执行并由 Command 编排](../ADR/0017-synchronous-language-switch-command.md)
 - [0018：剧情资源异步预加载，同步启动并用 Token 管理文本源](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)
 - [0019：按能力拆分 ADV Session 与 Widget，并保留 Action 驱动对白](../ADR/0019-split-adv-sessions-and-widgets-with-action-driven-dialogue.md)
 - [0020：全局设置修改与显式保存分离](../ADR/0020-separate-global-settings-mutation-from-persistence.md)
-
 - [0021：游戏与全局变量仅保存覆盖值，默认值由 Query 提供](../ADR/0021-variable-overrides-and-query-defaults.md)
 - [0022：场景事件由业务条件控制，不记录执行历史](../ADR/0022-condition-driven-scene-event-availability.md)
-- [0023：条件配置刷新由 GM 显式发起（已取代）](../ADR/0023-explicit-condition-configuration-refresh.md)
-- [0024：条件集中求值，消费方分帧轮询（已取代）](../ADR/0024-consumer-owned-condition-polling.md)
-
 - [0025：声明式条件来源与 LateTick 批量观察](../ADR/0025-declarative-condition-sources-and-batched-observation.md)
 
 ## 新增文档

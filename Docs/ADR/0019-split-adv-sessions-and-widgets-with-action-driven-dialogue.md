@@ -6,10 +6,11 @@ status: accepted
 
 ADV 的对白、选项和立绘已有不同的状态规则与显示资源，继续由一个 Session 和一个 View 集中维护，会使本地化、输入协调、资源释放和显示逻辑相互牵连。决定将三类能力分别组织为随 Player 存活的 Session 和独立 Widget，由 AdvViewSession 与 AdvView 负责界面生命周期及跨 Widget 的输入协调；对白仍由 DialogueAction 驱动，启动就绪仍使用 SequencePreparation，以保留既有动作等待、推进和清理语义。
 
-本决策替代 [ADR-0013](0013-keep-playback-ownership-and-reuse-adv-state.md) 中由单个 Session 持有普通对白和立绘状态对象的组织方式，继续沿用 SequenceSystem 对单次播放资源的完整所有权。现行接口、注册顺序与生命周期见 [Sequence 框架](../Architecture/Sequence.md)，Widget 和 View 的显示、导航及释放契约见 [UI 系统](../Architecture/UI.md)。
+SequenceSystem 继续持有单次播放资源的完整所有权。现行接口、注册顺序与生命周期见 [Sequence 框架](../Architecture/Sequence.md)，Widget 和 View 的显示、导航及释放契约见 [UI 系统](../Architecture/UI.md)。
 
 ## 备选方案
 
+- 将单次播放资源抽成 SequenceOperation：该对象没有独立的调用方或生命周期，System 仍需协调加载、输入、文本和结束行为，会增加所有权交接；选择保留 System 的完整播放所有权，只拆分具有独立规则和显示资源的 ADV 能力。
 - 保留单个 AdvSession 和 AdvView，仅在内部增加辅助对象或拆分文件：可以减少注册类型，但选项、本地化和界面资源仍集中在同一入口，调用方也需要经总 Session 访问各能力；选择按能力直接获取 Session，并让各 Widget 管理自己的显示资源与订阅。
 - 由对白 Session 自行 Tick，保留 Action 作为等待入口：能够保留动作计数，但计时提前到 Module 阶段，使新对白启动当帧以及手动推进与计时的先后关系发生变化。当前没有脱离对白 Action 持续计时的需求，因此由 Action 提供时间，Session 集中状态和计时算法。
 - 由对白 Session 自行 Tick 并删除 DialogueAction：接口看似更少，但对白将不再参与动作计数，现有 wait()、自然完成和统一推进都需要额外接入协议；保留 DialogueAction 表达一次仍在执行的对白。
