@@ -20,7 +20,7 @@ namespace Gameplay.Tables
 [LabelText("播放演出脚本")]
 public sealed partial class PlaySequenceActionDef : ActionDef
 {
-    internal PlaySequenceActionDef(ByteBuf buffer)  : base(buffer) 
+    internal PlaySequenceActionDef(ByteBuf buffer) : base(buffer)
     {
         SequenceId = buffer.ReadInt();
     }

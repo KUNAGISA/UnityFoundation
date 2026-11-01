@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class GlobalEntry : Luban.BeanBase
 {
-    internal GlobalEntry(ByteBuf buffer) 
+    internal GlobalEntry(ByteBuf buffer)
     {
         InitialSceneId = buffer.ReadInt();
     }

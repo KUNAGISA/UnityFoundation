@@ -11,7 +11,7 @@ ResolverTemplateItem 只包含共用的定义类型、Resolver 类型和类型 I
 ## 使用与扩展规则
 
 - 行为使用 `[ActionResolver(typeof(SomeActionDef))]`，实现 `public static bool Execute(SomeActionDef action, ICommandContext context)`。
-- 条件使用 `[ConditionResolver(typeof(SomeConditionDef), ConditionSource.GameIntVariables)]`，实现 `public static bool Evaluate(SomeConditionDef condition, IQueryContext context)`；来源支持按位组合，True/False 显式写 None。
+- 条件使用 `[ConditionResolver(typeof(SomeConditionDef), ConditionSource.GameVariables)]`，实现 `public static bool Evaluate(SomeConditionDef condition, IQueryContext context)`；来源支持按位组合，True/False 显式写 None。
 - All/Any 为内置组合类型，不另行注册 Resolver；依赖收集遍历全部子条件，不沿用求值短路。
 - 运行时 CollectSources 遇到未支持类型时记录 Error 并返回 None，不抛出缺失分支异常；组合继续收集其余子条件。生成期仍校验声明与定义覆盖，运行时返回 None 不代替重新生成。
 - 使用 `Tools/Gameplay/Generate Action` 或 `Tools/Gameplay/Generate Condition`。后者在一次操作中生成求值分发和 CollectSources，不单独生成枚举或订阅。

@@ -19,7 +19,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public partial struct EmotionModifier
 {
-    internal EmotionModifier(ByteBuf buffer) 
+    internal EmotionModifier(ByteBuf buffer)
     {
         Id = (EmotionId)buffer.ReadInt();
         Value = buffer.ReadInt();

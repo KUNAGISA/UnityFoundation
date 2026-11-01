@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class PlayerCharacterEntry : Luban.BeanBase
 {
-    internal PlayerCharacterEntry(ByteBuf buffer) 
+    internal PlayerCharacterEntry(ByteBuf buffer)
     {
         InitialMaxHp = buffer.ReadInt();
         InitialMaxSan = buffer.ReadInt();

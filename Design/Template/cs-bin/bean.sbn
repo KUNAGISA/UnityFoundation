@@ -34,7 +34,7 @@ end
 {{classvalueisit __bean}} {{class_modifier __bean}} partial class {{__name}} : {{if parent_def_type}}{{__bean.parent}}{{else}}Luban.BeanBase{{end}}
 {{~end~}}
 {
-    internal {{__name}}(ByteBuf buffer) {{if parent_def_type}} : base(buffer) {{end}}
+    internal {{__name}}(ByteBuf buffer){{if parent_def_type}} : base(buffer){{end}}
     {
         {{~ for field in export_fields
             fieldName = format_property_name __code_style field.name

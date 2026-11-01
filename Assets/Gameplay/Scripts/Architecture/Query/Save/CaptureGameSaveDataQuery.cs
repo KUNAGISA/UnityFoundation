@@ -34,7 +34,7 @@ namespace Gameplay
                 SaveTimeUtcTicks = DateTime.UtcNow.Ticks,
                 PlayerCharacter = CapturePlayerCharacter(characterModel.PlayerCharacter),
                 Npcs = npcs,
-                Variables = context.GetModel<GameVariableModel>().Capture(),
+                VariablesAndSwitches = context.GetModel<GameValueModel>().Capture(),
             };
         }
 

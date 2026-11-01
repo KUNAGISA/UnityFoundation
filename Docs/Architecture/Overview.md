@@ -13,7 +13,7 @@
 - [IAssetService](AssetService.md)
 - [IStorageService](StorageService.md)
 - [配表与生成代码](Tables.md)
-- [游戏变量与全局变量](Variables.md)
+- [变量与开关](Variables.md)
 - [ConditionSystem](Conditions.md)
 - [Action / Condition 代码生成](DefinitionGeneration.md)
 - [ActionSystem](Actions.md)

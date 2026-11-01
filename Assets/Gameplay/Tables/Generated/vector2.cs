@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 internal partial struct vector2
 {
-    internal vector2(ByteBuf buffer) 
+    internal vector2(ByteBuf buffer)
     {
         X = buffer.ReadFloat();
         Y = buffer.ReadFloat();

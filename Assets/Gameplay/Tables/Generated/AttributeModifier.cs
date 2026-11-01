@@ -19,7 +19,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public partial struct AttributeModifier
 {
-    internal AttributeModifier(ByteBuf buffer) 
+    internal AttributeModifier(ByteBuf buffer)
     {
         Id = (AttributeId)buffer.ReadInt();
         Value = buffer.ReadInt();

@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class SceneEntry : Luban.BeanBase
 {
-    internal SceneEntry(ByteBuf buffer) 
+    internal SceneEntry(ByteBuf buffer)
     {
         Id = buffer.ReadInt();
         Name = buffer.ReadString();

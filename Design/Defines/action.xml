@@ -4,20 +4,20 @@
     <bean name="PlaySequenceActionDef" sep="," parent="ActionDef" comment="播放演出脚本" alias="播放演出脚本">
         <var name="sequenceId" type="int#ref=SequenceTable"/>
     </bean>
-    <bean name="SetGameIntVariableActionDef" sep="," parent="ActionDef" comment="设置游戏整数变量" alias="设置游戏整数变量">
-        <var name="variableId" type="int#ref=GameIntVariableTable"/>
+    <bean name="SetGameVariableActionDef" sep="," parent="ActionDef" comment="设置游戏变量" alias="设置游戏变量">
+        <var name="variableId" type="int#ref=GameVariableTable"/>
         <var name="value" type="int"/>
     </bean>
-    <bean name="SetGameBoolVariableActionDef" sep="," parent="ActionDef" comment="设置游戏布尔变量" alias="设置游戏布尔变量">
-        <var name="variableId" type="int#ref=GameBoolVariableTable"/>
+    <bean name="SetGameSwitchActionDef" sep="," parent="ActionDef" comment="设置游戏开关" alias="设置游戏开关">
+        <var name="switchId" type="int#ref=GameSwitchTable"/>
         <var name="value" type="bool"/>
     </bean>
-    <bean name="SetGlobalIntVariableActionDef" sep="," parent="ActionDef" comment="设置全局整数变量" alias="设置全局整数变量">
-        <var name="variableId" type="int#ref=GlobalIntVariableTable"/>
+    <bean name="SetGlobalVariableActionDef" sep="," parent="ActionDef" comment="设置全局变量" alias="设置全局变量">
+        <var name="variableId" type="int#ref=GlobalVariableTable"/>
         <var name="value" type="int"/>
     </bean>
-    <bean name="SetGlobalBoolVariableActionDef" sep="," parent="ActionDef" comment="设置全局布尔变量" alias="设置全局布尔变量">
-        <var name="variableId" type="int#ref=GlobalBoolVariableTable"/>
+    <bean name="SetGlobalSwitchActionDef" sep="," parent="ActionDef" comment="设置全局开关" alias="设置全局开关">
+        <var name="switchId" type="int#ref=GlobalSwitchTable"/>
         <var name="value" type="bool"/>
     </bean>
 </module>

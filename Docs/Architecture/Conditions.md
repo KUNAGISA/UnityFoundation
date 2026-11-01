@@ -6,7 +6,7 @@ ConditionSystem 提供即时条件求值和按条件 ID 共享的条件观察。
 
 System 持有只读 ConditionContext、观察缓存、来源集合和观察登记。ConditionResolver 只读求值，CollectSources 只收集配置依赖；两者都不执行业务写操作。NPC、场景事件等消费方拥有业务状态、观察 Token 与实际应用逻辑。Context 是查询入口，不是事务快照。
 
-ConditionSource 为手工维护的 Flags 枚举，当前包含 None、GameIntVariables、GameBoolVariables、GlobalIntVariables、GlobalBoolVariables，不细化到变量 ID。ConditionSystem 手工订阅四类变量变更及其默认值表重载，各自标记对应来源；同一来源可由多个业务事件标记失效。
+ConditionSource 为手工维护的 Flags 枚举，当前包含 None、GameVariables、GameSwitches、GlobalVariables、GlobalSwitches，不细化到变量 ID。ConditionSystem 手工订阅四类变量变更及其默认值表重载，各自标记对应来源；同一来源可由多个业务事件标记失效。
 
 ## 主要类型与入口
 

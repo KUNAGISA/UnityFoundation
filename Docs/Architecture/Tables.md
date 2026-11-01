@@ -35,7 +35,7 @@
 
 上下文复用 Aoiro 的架构能力和绑定生命周期，目前不携带调用来源。ConditionSystem 持有只读 ConditionContext；ActionSystem 持有 ActionContext，以同步 FIFO 防止重入插队。ActionResolver 返回 bool，true 表示已成功发起；持续行为的状态、替换和取消归所属系统，不向调用方返回 Action 监视器。场景事件不记录执行历史，不配置 repeatMode；是否可触发由条件决定，只保留行为提交期间的临时防重入。需要限制重复执行时，通过变量条件与业务行为表达，决策背景见 [ADR-0022](../ADR/0022-condition-driven-scene-event-availability.md)。
 
-游戏/全局各有整数、布尔两张[变量表](Variables.md)，字段为 id、desc、defaultValue，ID 在各表内独立。设置变量行为、变量判断条件均通过 Luban ref 引用对应的强类型变量表。
+游戏/全局各有[变量表与开关表](Variables.md)，分别保存整数和布尔值，字段为 id、desc、defaultValue，ID 在各表内独立。设置行为和判断条件均通过 Luban ref 引用对应的强类型表。
 
 SceneEventSystem 在场景进入及业务表重建时同步初始化全部事件状态，再按 EventId 顺序提交初始成立的 Auto。之后通过条件观察维护本地结果，在 ConditionBatchCompletedEvent 中去重、按 EventId 应用；持续成立不重复提交，只在 false→true 时再次自动提交。
 

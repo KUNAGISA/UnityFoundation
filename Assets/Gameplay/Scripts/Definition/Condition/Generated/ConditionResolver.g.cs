@@ -31,14 +31,14 @@ namespace Gameplay
                         return EvaluateAny((AnyConditionDef)condition, context);
                     case global::Gameplay.Tables.FalseConditionDef.__ID__:
                         return global::Gameplay.FalseConditionResolver.Evaluate((global::Gameplay.Tables.FalseConditionDef)condition, context);
-                    case global::Gameplay.Tables.GameBoolVariableConditionDef.__ID__:
-                        return global::Gameplay.GameBoolVariableConditionResolver.Evaluate((global::Gameplay.Tables.GameBoolVariableConditionDef)condition, context);
-                    case global::Gameplay.Tables.GameIntVariableConditionDef.__ID__:
-                        return global::Gameplay.GameIntVariableConditionResolver.Evaluate((global::Gameplay.Tables.GameIntVariableConditionDef)condition, context);
-                    case global::Gameplay.Tables.GlobalBoolVariableConditionDef.__ID__:
-                        return global::Gameplay.GlobalBoolVariableConditionResolver.Evaluate((global::Gameplay.Tables.GlobalBoolVariableConditionDef)condition, context);
-                    case global::Gameplay.Tables.GlobalIntVariableConditionDef.__ID__:
-                        return global::Gameplay.GlobalIntVariableConditionResolver.Evaluate((global::Gameplay.Tables.GlobalIntVariableConditionDef)condition, context);
+                    case global::Gameplay.Tables.GameSwitchConditionDef.__ID__:
+                        return global::Gameplay.GameSwitchConditionResolver.Evaluate((global::Gameplay.Tables.GameSwitchConditionDef)condition, context);
+                    case global::Gameplay.Tables.GameVariableConditionDef.__ID__:
+                        return global::Gameplay.GameVariableConditionResolver.Evaluate((global::Gameplay.Tables.GameVariableConditionDef)condition, context);
+                    case global::Gameplay.Tables.GlobalSwitchConditionDef.__ID__:
+                        return global::Gameplay.GlobalSwitchConditionResolver.Evaluate((global::Gameplay.Tables.GlobalSwitchConditionDef)condition, context);
+                    case global::Gameplay.Tables.GlobalVariableConditionDef.__ID__:
+                        return global::Gameplay.GlobalVariableConditionResolver.Evaluate((global::Gameplay.Tables.GlobalVariableConditionDef)condition, context);
                     case global::Gameplay.Tables.TrueConditionDef.__ID__:
                         return global::Gameplay.TrueConditionResolver.Evaluate((global::Gameplay.Tables.TrueConditionDef)condition, context);
                     default:
@@ -67,14 +67,14 @@ namespace Gameplay
                     return CollectChildren(((AnyConditionDef)condition).Conditions);
                 case global::Gameplay.Tables.FalseConditionDef.__ID__:
                     return ConditionSource.None;
-                case global::Gameplay.Tables.GameBoolVariableConditionDef.__ID__:
-                    return ConditionSource.GameBoolVariables;
-                case global::Gameplay.Tables.GameIntVariableConditionDef.__ID__:
-                    return ConditionSource.GameIntVariables;
-                case global::Gameplay.Tables.GlobalBoolVariableConditionDef.__ID__:
-                    return ConditionSource.GlobalBoolVariables;
-                case global::Gameplay.Tables.GlobalIntVariableConditionDef.__ID__:
-                    return ConditionSource.GlobalIntVariables;
+                case global::Gameplay.Tables.GameSwitchConditionDef.__ID__:
+                    return ConditionSource.GameSwitches;
+                case global::Gameplay.Tables.GameVariableConditionDef.__ID__:
+                    return ConditionSource.GameVariables;
+                case global::Gameplay.Tables.GlobalSwitchConditionDef.__ID__:
+                    return ConditionSource.GlobalSwitches;
+                case global::Gameplay.Tables.GlobalVariableConditionDef.__ID__:
+                    return ConditionSource.GlobalVariables;
                 case global::Gameplay.Tables.TrueConditionDef.__ID__:
                     return ConditionSource.None;
                 default:

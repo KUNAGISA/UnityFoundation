@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class ItemEntry : Luban.BeanBase
 {
-    internal ItemEntry(ByteBuf buffer) 
+    internal ItemEntry(ByteBuf buffer)
     {
         Id = buffer.ReadInt();
         Name = buffer.ReadString();

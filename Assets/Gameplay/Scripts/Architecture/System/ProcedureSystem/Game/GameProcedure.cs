@@ -44,7 +44,7 @@ namespace Gameplay
             }
             else
             {
-                Context.GetModel<GameVariableModel>().Clear();
+                Context.GetModel<GameValueModel>().Clear();
             }
 
             var sceneId = saveData?.SceneId ?? options.InitialSceneId ?? Context.GetModel<TablesModel>().GlobalTable.InitialSceneId;

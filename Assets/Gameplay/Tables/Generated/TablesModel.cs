@@ -123,36 +123,36 @@ public partial class TablesModel : ModelBase
     public ActionTable ActionTable => _actionTable;
 #endif
 
-    [ShowInInspector, FoldoutGroup("GameIntVariableTable"), HideLabel, HideReferenceObjectPicker]
-    private GameIntVariableTable _gameIntVariableTable = null;
+    [ShowInInspector, FoldoutGroup("GameVariableTable"), HideLabel, HideReferenceObjectPicker]
+    private GameVariableTable _gameVariableTable = null;
 #if UNITY_EDITOR
-    public GameIntVariableTable GameIntVariableTable => _gameIntVariableTable ??= new GameIntVariableTable(LoadBuff("Configs/gameintvariabletable"));
+    public GameVariableTable GameVariableTable => _gameVariableTable ??= new GameVariableTable(LoadBuff("Configs/gamevariabletable"));
 #else
-    public GameIntVariableTable GameIntVariableTable => _gameIntVariableTable;
+    public GameVariableTable GameVariableTable => _gameVariableTable;
 #endif
 
-    [ShowInInspector, FoldoutGroup("GameBoolVariableTable"), HideLabel, HideReferenceObjectPicker]
-    private GameBoolVariableTable _gameBoolVariableTable = null;
+    [ShowInInspector, FoldoutGroup("GameSwitchTable"), HideLabel, HideReferenceObjectPicker]
+    private GameSwitchTable _gameSwitchTable = null;
 #if UNITY_EDITOR
-    public GameBoolVariableTable GameBoolVariableTable => _gameBoolVariableTable ??= new GameBoolVariableTable(LoadBuff("Configs/gameboolvariabletable"));
+    public GameSwitchTable GameSwitchTable => _gameSwitchTable ??= new GameSwitchTable(LoadBuff("Configs/gameswitchtable"));
 #else
-    public GameBoolVariableTable GameBoolVariableTable => _gameBoolVariableTable;
+    public GameSwitchTable GameSwitchTable => _gameSwitchTable;
 #endif
 
-    [ShowInInspector, FoldoutGroup("GlobalIntVariableTable"), HideLabel, HideReferenceObjectPicker]
-    private GlobalIntVariableTable _globalIntVariableTable = null;
+    [ShowInInspector, FoldoutGroup("GlobalVariableTable"), HideLabel, HideReferenceObjectPicker]
+    private GlobalVariableTable _globalVariableTable = null;
 #if UNITY_EDITOR
-    public GlobalIntVariableTable GlobalIntVariableTable => _globalIntVariableTable ??= new GlobalIntVariableTable(LoadBuff("Configs/globalintvariabletable"));
+    public GlobalVariableTable GlobalVariableTable => _globalVariableTable ??= new GlobalVariableTable(LoadBuff("Configs/globalvariabletable"));
 #else
-    public GlobalIntVariableTable GlobalIntVariableTable => _globalIntVariableTable;
+    public GlobalVariableTable GlobalVariableTable => _globalVariableTable;
 #endif
 
-    [ShowInInspector, FoldoutGroup("GlobalBoolVariableTable"), HideLabel, HideReferenceObjectPicker]
-    private GlobalBoolVariableTable _globalBoolVariableTable = null;
+    [ShowInInspector, FoldoutGroup("GlobalSwitchTable"), HideLabel, HideReferenceObjectPicker]
+    private GlobalSwitchTable _globalSwitchTable = null;
 #if UNITY_EDITOR
-    public GlobalBoolVariableTable GlobalBoolVariableTable => _globalBoolVariableTable ??= new GlobalBoolVariableTable(LoadBuff("Configs/globalboolvariabletable"));
+    public GlobalSwitchTable GlobalSwitchTable => _globalSwitchTable ??= new GlobalSwitchTable(LoadBuff("Configs/globalswitchtable"));
 #else
-    public GlobalBoolVariableTable GlobalBoolVariableTable => _globalBoolVariableTable;
+    public GlobalSwitchTable GlobalSwitchTable => _globalSwitchTable;
 #endif
 
 
@@ -185,13 +185,13 @@ public partial class TablesModel : ModelBase
         progress?.Report(12/17f);
         _actionTable ??= new ActionTable(await LoadBuffAsync("Configs/actiontable", cancellationToken));
         progress?.Report(13/17f);
-        _gameIntVariableTable ??= new GameIntVariableTable(await LoadBuffAsync("Configs/gameintvariabletable", cancellationToken));
+        _gameVariableTable ??= new GameVariableTable(await LoadBuffAsync("Configs/gamevariabletable", cancellationToken));
         progress?.Report(14/17f);
-        _gameBoolVariableTable ??= new GameBoolVariableTable(await LoadBuffAsync("Configs/gameboolvariabletable", cancellationToken));
+        _gameSwitchTable ??= new GameSwitchTable(await LoadBuffAsync("Configs/gameswitchtable", cancellationToken));
         progress?.Report(15/17f);
-        _globalIntVariableTable ??= new GlobalIntVariableTable(await LoadBuffAsync("Configs/globalintvariabletable", cancellationToken));
+        _globalVariableTable ??= new GlobalVariableTable(await LoadBuffAsync("Configs/globalvariabletable", cancellationToken));
         progress?.Report(16/17f);
-        _globalBoolVariableTable ??= new GlobalBoolVariableTable(await LoadBuffAsync("Configs/globalboolvariabletable", cancellationToken));
+        _globalSwitchTable ??= new GlobalSwitchTable(await LoadBuffAsync("Configs/globalswitchtable", cancellationToken));
         progress?.Report(17/17f);
     }
 
@@ -210,10 +210,10 @@ public partial class TablesModel : ModelBase
         _actorTable ??= new ActorTable(LoadBuff("Configs/actortable"));
         _conditionTable ??= new ConditionTable(LoadBuff("Configs/conditiontable"));
         _actionTable ??= new ActionTable(LoadBuff("Configs/actiontable"));
-        _gameIntVariableTable ??= new GameIntVariableTable(LoadBuff("Configs/gameintvariabletable"));
-        _gameBoolVariableTable ??= new GameBoolVariableTable(LoadBuff("Configs/gameboolvariabletable"));
-        _globalIntVariableTable ??= new GlobalIntVariableTable(LoadBuff("Configs/globalintvariabletable"));
-        _globalBoolVariableTable ??= new GlobalBoolVariableTable(LoadBuff("Configs/globalboolvariabletable"));
+        _gameVariableTable ??= new GameVariableTable(LoadBuff("Configs/gamevariabletable"));
+        _gameSwitchTable ??= new GameSwitchTable(LoadBuff("Configs/gameswitchtable"));
+        _globalVariableTable ??= new GlobalVariableTable(LoadBuff("Configs/globalvariabletable"));
+        _globalSwitchTable ??= new GlobalSwitchTable(LoadBuff("Configs/globalswitchtable"));
     }
     
     internal void Reload(string file)
@@ -233,10 +233,10 @@ public partial class TablesModel : ModelBase
             case "actortable" : if (_actorTable != null) { _actorTable = new ActorTable(LoadBuff("Configs/actortable")); this.PublishEvent(new TableReloadedEvent<ActorTable>(_actorTable)); } break;
             case "conditiontable" : if (_conditionTable != null) { _conditionTable = new ConditionTable(LoadBuff("Configs/conditiontable")); this.PublishEvent(new TableReloadedEvent<ConditionTable>(_conditionTable)); } break;
             case "actiontable" : if (_actionTable != null) { _actionTable = new ActionTable(LoadBuff("Configs/actiontable")); this.PublishEvent(new TableReloadedEvent<ActionTable>(_actionTable)); } break;
-            case "gameintvariabletable" : if (_gameIntVariableTable != null) { _gameIntVariableTable = new GameIntVariableTable(LoadBuff("Configs/gameintvariabletable")); this.PublishEvent(new TableReloadedEvent<GameIntVariableTable>(_gameIntVariableTable)); } break;
-            case "gameboolvariabletable" : if (_gameBoolVariableTable != null) { _gameBoolVariableTable = new GameBoolVariableTable(LoadBuff("Configs/gameboolvariabletable")); this.PublishEvent(new TableReloadedEvent<GameBoolVariableTable>(_gameBoolVariableTable)); } break;
-            case "globalintvariabletable" : if (_globalIntVariableTable != null) { _globalIntVariableTable = new GlobalIntVariableTable(LoadBuff("Configs/globalintvariabletable")); this.PublishEvent(new TableReloadedEvent<GlobalIntVariableTable>(_globalIntVariableTable)); } break;
-            case "globalboolvariabletable" : if (_globalBoolVariableTable != null) { _globalBoolVariableTable = new GlobalBoolVariableTable(LoadBuff("Configs/globalboolvariabletable")); this.PublishEvent(new TableReloadedEvent<GlobalBoolVariableTable>(_globalBoolVariableTable)); } break;
+            case "gamevariabletable" : if (_gameVariableTable != null) { _gameVariableTable = new GameVariableTable(LoadBuff("Configs/gamevariabletable")); this.PublishEvent(new TableReloadedEvent<GameVariableTable>(_gameVariableTable)); } break;
+            case "gameswitchtable" : if (_gameSwitchTable != null) { _gameSwitchTable = new GameSwitchTable(LoadBuff("Configs/gameswitchtable")); this.PublishEvent(new TableReloadedEvent<GameSwitchTable>(_gameSwitchTable)); } break;
+            case "globalvariabletable" : if (_globalVariableTable != null) { _globalVariableTable = new GlobalVariableTable(LoadBuff("Configs/globalvariabletable")); this.PublishEvent(new TableReloadedEvent<GlobalVariableTable>(_globalVariableTable)); } break;
+            case "globalswitchtable" : if (_globalSwitchTable != null) { _globalSwitchTable = new GlobalSwitchTable(LoadBuff("Configs/globalswitchtable")); this.PublishEvent(new TableReloadedEvent<GlobalSwitchTable>(_globalSwitchTable)); } break;
         }
     }
 }

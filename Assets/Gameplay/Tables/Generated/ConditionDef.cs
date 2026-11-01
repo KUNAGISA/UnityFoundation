@@ -20,7 +20,7 @@ namespace Gameplay.Tables
 [LabelText("条件")]
 public abstract partial class ConditionDef : Luban.BeanBase
 {
-    internal ConditionDef(ByteBuf buffer) 
+    internal ConditionDef(ByteBuf buffer)
     {
     }
 
@@ -32,10 +32,10 @@ public abstract partial class ConditionDef : Luban.BeanBase
             case FalseConditionDef.__ID__: return new FalseConditionDef(buffer);
             case AllConditionDef.__ID__: return new AllConditionDef(buffer);
             case AnyConditionDef.__ID__: return new AnyConditionDef(buffer);
-            case GameIntVariableConditionDef.__ID__: return new GameIntVariableConditionDef(buffer);
-            case GameBoolVariableConditionDef.__ID__: return new GameBoolVariableConditionDef(buffer);
-            case GlobalIntVariableConditionDef.__ID__: return new GlobalIntVariableConditionDef(buffer);
-            case GlobalBoolVariableConditionDef.__ID__: return new GlobalBoolVariableConditionDef(buffer);
+            case GameVariableConditionDef.__ID__: return new GameVariableConditionDef(buffer);
+            case GameSwitchConditionDef.__ID__: return new GameSwitchConditionDef(buffer);
+            case GlobalVariableConditionDef.__ID__: return new GlobalVariableConditionDef(buffer);
+            case GlobalSwitchConditionDef.__ID__: return new GlobalSwitchConditionDef(buffer);
             default: throw new SerializationException();
         }
     }

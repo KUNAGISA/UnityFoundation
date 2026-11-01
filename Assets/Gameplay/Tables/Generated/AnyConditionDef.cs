@@ -20,7 +20,7 @@ namespace Gameplay.Tables
 [LabelText("任一成立")]
 public sealed partial class AnyConditionDef : ConditionDef
 {
-    internal AnyConditionDef(ByteBuf buffer)  : base(buffer) 
+    internal AnyConditionDef(ByteBuf buffer) : base(buffer)
     {
         {int __n0 = buffer.ReadSize(); Conditions = new ConditionDef[__n0];for(var __index0 = 0 ; __index0 < __n0 ; __index0++) { ConditionDef __e0;__e0 = global::Gameplay.Tables.ConditionDef.DeserializeConditionDef(buffer); Conditions[__index0] = __e0;}}
     }

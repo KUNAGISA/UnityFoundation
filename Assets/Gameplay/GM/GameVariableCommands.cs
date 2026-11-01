@@ -9,52 +9,27 @@ namespace Gameplay.GM
     internal static class GameVariableCommands
     {
         [Preserve]
-        [Command("get-int", "读取变量当前值和默认值")]
-        private static string GetInt(int id)
+        [Command("get", "读取变量当前值和默认值")]
+        private static string GetVariable(int id)
         {
-            var value = GmContext.Shared.ExecuteQuery<GetGameIntVariableQuery, int>(new GetGameIntVariableQuery(id));
-            var entry = GmContext.Shared.GetModel<TablesModel>().GameIntVariableTable.Get(id);
+            var value = GmContext.Shared.ExecuteQuery<GetGameVariableQuery, int>(new GetGameVariableQuery(id));
+            var entry = GmContext.Shared.GetModel<TablesModel>().GameVariableTable.Get(id);
             return $"{id} ({entry.Desc}): {value}, 默认值: {entry.DefaultValue}";
         }
 
         [Preserve]
-        [Command("set-int", "设置变量")]
-        private static bool SetInt(int id, int value)
+        [Command("set", "设置变量")]
+        private static bool SetVariable(int id, int value)
         {
-            return GmContext.Shared.ExecuteCommand<SetGameIntVariableCommand, bool>(new SetGameIntVariableCommand(id, value));
+            return GmContext.Shared.ExecuteCommand<SetGameVariableCommand, bool>(new SetGameVariableCommand(id, value));
         }
 
         [Preserve]
-        [Command("reset-int", "清除变量覆盖值，下次读取使用配表默认值")]
-        private static bool ResetInt(int id)
+        [Command("reset", "清除变量覆盖值，下次读取使用配表默认值")]
+        private static bool ResetVariable(int id)
         {
-            var model = GmContext.Shared.GetModel<GameVariableModel>();
-            model.ClearInt(id);
-            return true;
-        }
-
-        [Preserve]
-        [Command("get-bool", "读取变量当前值和默认值")]
-        private static string GetBool(int id)
-        {
-            var value = GmContext.Shared.ExecuteQuery<GetGameBoolVariableQuery, bool>(new GetGameBoolVariableQuery(id));
-            var entry = GmContext.Shared.GetModel<TablesModel>().GameBoolVariableTable.Get(id);
-            return $"{id} ({entry.Desc}): {value}, 默认值: {entry.DefaultValue}";
-        }
-
-        [Preserve]
-        [Command("set-bool", "设置变量")]
-        private static bool SetBool(int id, bool value)
-        {
-            return GmContext.Shared.ExecuteCommand<SetGameBoolVariableCommand, bool>(new SetGameBoolVariableCommand(id, value));
-        }
-
-        [Preserve]
-        [Command("reset-bool", "清除变量覆盖值，下次读取使用配表默认值")]
-        private static bool ResetBool(int id)
-        {
-            var model = GmContext.Shared.GetModel<GameVariableModel>();
-            model.ClearBool(id);
+            var model = GmContext.Shared.GetModel<GameValueModel>();
+            model.ClearVariable(id);
             return true;
         }
 
@@ -62,8 +37,8 @@ namespace Gameplay.GM
         [Command("reset-all", "清除全部游戏变量覆盖值")]
         private static bool ResetAll()
         {
-            var model = GmContext.Shared.GetModel<GameVariableModel>();
-            model.Clear();
+            var model = GmContext.Shared.GetModel<GameValueModel>();
+            model.ClearVariables();
             return true;
         }
     }

@@ -20,7 +20,7 @@ namespace Gameplay.Tables
 [LabelText("始终成立")]
 public sealed partial class TrueConditionDef : ConditionDef
 {
-    internal TrueConditionDef(ByteBuf buffer)  : base(buffer) 
+    internal TrueConditionDef(ByteBuf buffer) : base(buffer)
     {
     }
 

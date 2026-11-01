@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class ActorEntry : Luban.BeanBase
 {
-    internal ActorEntry(ByteBuf buffer) 
+    internal ActorEntry(ByteBuf buffer)
     {
         Id = buffer.ReadInt();
         Location = buffer.ReadString();

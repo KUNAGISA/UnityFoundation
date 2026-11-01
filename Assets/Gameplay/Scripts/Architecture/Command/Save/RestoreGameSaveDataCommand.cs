@@ -61,7 +61,7 @@ namespace Gameplay
                 }
             }
 
-            context.GetModel<GameVariableModel>().Restore(_saveData.Variables);
+            context.GetModel<GameValueModel>().Restore(_saveData.VariablesAndSwitches);
         }
 
         private static void ApplyPlayerCharacter(PlayerCharacterSaveData saveData, PlayerCharacterState state)

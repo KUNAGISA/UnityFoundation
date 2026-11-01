@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class SceneNpcEntry : Luban.BeanBase
 {
-    internal SceneNpcEntry(ByteBuf buffer) 
+    internal SceneNpcEntry(ByteBuf buffer)
     {
         SceneId = buffer.ReadInt();
         NpcId = buffer.ReadInt();

@@ -49,7 +49,7 @@ namespace Gameplay
             }
 
             await loadingTask;
-            await Context.GetModel<GlobalVariableModel>().LoadAsync(cancellationToken);
+            await Context.GetModel<GlobalValueModel>().LoadAsync(cancellationToken);
 
             if (loadingViewShownAt >= 0d)
             {

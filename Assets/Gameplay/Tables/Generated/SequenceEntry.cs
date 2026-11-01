@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class SequenceEntry : Luban.BeanBase
 {
-    internal SequenceEntry(ByteBuf buffer) 
+    internal SequenceEntry(ByteBuf buffer)
     {
         Id = buffer.ReadInt();
         ScriptLocation = buffer.ReadString();

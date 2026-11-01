@@ -55,14 +55,14 @@ namespace Gameplay
         {
             _context = BindContext(new ConditionContext());
             _tablesModel = this.GetModel<TablesModel>();
-            _subscriptions.Add(this.SubscribeEvent<GameIntVariableChangedEvent>(_ => MarkDirty(ConditionSource.GameIntVariables)));
-            _subscriptions.Add(this.SubscribeEvent<GameBoolVariableChangedEvent>(_ => MarkDirty(ConditionSource.GameBoolVariables)));
-            _subscriptions.Add(this.SubscribeEvent<GlobalIntVariableChangedEvent>(_ => MarkDirty(ConditionSource.GlobalIntVariables)));
-            _subscriptions.Add(this.SubscribeEvent<GlobalBoolVariableChangedEvent>(_ => MarkDirty(ConditionSource.GlobalBoolVariables)));
-            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GameIntVariableTable>>(_ => MarkDirty(ConditionSource.GameIntVariables)));
-            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GameBoolVariableTable>>(_ => MarkDirty(ConditionSource.GameBoolVariables)));
-            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GlobalIntVariableTable>>(_ => MarkDirty(ConditionSource.GlobalIntVariables)));
-            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GlobalBoolVariableTable>>(_ => MarkDirty(ConditionSource.GlobalBoolVariables)));
+            _subscriptions.Add(this.SubscribeEvent<GameVariableChangedEvent>(_ => MarkDirty(ConditionSource.GameVariables)));
+            _subscriptions.Add(this.SubscribeEvent<GameSwitchChangedEvent>(_ => MarkDirty(ConditionSource.GameSwitches)));
+            _subscriptions.Add(this.SubscribeEvent<GlobalVariableChangedEvent>(_ => MarkDirty(ConditionSource.GlobalVariables)));
+            _subscriptions.Add(this.SubscribeEvent<GlobalSwitchChangedEvent>(_ => MarkDirty(ConditionSource.GlobalSwitches)));
+            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GameVariableTable>>(_ => MarkDirty(ConditionSource.GameVariables)));
+            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GameSwitchTable>>(_ => MarkDirty(ConditionSource.GameSwitches)));
+            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GlobalVariableTable>>(_ => MarkDirty(ConditionSource.GlobalVariables)));
+            _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<GlobalSwitchTable>>(_ => MarkDirty(ConditionSource.GlobalSwitches)));
             _subscriptions.Add(this.SubscribeEvent<TableReloadedEvent<ConditionTable>>(_ => RebuildDependencies()));
         }
 

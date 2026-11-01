@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class EmotionEntry : Luban.BeanBase
 {
-    internal EmotionEntry(ByteBuf buffer) 
+    internal EmotionEntry(ByteBuf buffer)
     {
         Id = (EmotionId)buffer.ReadInt();
         Name = buffer.ReadString();

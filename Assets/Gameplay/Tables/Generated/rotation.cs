@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 internal partial struct rotation
 {
-    internal rotation(ByteBuf buffer) 
+    internal rotation(ByteBuf buffer)
     {
         X = buffer.ReadFloat();
         Y = buffer.ReadFloat();

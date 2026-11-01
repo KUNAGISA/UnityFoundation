@@ -6,9 +6,9 @@ namespace Gameplay
     public enum ConditionSource
     {
         None = 0,
-        GameIntVariables = 1 << 0,
-        GameBoolVariables = 1 << 1,
-        GlobalIntVariables = 1 << 2,
-        GlobalBoolVariables = 1 << 3,
+        GameVariables = 1 << 0,
+        GameSwitches = 1 << 1,
+        GlobalVariables = 1 << 2,
+        GlobalSwitches = 1 << 3,
     }
 }

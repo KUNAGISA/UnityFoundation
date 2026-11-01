@@ -20,7 +20,7 @@ namespace Gameplay.Tables
 [LabelText("条件总表")]
 public sealed partial class ConditionEntry : Luban.BeanBase
 {
-    internal ConditionEntry(ByteBuf buffer) 
+    internal ConditionEntry(ByteBuf buffer)
     {
         Id = buffer.ReadInt();
         Desc = buffer.ReadString();

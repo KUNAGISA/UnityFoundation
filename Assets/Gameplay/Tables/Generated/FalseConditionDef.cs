@@ -20,7 +20,7 @@ namespace Gameplay.Tables
 [LabelText("始终不成立")]
 public sealed partial class FalseConditionDef : ConditionDef
 {
-    internal FalseConditionDef(ByteBuf buffer)  : base(buffer) 
+    internal FalseConditionDef(ByteBuf buffer) : base(buffer)
     {
     }
 

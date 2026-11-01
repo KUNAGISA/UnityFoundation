@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 internal partial struct gameplaytag
 {
-    internal gameplaytag(ByteBuf buffer) 
+    internal gameplaytag(ByteBuf buffer)
     {
         Id = buffer.ReadInt();
     }

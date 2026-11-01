@@ -30,7 +30,7 @@ System 作为常规 SystemBase 注册，在初始化时绑定 ActionContext，�
 - 多次提交相同 ActionId 是独立执行；场景事件不维护完成记录，是否可再次触发由条件和业务变量决定，提交期间仅保留临时防重入。
 - SceneEventSystem 忽略结果 bool，分发回调仅在当前登记仍有效时释放临时防重入标记；条件状态由同步初始化和 LateTick 观察批次维护。Trigger 为 void，提交前即时复核条件，不更新观察结果或表现；持续行为结束不参与标记释放。
 - 新行为使用 ActionResolverAttribute，通过专用 Generate Action 菜单生成，返回同步 bool，不返回执行监视器。生成与条件观察分别见[代码生成](DefinitionGeneration.md)、[条件模块](Conditions.md)。
-- 设置游戏/全局整数、布尔变量的四种行为分别调用对应 Command，配置校验与全局变量持久化继续沿用[变量模块](Variables.md)。
+- 设置游戏/全局变量、开关的四种行为分别调用对应 Command，配置校验与全局持久化继续沿用[变量与开关模块](Variables.md)。
 - 独占冲突按所属系统的语义处理；剧情沿用新播放取消旧播放。角色运动能力与 Sequence 内部 Action/Yield 的生命周期不受此接口影响。
 
 ## 验证

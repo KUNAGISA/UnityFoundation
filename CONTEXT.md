@@ -27,3 +27,13 @@ _Avoid_: Transform Data
 **Gameplay Tag State**:
 场景 Entity 当前生效的标签及其来源计数。
 _Avoid_: Gameplay Tag Set, Gameplay Tag Ability
+
+## 变量与开关
+
+**Variable（变量）**:
+由整数表示的游戏业务值，按游戏进度或全局作用域保存。
+_Avoid_: Int Variable, 整数变量
+
+**Switch（开关）**:
+由布尔值表示的游戏业务状态，按游戏进度或全局作用域保存。
+_Avoid_: Bool Variable, 布尔变量

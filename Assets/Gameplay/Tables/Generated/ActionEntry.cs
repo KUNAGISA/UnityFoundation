@@ -20,7 +20,7 @@ namespace Gameplay.Tables
 [LabelText("行为总表")]
 public sealed partial class ActionEntry : Luban.BeanBase
 {
-    internal ActionEntry(ByteBuf buffer) 
+    internal ActionEntry(ByteBuf buffer)
     {
         Id = buffer.ReadInt();
         Desc = buffer.ReadString();

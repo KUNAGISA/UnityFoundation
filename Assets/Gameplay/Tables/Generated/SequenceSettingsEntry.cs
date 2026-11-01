@@ -16,7 +16,7 @@ namespace Gameplay.Tables
 [System.Serializable]
 public sealed partial class SequenceSettingsEntry : Luban.BeanBase
 {
-    internal SequenceSettingsEntry(ByteBuf buffer) 
+    internal SequenceSettingsEntry(ByteBuf buffer)
     {
         MessageCharIntervalMs = buffer.ReadInt();
         MessageAdvanceableWaitTimeMs = buffer.ReadInt();

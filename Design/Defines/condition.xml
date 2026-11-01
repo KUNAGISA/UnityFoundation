@@ -11,7 +11,7 @@
     <bean name="AnyConditionDef" sep="," parent="ConditionDef" comment="任一成立" alias="任一成立">
         <var name="conditions" type="(array#sep=|),ConditionDef" comment="条件列表"/>
     </bean>
-    <enum name="IntVariableComparisonOperator">
+    <enum name="VariableComparisonOperator">
         <var name="Equal" value="0" alias="等于"/>
         <var name="NotEqual" value="1" alias="不等于"/>
         <var name="Greater" value="2" alias="大于"/>
@@ -19,22 +19,22 @@
         <var name="Less" value="4" alias="小于"/>
         <var name="LessOrEqual" value="5" alias="小于等于"/>
     </enum>
-    <bean name="GameIntVariableConditionDef" sep="," parent="ConditionDef" comment="游戏整数变量" alias="游戏整数变量">
-        <var name="variableId" type="int#ref=GameIntVariableTable"/>
-        <var name="comparison" type="IntVariableComparisonOperator"/>
+    <bean name="GameVariableConditionDef" sep="," parent="ConditionDef" comment="游戏变量" alias="游戏变量">
+        <var name="variableId" type="int#ref=GameVariableTable"/>
+        <var name="comparison" type="VariableComparisonOperator"/>
         <var name="value" type="int"/>
     </bean>
-    <bean name="GameBoolVariableConditionDef" sep="," parent="ConditionDef" comment="游戏布尔变量" alias="游戏布尔变量">
-        <var name="variableId" type="int#ref=GameBoolVariableTable"/>
+    <bean name="GameSwitchConditionDef" sep="," parent="ConditionDef" comment="游戏开关" alias="游戏开关">
+        <var name="switchId" type="int#ref=GameSwitchTable"/>
         <var name="value" type="bool"/>
     </bean>
-    <bean name="GlobalIntVariableConditionDef" sep="," parent="ConditionDef" comment="全局整数变量" alias="全局整数变量">
-        <var name="variableId" type="int#ref=GlobalIntVariableTable"/>
-        <var name="comparison" type="IntVariableComparisonOperator"/>
+    <bean name="GlobalVariableConditionDef" sep="," parent="ConditionDef" comment="全局变量" alias="全局变量">
+        <var name="variableId" type="int#ref=GlobalVariableTable"/>
+        <var name="comparison" type="VariableComparisonOperator"/>
         <var name="value" type="int"/>
     </bean>
-    <bean name="GlobalBoolVariableConditionDef" sep="," parent="ConditionDef" comment="全局布尔变量" alias="全局布尔变量">
-        <var name="variableId" type="int#ref=GlobalBoolVariableTable"/>
+    <bean name="GlobalSwitchConditionDef" sep="," parent="ConditionDef" comment="全局开关" alias="全局开关">
+        <var name="switchId" type="int#ref=GlobalSwitchTable"/>
         <var name="value" type="bool"/>
     </bean>
 </module>
