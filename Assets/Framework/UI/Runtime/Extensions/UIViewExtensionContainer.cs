@@ -8,6 +8,7 @@ namespace Gameplay.UI
         // 各阶段显式遍历以避免委托分配；Released/Shutdown 逆序，其余阶段保持注册顺序。
         private readonly UIViewExtension[] _extensions;
 
+        /// <summary>复制扩展列表并保留注册顺序；打开与显隐按正序通知，释放与 Shutdown 按反序通知。</summary>
         public UIViewExtensionContainer(params UIViewExtension[] extensions)
         {
             if (extensions == null)
@@ -22,6 +23,7 @@ namespace Gameplay.UI
             }
         }
 
+        /// <summary>在会话创建前按序校验；异常直接交给打开调用方，允许扩展拒绝打开。</summary>
         internal void BeforeOpen(in UIViewExtensionContext context)
         {
             for (var index = 0; index < _extensions.Length; index++)
@@ -90,6 +92,7 @@ namespace Gameplay.UI
             }
         }
 
+        /// <summary>按注册反序释放会话扩展资源；逐个记录异常，确保其余扩展仍可清理。</summary>
         internal void Released(in UIViewExtensionContext context)
         {
             for (var index = _extensions.Length - 1; index >= 0; index--)
@@ -105,6 +108,7 @@ namespace Gameplay.UI
             }
         }
 
+        /// <summary>所有会话注销后按注册反序清理共享扩展；单个异常不阻断后续清理。</summary>
         internal void Shutdown(UIViewHost host)
         {
             for (var index = _extensions.Length - 1; index >= 0; index--)

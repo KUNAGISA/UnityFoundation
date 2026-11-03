@@ -1,8 +1,5 @@
 using System;
-using System.Runtime.ExceptionServices;
-using System.Threading;
 using Aoiro.Sequence;
-using Cysharp.Threading.Tasks;
 using Gameplay.UI;
 
 namespace Gameplay.Sequence
@@ -11,9 +8,6 @@ namespace Gameplay.Sequence
     {
         private readonly AdvViewSession _session;
         private readonly UIViewToken _token;
-        private CancellationTokenSource _cancellation;
-        private Exception _exception;
-        private bool _isCompleted;
 
         internal AdvViewPreparation(AdvViewSession session, UIViewToken token)
         {
@@ -21,52 +15,25 @@ namespace Gameplay.Sequence
             _token = token;
         }
 
-        protected override void OnBegin()
-        {
-            _cancellation = new CancellationTokenSource();
-            WaitForReadyAsync(_cancellation.Token).Forget();
-        }
-
         protected override bool EvaluateCompletion()
         {
-            if (_exception != null)
+            var lifecycle = _token.GetStatus().Lifecycle;
+            if (lifecycle == UIViewLifecycle.Loading)
             {
-                ExceptionDispatchInfo.Capture(_exception).Throw();
+                return false;
             }
 
-            return _isCompleted;
-        }
-
-        protected override void OnCancel() => _cancellation?.Cancel();
-
-        protected override void OnCleanup()
-        {
-            _cancellation?.Dispose();
-            _cancellation = null;
-        }
-
-        private async UniTask WaitForReadyAsync(CancellationToken cancellationToken)
-        {
-            try
+            if (lifecycle != UIViewLifecycle.Opened)
             {
-                await _token.WaitForReadyAsync(cancellationToken);
+                throw new InvalidOperationException($"AdvView [{_token.ViewId}] did not open: {lifecycle}.");
+            }
 
-                if (!_session.IsViewBound)
-                {
-                    throw new InvalidOperationException($"AdvView [{_token.ViewId}] did not bind its session during initialization.");
-                }
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            if (!_session.IsViewBound)
             {
+                throw new InvalidOperationException($"AdvView [{_token.ViewId}] did not bind its session during initialization.");
             }
-            catch (Exception exception)
-            {
-                _exception = exception;
-            }
-            finally
-            {
-                _isCompleted = true;
-            }
+
+            return true;
         }
     }
 }

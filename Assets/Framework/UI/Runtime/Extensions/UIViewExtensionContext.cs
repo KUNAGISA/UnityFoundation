@@ -1,5 +1,6 @@
 namespace Gameplay.UI
 {
+    /// <summary>扩展回调当次的上下文快照；BeforeOpen 时没有 Token 和 View，失败释放时 View 也可能为空。</summary>
     public readonly struct UIViewExtensionContext
     {
         public UIViewToken Token { get; }
@@ -22,6 +23,7 @@ namespace Gameplay.UI
             IsVisible = isVisible;
         }
 
+        /// <summary>判断创建会话时的选项快照是否包含指定的全部选项位；空选项返回 false。</summary>
         public bool HasOption(UIViewOptionMask option) => Options.Contains(option);
     }
 }

@@ -15,6 +15,7 @@ namespace Gameplay.UI.Editor
         [SerializeField, BoxGroup]
         private UIBindingEventConfig _event;
 
+        /// <summary>创建可在项目设置中编辑的 组件 绑定规则。</summary>
         public ComponentBindingRuleConfig() : base(string.Empty, "Component", true, string.Empty)
         {
         }

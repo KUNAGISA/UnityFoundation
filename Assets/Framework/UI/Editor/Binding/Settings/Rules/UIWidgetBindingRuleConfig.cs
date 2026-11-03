@@ -6,6 +6,7 @@ namespace Gameplay.UI.Editor
     [Serializable]
     internal sealed class UIWidgetBindingRuleConfig : UIBindingRuleConfig
     {
+        /// <summary>创建可在项目设置中编辑的 UIWidget 绑定规则。</summary>
         public UIWidgetBindingRuleConfig() : base(string.Empty, "UI Widget", true, "widget")
         {
         }

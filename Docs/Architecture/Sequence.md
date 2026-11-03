@@ -78,7 +78,7 @@ System 保持单次播放的完整所有权，不额外创建播放操作对象�
 
 ADV 按顺序注册 `AdvDialogueSession`、`AdvChoiceSession`、`AdvPortraitSession` 和 `AdvViewSession`，均为随 Player 运行的 `SequenceModule<ISequenceContext>`，每段剧情各创建一份并复用，不注册为全局架构模块。前三者集中各自状态与操作，Action、Yield 和 Lua 指令直接获取对应 Session；`AdvViewSession` 只负责 View 的准备与释放、界面生命周期和推进请求，并向 View 提供三个 Session 的引用。
 
-`AdvViewPreparation` 只等待 View 就绪并检查 `IsViewBound`，准备完成即清理自身等待；View 的 `UIViewToken` 仍归 `AdvViewSession` 持有，直到播放自然完成、停止或异常时取消。三个 Session 先完成准备，`AdvViewSession` 再打开 View；清理按注册反序关闭 View 并解绑 Widget，再释放各能力的状态和本地化订阅。View 通过 `NotifyViewBound`、`NotifyViewClosed` 回报生命周期，全部 Widget 绑定和首次刷新成功后才报告绑定完成；播放期间意外关闭 View 仍使播放失败。
+`AdvViewPreparation` 在 `EvaluateCompletion` 直接查询 Token 状态：Loading 继续准备，Opened 时检查 `IsViewBound` 后完成，关闭、失败或无效凭证使准备失败；不创建等待任务或专用取消源。View 的 `UIViewToken` 仍归 `AdvViewSession` 持有，直到播放自然完成、停止或异常时取消。三个 Session 先完成准备，`AdvViewSession` 再打开 View；清理按注册反序关闭 View 并解绑 Widget，再释放各能力的状态和本地化订阅。View 通过 `NotifyViewBound`、`NotifyViewClosed` 回报生命周期，全部 Widget 绑定和首次刷新成功后才报告绑定完成；播放期间意外关闭 View 仍使播放失败。
 
 `AdvDialogueSession.Begin` 解析本地化文本和配表参数，并统一拥有对白身份、内容修订、测量、计时、显示及完成状态，不依赖 TMP。`DialogueAction` 通过 `Begin`、`Tick`、`Advance` 接入原有调度时点，Session 的 Module Tick 不重复计时。`IsCurrent(version)` 只判断对白身份，`IsCompleted` 只读属性表示当前对白的完成状态；Action 在身份失效或对白完成时结束。旧对白 Token 的 Tick 与 Advance 无效。
 

@@ -21,11 +21,13 @@ namespace Gameplay.UI.Editor
             return new UIBindingSettingsProvider();
         }
 
+        /// <summary>打开项目设置页面时创建绑定设置的编辑树。</summary>
         public override void OnActivate(string searchContext, UnityEngine.UIElements.VisualElement rootElement)
         {
             CreatePropertyTree();
         }
 
+        /// <summary>离开页面前应用并保存设置，再释放编辑树。</summary>
         public override void OnDeactivate()
         {
             _propertyTree?.ApplyChanges();
@@ -33,6 +35,7 @@ namespace Gameplay.UI.Editor
             DisposePropertyTree();
         }
 
+        /// <summary>绘制模板与规则设置，保存编辑结果并展示配置校验错误。</summary>
         public override void OnGUI(string searchContext)
         {
             if (_propertyTree == null)

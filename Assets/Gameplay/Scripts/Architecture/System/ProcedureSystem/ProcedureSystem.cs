@@ -222,7 +222,10 @@ namespace Gameplay
                 if (request.Reason != TransitionProcedureReason.Startup && _uiSystem.IsInitialized)
                 {
                     viewToken = _uiSystem.OpenView(new BlackMaskView.Data());
-                    await viewToken.WaitForShownAsync(cancellationToken);
+                    if (!await viewToken.WaitForShownAsync(cancellationToken))
+                    {
+                        throw new InvalidOperationException("Black mask view did not finish showing.");
+                    }
                 }
 
                 _uiSystem.CloseAll(UILayer.HUD, true);

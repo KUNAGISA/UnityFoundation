@@ -1,4 +1,6 @@
-﻿using Cysharp.Threading.Tasks;
+using System;
+using Gameplay.UI;
+using Cysharp.Threading.Tasks;
 using Aoiro;
 
 namespace Gameplay
@@ -12,7 +14,10 @@ namespace Gameplay
             var cancellationToken = Context.LifetimeCancellationToken;
             await LoadSceneAsync("StartScene", cancellationToken);
             var mainMenuViewToken = Context.GetSystem<UISystem>().OpenView(new MainMenuView.Data());
-            await mainMenuViewToken.WaitForShownAsync(cancellationToken);
+            if (!await mainMenuViewToken.WaitForShownAsync(cancellationToken))
+            {
+                throw new InvalidOperationException("Main menu view did not finish showing.");
+            }
         }
         
         protected override async UniTask OnExitAsync()

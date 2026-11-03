@@ -1,7 +1,5 @@
 using System;
-using System.Threading;
 using Aoiro;
-using Cysharp.Threading.Tasks;
 
 namespace Gameplay.UI
 {
@@ -11,60 +9,36 @@ namespace Gameplay.UI
 
         public readonly long ViewId;
 
-        private readonly UIViewHost _host;
+        private readonly UIViewSession _session;
 
+        /// <summary>是否指向过一次打开；关闭后仍可查询终态，不代表界面当前存活。</summary>
         public bool IsValid => ViewId > 0;
 
-        internal UIViewToken(UIViewHost host, long viewId)
+        internal UIViewToken(UIViewSession session, long viewId)
         {
-            _host = host;
+            _session = session;
             ViewId = viewId;
         }
 
-        public TView GetView<TView>() where TView : UIView => _host?.GetView<TView>(this);
+        /// <summary>读取当前状态快照；默认 Token 返回 None，注销后仍可查询 Closed 或 Failed 终态。</summary>
+        public UIViewStatus GetStatus() => _session?.GetStatus() ?? default;
 
-        public UniTask WaitForReadyAsync(CancellationToken cancellationToken = default)
-        {
-            if (_host == null)
-            {
-                return cancellationToken.IsCancellationRequested ? UniTask.FromCanceled(cancellationToken) : UniTask.CompletedTask;
-            }
+        /// <summary>获取已附着且未请求关闭的指定类型 View，否则返回 null；返回值不代表已初始化或显示，也不转移实例所有权。</summary>
+        public TView GetView<TView>() where TView : UIView => _session?.GetView<TView>();
 
-            return _host.WaitForReadyAsync(this, cancellationToken);
-        }
+        /// <summary>请求关闭会话；immediately 为 true 时跳过隐藏动画，默认 Token 或已释放会话为空操作。</summary>
+        public void Close(bool immediately = false) => _session?.Close(immediately);
 
-        public UniTask WaitForShownAsync(CancellationToken cancellationToken = default)
-        {
-            if (_host == null)
-            {
-                return cancellationToken.IsCancellationRequested ? UniTask.FromCanceled(cancellationToken) : UniTask.CompletedTask;
-            }
-
-            return _host.WaitForShownAsync(this, cancellationToken);
-        }
-
-        public UniTask WaitForClosedAsync(CancellationToken cancellationToken = default)
-        {
-            if (_host == null)
-            {
-                return cancellationToken.IsCancellationRequested ? UniTask.FromCanceled(cancellationToken) : UniTask.CompletedTask;
-            }
-
-            return _host.WaitForClosedAsync(this, cancellationToken);
-        }
-
-        public void Close(bool immediately = false) => _host?.CloseView(this, immediately);
-
+        /// <summary>通过取消凭证请求正常关闭，语义等同于 Close()。</summary>
         public void Cancel() => Close();
 
-        internal void NotifyShowCompleted() => _host?.CompleteShow(this);
+        /// <summary>按会话引用和打开编号判断是否为同一凭证，关闭不会改变身份。</summary>
+        public bool Equals(UIViewToken other) => ReferenceEquals(_session, other._session) && ViewId == other.ViewId;
 
-        internal void NotifyHideCompleted() => _host?.CompleteHide(this);
-
-        public bool Equals(UIViewToken other) => ReferenceEquals(_host, other._host) && ViewId == other.ViewId;
-
+        /// <summary>判断对象是否为同一界面凭证。</summary>
         public override bool Equals(object obj) => obj is UIViewToken other && Equals(other);
 
-        public override int GetHashCode() => HashCode.Combine(_host, ViewId);
+        /// <summary>返回稳定会话身份对应的哈希值。</summary>
+        public override int GetHashCode() => HashCode.Combine(_session, ViewId);
     }
 }

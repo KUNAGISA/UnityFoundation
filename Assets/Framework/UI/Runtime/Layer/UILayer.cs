@@ -9,19 +9,17 @@ namespace Gameplay.UI
     internal sealed class UILayer
     {
         internal Transform PrimaryRoot => _roots.Primary;
-        internal IReadOnlyList<UIViewEntry> Entries => _entries;
-        internal bool IsRefreshingVisibility { get; set; }
-        internal bool IsVisibilityDirty { get; set; }
+        internal IReadOnlyList<UIViewSession> Sessions => _sessions;
 
-        internal UIViewEntry TopEntry
+        internal UIViewSession TopSession
         {
             get
             {
-                for (var index = _entries.Count - 1; index >= 0; index--)
+                for (var index = _sessions.Count - 1; index >= 0; index--)
                 {
-                    if (!_entries[index].IsCloseRequested)
+                    if (!_sessions[index].IsCloseRequested)
                     {
-                        return _entries[index];
+                        return _sessions[index];
                     }
                 }
 
@@ -29,9 +27,13 @@ namespace Gameplay.UI
             }
         }
 
-        private readonly List<UIViewEntry> _entries = new();
+        private readonly List<UIViewSession> _sessions = new();
         private readonly HashSet<UIViewToken> _visibilityBlockers = new();
         private readonly UILayerRoots _roots;
+        private readonly List<VisibilityChange> _visibilityChanges = new();
+        private bool _isRefreshingVisibility;
+        private bool _isVisibilityDirty;
+        private bool _isVisibilitySuspended;
 
         internal UILayer(UILayerRoots roots)
         {
@@ -40,37 +42,34 @@ namespace Gameplay.UI
 
         internal bool SupportsRoot(UILayerRoot root) => _roots.TryGetRoot(root, out _);
 
-        internal bool TrySetRoot(UIViewEntry entry, UILayerRoot root)
+        /// <summary>只切换物理父节点并恢复同 Root 内的顺序，不改变逻辑层归属与遮挡关系。</summary>
+        internal bool TrySetRoot(UIViewSession session, UILayerRoot root)
         {
             if (!_roots.TryGetRoot(root, out var target))
             {
                 return false;
             }
 
-            var transform = entry.View.transform;
+            var transform = session.View.transform;
             if (transform.parent == target)
             {
                 return true;
             }
 
             transform.SetParent(target, false);
-            ApplySiblingOrder(entry);
+            UpdateSiblingOrder(session);
             return true;
         }
 
-        internal void RegisterEntry(UIViewEntry entry)
+        /// <summary>按打开请求顺序登记会话，避免加载完成先后改变层内顺序。</summary>
+        internal void RegisterSession(UIViewSession session)
         {
-            _entries.Add(entry);
+            _sessions.Add(session);
         }
 
-        internal bool RemoveEntry(UIViewEntry entry)
+        internal bool RemoveSession(UIViewSession session)
         {
-            return _entries.Remove(entry);
-        }
-
-        internal void CommitOpenedEntry(UIViewEntry entry)
-        {
-            ApplySiblingOrder(entry);
+            return _sessions.Remove(session);
         }
 
         internal bool AddVisibilityBlocker(UIViewToken owner)
@@ -95,48 +94,66 @@ namespace Gameplay.UI
             return _visibilityBlockers.Count == 0;
         }
 
-        internal void CollectVisibilityChanges(List<UIViewVisibilityChange> changes)
+        /// <summary>收集并应用目标可见性；同步回调使层变脏时丢弃剩余快照并重新计算，Shutdown 后停止重算。</summary>
+        internal void RefreshVisibility()
         {
-            var targetVisible = _visibilityBlockers.Count == 0;
-            for (var index = _entries.Count - 1; index >= 0; index--)
+            _isVisibilityDirty = true;
+            if (_isVisibilitySuspended || _isRefreshingVisibility)
             {
-                var entry = _entries[index];
-                if (entry.State != UIViewEntryState.Opened)
-                {
-                    continue;
-                }
+                return;
+            }
 
-                if (entry.IsTargetVisible != targetVisible)
+            _isRefreshingVisibility = true;
+            try
+            {
+                while (_isVisibilityDirty && !_isVisibilitySuspended)
                 {
-                    changes.Add(new UIViewVisibilityChange(entry, targetVisible));
+                    _isVisibilityDirty = false;
+                    _visibilityChanges.Clear();
+                    CollectVisibilityChanges();
+                    for (var index = 0; index < _visibilityChanges.Count; index++)
+                    {
+                        var change = _visibilityChanges[index];
+                        change.Session.SetVisible(change.Visible);
+                        // 回调可改变本层或关闭 Host，旧快照不能继续应用。
+                        if (_isVisibilityDirty || _isVisibilitySuspended)
+                        {
+                            break;
+                        }
+                    }
                 }
-
-                if (targetVisible && entry.HideViewsBelow)
-                {
-                    targetVisible = false;
-                }
+            }
+            finally
+            {
+                _visibilityChanges.Clear();
+                _isRefreshingVisibility = false;
             }
         }
 
+        /// <summary>关闭宿主前暂停可见性重算，防止逐个关闭时重新显示下层界面。</summary>
+        internal void SuspendVisibility() => _isVisibilitySuspended = true;
+
         internal void Shutdown()
         {
-            IsVisibilityDirty = false;
-            IsRefreshingVisibility = false;
-            _entries.Clear();
+            _isVisibilitySuspended = true;
+            _isVisibilityDirty = false;
+            _visibilityChanges.Clear();
+            _sessions.Clear();
             _visibilityBlockers.Clear();
         }
 
-        private void ApplySiblingOrder(UIViewEntry entry)
+        /// <summary>依据逻辑会话顺序修正同一物理 Root 下的节点顺序。</summary>
+        internal void UpdateSiblingOrder(UIViewSession session)
         {
-            // 一个逻辑 Layer 可以跨两个物理 Root；只与同父节点的最近邻居比较，保持 Entry 顺序稳定。
-            var entryIndex = _entries.IndexOf(entry);
-            var entryTransform = entry.View.transform;
-            var entryParent = entryTransform.parent;
-            var currentSiblingIndex = entryTransform.GetSiblingIndex();
-            for (var index = entryIndex - 1; index >= 0; index--)
+            // 一个逻辑 Layer 可以跨两个物理 Root；只与同父节点的最近邻居比较，保持 Session 顺序稳定。
+            var sessionIndex = _sessions.IndexOf(session);
+            var sessionTransform = session.View.transform;
+            var sessionParent = sessionTransform.parent;
+            var currentSiblingIndex = sessionTransform.GetSiblingIndex();
+            for (var index = sessionIndex - 1; index >= 0; index--)
             {
-                var previousView = _entries[index].View;
-                if (previousView == null || previousView.transform.parent != entryParent)
+                var previousView = _sessions[index].View;
+                if (previousView == null || previousView.transform.parent != sessionParent)
                 {
                     continue;
                 }
@@ -145,17 +162,17 @@ namespace Gameplay.UI
                 if (currentSiblingIndex < previousSiblingIndex)
                 {
                     // 当前节点移出后，前驱索引会减一；使用移动前的前驱索引即可插入其后。
-                    entryTransform.SetSiblingIndex(previousSiblingIndex);
+                    sessionTransform.SetSiblingIndex(previousSiblingIndex);
                     return;
                 }
 
                 break;
             }
 
-            for (var index = entryIndex + 1; index < _entries.Count; index++)
+            for (var index = sessionIndex + 1; index < _sessions.Count; index++)
             {
-                var nextView = _entries[index].View;
-                if (nextView == null || nextView.transform.parent != entryParent)
+                var nextView = _sessions[index].View;
+                if (nextView == null || nextView.transform.parent != sessionParent)
                 {
                     continue;
                 }
@@ -163,10 +180,46 @@ namespace Gameplay.UI
                 var nextSiblingIndex = nextView.transform.GetSiblingIndex();
                 if (currentSiblingIndex > nextSiblingIndex)
                 {
-                    entryTransform.SetSiblingIndex(nextSiblingIndex);
+                    sessionTransform.SetSiblingIndex(nextSiblingIndex);
                 }
 
                 return;
+            }
+        }
+
+        /// <summary>从顶向下推导已打开界面的目标可见性；只由当前可见且声明遮挡的界面阻挡下层。</summary>
+        private void CollectVisibilityChanges()
+        {
+            var targetVisible = _visibilityBlockers.Count == 0;
+            for (var index = _sessions.Count - 1; index >= 0; index--)
+            {
+                var session = _sessions[index];
+                if (session.Lifecycle != UIViewLifecycle.Opened)
+                {
+                    continue;
+                }
+
+                if (session.IsTargetVisible != targetVisible)
+                {
+                    _visibilityChanges.Add(new VisibilityChange(session, targetVisible));
+                }
+
+                if (targetVisible && session.HideViewsBelow)
+                {
+                    targetVisible = false;
+                }
+            }
+        }
+
+        private readonly struct VisibilityChange
+        {
+            public UIViewSession Session { get; }
+            public bool Visible { get; }
+
+            public VisibilityChange(UIViewSession session, bool visible)
+            {
+                Session = session;
+                Visible = visible;
             }
         }
     }

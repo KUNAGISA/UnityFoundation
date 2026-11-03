@@ -4,6 +4,7 @@ namespace Gameplay.UI.Editor
 {
     internal static class UIScriptMenu
     {
+        /// <summary>使用项目配置的界面模板创建脚本文件。</summary>
         [MenuItem("Assets/Create/Scripting/View Script", priority = 10000)]
         public static void CreateViewScriptFile()
         {
@@ -11,6 +12,7 @@ namespace Gameplay.UI.Editor
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templateFilePath, "View.cs");
         }
 
+        /// <summary>使用项目配置的组件模板创建脚本文件。</summary>
         [MenuItem("Assets/Create/Scripting/Widget Script", priority = 10001)]
         public static void CreateWidgetScriptFile()
         {

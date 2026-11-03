@@ -40,6 +40,7 @@ namespace Gameplay.UI.Editor
 
         internal IReadOnlyList<UIBindingRuleConfig> BindingRules => _bindingRules;
 
+        /// <summary>获取项目绑定设置；版本不匹配时重建并保存默认模板和规则。</summary>
         internal static UIBindingProjectSettings GetOrCreate()
         {
             var settings = instance;
@@ -85,6 +86,7 @@ namespace Gameplay.UI.Editor
             return null;
         }
 
+        /// <summary>汇总规则键重复、ID 冲突、规则定义及模板资源错误，供设置面板与生成入口共用。</summary>
         internal string[] CollectValidationErrors()
         {
             var errors = new List<string>();
@@ -115,6 +117,7 @@ namespace Gameplay.UI.Editor
             return errors.ToArray();
         }
 
+        /// <summary>生成前拒绝无效配置，防止用不完整或有冲突的规则重写脚本。</summary>
         internal void ValidateOrThrow()
         {
             var errors = CollectValidationErrors();
@@ -124,6 +127,7 @@ namespace Gameplay.UI.Editor
             }
         }
 
+        /// <summary>重建默认模板引用和绑定规则；自动匹配优先级由列表顺序决定。</summary>
         internal void ResetToDefaults()
         {
             _version = CurrentVersion;

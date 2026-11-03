@@ -7,6 +7,7 @@ namespace Gameplay.UI.Editor
     [Serializable]
     internal sealed class TransformBindingRuleConfig : UIBindingRuleConfig
     {
+        /// <summary>创建可在项目设置中编辑的 Transform 绑定规则。</summary>
         public TransformBindingRuleConfig() : base(string.Empty, "Transform", false, "tf")
         {
         }

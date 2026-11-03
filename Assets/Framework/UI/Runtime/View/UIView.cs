@@ -1,37 +1,34 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Gameplay.Common;
 using UnityEngine;
 
 namespace Gameplay.UI
 {
+    /// <summary>承载界面表现和异步动画；生命周期状态与实例所有权由绑定的 Session 管理。</summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CanvasRenderer))]
     [RequireComponent(typeof(RectTransform))]
     public abstract class UIView : MonoBehaviour
     {
         /// <summary>目标可见性；Hide 开始即为 false，但 GameObject 可保持激活至动画结束。</summary>
-        public bool IsShow { get; private set; }
+        public bool IsTargetVisible { get; private set; }
 
         private VersionGate _transitionVersionGate;
-        private UIViewToken _token;
+        private UIViewSession _session;
 
-        internal bool Validate(UIViewData data, out string reason) => ValidateData(data, out reason);
-
-        internal void Bind(UIViewToken token) => _token = token;
+        /// <summary>绑定当前实例所属会话；归还池前解绑，避免复用实例继续持有旧会话。</summary>
+        internal void Bind(UIViewSession session) => _session = session;
 
         internal void Initialize(UIViewData data) => OnInitialize(data);
 
         internal void Refresh(UIViewData data) => OnRefresh(data);
 
-        internal void Show() => PlayShowAsync().Forget();
-
-        internal void Hide(bool immediately) => PlayHideAsync(immediately).Forget();
-
-        private async UniTask PlayShowAsync()
+        /// <summary>激活并播放展示动画；版本仍有效时才通知完成，动画异常只记录，不发布成功状态。</summary>
+        internal async UniTask Show()
         {
             var transitionVersion = _transitionVersionGate.Bump();
-            var token = _token;
-            IsShow = true;
+            var session = _session;
+            IsTargetVisible = true;
             try
             {
                 gameObject.SetActive(true);
@@ -51,24 +48,26 @@ namespace Gameplay.UI
             catch (System.Exception exception)
             {
                 Debug.LogException(exception);
+                return;
             }
 
             if (IsTransitionValid(transitionVersion))
             {
-                token.NotifyShowCompleted();
+                session.CompleteShow();
             }
         }
 
-        private async UniTask PlayHideAsync(bool immediately)
+        /// <summary>播放隐藏动画后先停用对象，再通知会话；立即隐藏跳过动画，版本校验隔离反转和同步回调。</summary>
+        internal async UniTask Hide(bool immediately)
         {
             var transitionVersion = _transitionVersionGate.Bump();
-            var token = _token;
-            var wasShown = IsShow;
-            IsShow = false;
+            var session = _session;
+            var wasTargetVisible = IsTargetVisible;
+            IsTargetVisible = false;
             try
             {
                 // 已在隐藏中或尚未真正显示时，只收束过渡，不重复派发 OnHide。
-                if (wasShown)
+                if (wasTargetVisible)
                 {
                     OnHide();
                     if (!IsTransitionValid(transitionVersion))
@@ -85,6 +84,7 @@ namespace Gameplay.UI
             catch (System.Exception exception)
             {
                 Debug.LogException(exception);
+                return;
             }
 
             if (!IsTransitionValid(transitionVersion))
@@ -92,36 +92,29 @@ namespace Gameplay.UI
                 return;
             }
 
-            DeactivateAfterHide();
+            if (this != null)
+            {
+                gameObject.SetActive(false);
+            }
             // SetActive(false) 的 OnDisable 也允许重入，不能通知已经失效的隐藏。
             if (IsTransitionValid(transitionVersion))
             {
-                token.NotifyHideCompleted();
+                session.CompleteHide();
             }
         }
 
+        /// <summary>使未完成的过渡失效，再执行永久关闭清理；普通遮挡不会调用此方法。</summary>
         internal void Close()
         {
             _transitionVersionGate.Bump();
             OnClose();
         }
 
-        private void DeactivateAfterHide()
-        {
-            IsShow = false;
-            if (this != null)
-            {
-                gameObject.SetActive(false);
-            }
-        }
-
         /// <summary>关闭当前界面实例。</summary>
-        protected void CloseSelf(bool immediately = false) => _token.Close(immediately);
+        protected void CloseSelf(bool immediately = false) => _session?.Close(immediately);
 
         /// <summary>检查异步动画是否仍属于当前过渡。</summary>
         protected bool IsTransitionValid(in VersionToken transitionVersion) => transitionVersion == _transitionVersionGate.Current;
-
-        private protected abstract bool ValidateData(UIViewData data, out string reason);
 
         private protected abstract void OnInitialize(UIViewData data);
 
@@ -153,18 +146,6 @@ namespace Gameplay.UI
 
     public abstract class UIView<TData> : UIView where TData : UIViewData
     {
-        private protected override bool ValidateData(UIViewData data, out string reason)
-        {
-            if (data is not TData)
-            {
-                reason = $"[{GetType()}] requires ViewData of type [{typeof(TData)}], but received [{data.GetType()}].";
-                return false;
-            }
-
-            reason = string.Empty;
-            return true;
-        }
-
         private protected sealed override void OnInitialize(UIViewData data)
         {
             OnInitialize((TData)data);
@@ -175,9 +156,10 @@ namespace Gameplay.UI
             OnRefresh((TData)data);
         }
 
+        /// <summary>初始化界面；生命周期回调中不得重入打开或刷新同一 Session。</summary>
         protected virtual void OnInitialize(TData data) { }
 
-        /// <summary>默认单实例界面位于当前层顶部时使用新的打开数据刷新。</summary>
+        /// <summary>顶部单实例使用新 Data 同步刷新一次；不得重入打开或刷新同一 Session。</summary>
         protected virtual void OnRefresh(TData data) { }
     }
 }

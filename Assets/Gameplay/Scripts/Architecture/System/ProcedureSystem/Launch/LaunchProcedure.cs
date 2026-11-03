@@ -1,3 +1,4 @@
+using System;
 using Aoiro;
 using Cysharp.Threading.Tasks;
 using Gameplay.Asset;
@@ -43,7 +44,10 @@ namespace Gameplay
             {
                 var uiSystem = Context.GetSystem<UISystem>();
                 _launchLoadingViewToken = uiSystem.OpenView(new LaunchLoadingView.Data(progress));
-                await _launchLoadingViewToken.WaitForShownAsync(cancellationToken);
+                if (!await _launchLoadingViewToken.WaitForShownAsync(cancellationToken))
+                {
+                    throw new InvalidOperationException("Launch loading view did not finish showing.");
+                }
                 loadingViewShownAt = Time.realtimeSinceStartupAsDouble;
                 options.Splash.HideSplash();
             }

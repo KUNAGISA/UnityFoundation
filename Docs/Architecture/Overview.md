@@ -38,7 +38,6 @@
 - [0008：Gameplay Tag 使用稳定 ID、来源计数与同步批次通知](../ADR/0008-use-stable-source-counted-gameplay-tags.md)
 - [0010：行为同步 FIFO 分发，发起即视为成功](../ADR/0010-separate-condition-observation-and-action-dispatch.md)
 - [0011：剧情正常结束后执行可选配表行为](../ADR/0011-run-configured-action-after-sequence-completion.md)
-- [0014：UI 过渡由 View 收束，Entry 决策与 Host 编排分离](../ADR/0014-separate-ui-transition-completion-and-close-decisions.md)
 - [0015：同步资源加载作为服务接口并保留 operation 所有权](../ADR/0015-expose-synchronous-asset-loading-with-operations.md)
 - [0017：主动语言切换同步执行并由 Command 编排](../ADR/0017-synchronous-language-switch-command.md)
 - [0018：剧情资源异步预加载，同步启动并用 Token 管理文本源](../ADR/0018-preload-sequence-resources-and-activate-text-with-token.md)
@@ -47,6 +46,7 @@
 - [0021：游戏与全局变量仅保存覆盖值，默认值由 Query 提供](../ADR/0021-variable-overrides-and-query-defaults.md)
 - [0022：场景事件由业务条件控制，不记录执行历史](../ADR/0022-condition-driven-scene-event-availability.md)
 - [0025：声明式条件来源与 LateTick 批量观察](../ADR/0025-declarative-condition-sources-and-batched-observation.md)
+- [0026：单次 UI 生命周期由 Session 收束，外部按状态轮询等待](../ADR/0026-session-owned-ui-lifecycle-and-polled-waits.md)
 
 ## 新增文档
 

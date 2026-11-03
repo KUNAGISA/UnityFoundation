@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using Aoiro;
 using Cysharp.Threading.Tasks;
@@ -113,7 +113,10 @@ namespace Gameplay
 
                 var transitionContext = new SceneTransitionContext(Context, request, sceneCfg);
                 _loadViewToken = Context.GetSystem<UISystem>().OpenView(new LoadingView.Data());
-                await _loadViewToken.WaitForShownAsync(cancellationToken);
+                if (!await _loadViewToken.WaitForShownAsync(cancellationToken))
+                {
+                    throw new InvalidOperationException("Loading view did not finish showing.");
+                }
 
                 if (IsLoadedScene)
                 {

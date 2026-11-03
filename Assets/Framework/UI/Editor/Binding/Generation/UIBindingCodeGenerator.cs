@@ -20,6 +20,7 @@ namespace Gameplay.UI.Editor
             _settings = UIBindingProjectSettings.GetOrCreate();
         }
 
+        /// <summary>先校验配置并完成绑定收集和模板渲染，再替换目标脚本的自动生成区域，保留区域外的手写代码。</summary>
         internal void Generate(MonoBehaviour target)
         {
             _settings.ValidateOrThrow();
@@ -39,6 +40,7 @@ namespace Gameplay.UI.Editor
             return BuildBindings(candidates);
         }
 
+        /// <summary>递归收集节点绑定；集合按直接子节点建立索引，不允许嵌套集合，跨预制体边界需显式标记。</summary>
         private void CollectBindings(Transform transform, Transform root, Transform collectionRoot, Transform collectionItem, int collectionIndex, int collectionCount, List<BindingCandidate> candidates)
         {
             var isCollectionRoot = transform.TryGetComponent<UIBindCollectionTag>(out _);
@@ -103,11 +105,13 @@ namespace Gameplay.UI.Editor
             }
         }
 
+        /// <summary>默认不深入嵌套预制体，只有带深度标记的预制体根允许继续收集。</summary>
         private static bool CanTraverse(Transform transform)
         {
             return !PrefabUtility.IsAnyPrefabInstanceRoot(transform.gameObject) || transform.TryGetComponent<PrefabDepthTag>(out _);
         }
 
+        /// <summary>自动绑定按配置顺序选择首个匹配规则；显式绑定只使用指定规则，不匹配则报告错误。</summary>
         private UIBindingDefinition Resolve(GameObject target, int bindingId)
         {
             if (bindingId == UIBindingProjectSettings.AutoBindingId)
@@ -138,6 +142,7 @@ namespace Gameplay.UI.Editor
             throw new InvalidOperationException($"Node [{target.name}] cannot bind with UI binding rule [{explicitRule.DisplayName}] ({bindingId}).");
         }
 
+        /// <summary>合并单字段与集合字段，校验集合来源、索引完整性以及各元素的类型和事件一致性。</summary>
         private static UIBindingField[] BuildBindings(List<BindingCandidate> candidates)
         {
             var bindings = new List<UIBindingField>(candidates.Count);
@@ -248,6 +253,7 @@ namespace Gameplay.UI.Editor
             return "_" + prefix + pascalNodeName;
         }
 
+        /// <summary>移除旧自动生成区域，为本次生成结果留出位置，区域外代码继续保留。</summary>
         private static string RemoveGeneratedRegion(string content)
         {
             var reader = new StringReader(content);
@@ -279,6 +285,7 @@ namespace Gameplay.UI.Editor
             return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
         }
 
+        /// <summary>根据绑定与当前类型声明的 OnAwake 渲染模板；两者均不存在时不生成绑定区域。</summary>
         private static string RenderTemplate(Type targetType, UIBindingField[] bindings)
         {
             var hasAwakeHandler = targetType.GetMethod("OnAwake", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly) != null;

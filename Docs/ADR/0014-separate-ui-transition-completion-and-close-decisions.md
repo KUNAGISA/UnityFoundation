@@ -1,12 +1,12 @@
 ---
-status: accepted
+status: superseded by ADR-0026
 ---
 
 # UI 过渡由 View 收束，Entry 决策与 Host 编排分离
 
 UIViewHost 同时解释单次打开的状态组合、观察动画任务并协调实例与 Layer，使关闭和立即关闭路径容易重复。决定由 UIView 基类等待动画、校验过渡版本并通过绑定 Token 报告有效完成，由 UIViewEntry 集中关闭状态决策，Host 按动作统一执行 View、Extension、Layer 和 Provider 操作。具体 View 保留返回 UniTask 的动画扩展协议，资源加载和外部顺序等待继续使用 UniTask，使职责收敛而不增加动画实现者的完成通知义务。
 
-当前接口、生命周期与等待语义见 [UI 系统](../Architecture/UI.md)。
+本决策由 [ADR-0026](0026-session-owned-ui-lifecycle-and-polled-waits.md) 替代。当前接口、生命周期与等待语义见 [UI 系统](../Architecture/UI.md)。
 
 ## 备选方案
 

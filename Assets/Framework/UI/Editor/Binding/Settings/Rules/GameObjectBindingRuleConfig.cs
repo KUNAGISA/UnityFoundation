@@ -7,6 +7,7 @@ namespace Gameplay.UI.Editor
     [Serializable]
     internal sealed class GameObjectBindingRuleConfig : UIBindingRuleConfig
     {
+        /// <summary>创建可在项目设置中编辑的 GameObject 绑定规则。</summary>
         public GameObjectBindingRuleConfig() : base(string.Empty, "Game Object", false, "go")
         {
         }
