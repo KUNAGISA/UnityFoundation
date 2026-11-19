@@ -61,7 +61,7 @@ namespace Gameplay
                 }
             }
 
-            context.GetModel<GameValueModel>().Restore(_saveData.VariablesAndSwitches);
+            context.GetModel<GameValueModel>().Restore(_saveData.Values);
         }
 
         private static void ApplyPlayerCharacter(PlayerCharacterSaveData saveData, PlayerCharacterState state)
@@ -133,7 +133,7 @@ namespace Gameplay
 
         private static void ApplySpatial(SpatialSaveData saveData, SpatialState data)
         {
-            data.SetPose(saveData.RouteId, saveData.Position, saveData.Rotation);
+            data.SetPosition(saveData.RouteId, saveData.Position);
         }
     }
 }

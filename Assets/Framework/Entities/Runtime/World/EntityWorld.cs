@@ -9,7 +9,6 @@ namespace Gameplay.Entities
     {
         public bool HasEntities => _entitiesById.Count > 0;
 
-        private readonly EntityContext _context;
         private readonly Dictionary<long, Entity> _entitiesById = new();
         private readonly List<Entity> _activeEntityList = new();
         private readonly IEntityReleaser _releaser;
@@ -17,9 +16,8 @@ namespace Gameplay.Entities
         private int _activeEntityCount;
         private int _pendingRemovalCount;
 
-        public EntityWorld(EntityContext context, IEntityReleaser releaser)
+        public EntityWorld(IEntityReleaser releaser)
         {
-            _context = context;
             _releaser = releaser;
         }
 
@@ -37,23 +35,21 @@ namespace Gameplay.Entities
             exceptions.ThrowIfAny();
         }
 
-        public void AddEntity(Entity entity, Transform root)
+        public void AddEntity(Entity entity)
         {
-            if (entity == null || root == null)
+            if (entity == null)
             {
-                _releaser.Release(new EntityReleaseContext(entity, root));
-                throw new ArgumentException("Entity and root must not be null.");
+                throw new ArgumentNullException(nameof(entity));
             }
 
             if (!entity.CanInitialize)
             {
-                _releaser.Release(new EntityReleaseContext(entity, root));
                 throw new InvalidOperationException($"Entity [{entity.GetType().Name}] has already been added to a world.");
             }
 
             if (_nextEntityId == long.MaxValue)
             {
-                _releaser.Release(new EntityReleaseContext(entity, root));
+                _releaser.Release(EntityReleaseContext.Create(entity));
                 throw new InvalidOperationException("Entity id has reached its maximum value.");
             }
 
@@ -62,7 +58,7 @@ namespace Gameplay.Entities
 
             try
             {
-                entity.Initialize(_context, entityId, root);
+                entity.Initialize(entityId);
             }
             catch (Exception initializeException)
             {
@@ -70,7 +66,7 @@ namespace Gameplay.Entities
                 var exceptions = new CleanupExceptionCollector();
                 exceptions.Add(initializeException);
 
-                DestroyAndRelease(entity, new EntityReleaseContext(entity, root), exceptions);
+                DestroyAndRelease(entity, EntityReleaseContext.Create(entity), exceptions);
 
                 exceptions.ThrowIfAny();
                 throw;
@@ -190,7 +186,7 @@ namespace Gameplay.Entities
         {
             try
             {
-                entity.Destroy();
+                entity.Release();
             }
             catch (Exception exception)
             {

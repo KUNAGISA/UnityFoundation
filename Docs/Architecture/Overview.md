@@ -47,6 +47,7 @@
 - [0022：场景事件由业务条件控制，不记录执行历史](../ADR/0022-condition-driven-scene-event-availability.md)
 - [0025：声明式条件来源与 LateTick 批量观察](../ADR/0025-declarative-condition-sources-and-batched-observation.md)
 - [0026：单次 UI 生命周期由 Session 收束，外部按状态轮询等待](../ADR/0026-session-owned-ui-lifecycle-and-polled-waits.md)
+- [0027：Actor 显式调度行为并使用四向朝向](../ADR/0027-explicit-actor-tick-and-facing.md)
 
 ## 新增文档
 

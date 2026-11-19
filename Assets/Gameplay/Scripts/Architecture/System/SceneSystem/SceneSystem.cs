@@ -24,7 +24,7 @@ namespace Gameplay
                     continue;
                 }
 
-                spawnPointModel.TryAdd(new SpawnPointData(spawnPoint.SpawnPointId, spawnPoint.RouteId, spawnPoint.transform.position, spawnPoint.transform.rotation), spawnPoint.IsDefault);
+                spawnPointModel.TryAdd(new SpawnPointData(spawnPoint.SpawnPointId, spawnPoint.RouteId, spawnPoint.transform.position, spawnPoint.Facing), spawnPoint.IsDefault);
             }
 
             return UniTask.CompletedTask;

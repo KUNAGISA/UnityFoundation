@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-0027
 ---
 
 # 角色面向编码于空间旋转

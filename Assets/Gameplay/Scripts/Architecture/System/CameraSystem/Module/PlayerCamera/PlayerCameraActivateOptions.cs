@@ -2,9 +2,9 @@ namespace Gameplay
 {
     public readonly struct PlayerCameraActivateOptions
     {
-        public readonly PlayerEntity Player;
+        public readonly PlayerActor Player;
 
-        public PlayerCameraActivateOptions(PlayerEntity player)
+        public PlayerCameraActivateOptions(PlayerActor player)
         {
             Player = player;
         }

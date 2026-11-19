@@ -50,9 +50,9 @@ public partial class PlayerCharacterTable
     /// </summary>
     public EmotionModifier[] InitialEmotionThresholds => _data.InitialEmotionThresholds;
     /// <summary>
-    /// 角色Id
+    /// 角色预制体地址
     /// </summary>
-    public int ActorId => _data.ActorId;
+    public string PrefabLocation => _data.PrefabLocation;
     partial void OnDeserialized();
 }
 }

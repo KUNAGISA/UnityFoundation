@@ -27,6 +27,7 @@
 - `AssetLoader` 是可重复使用的资源作用域，缓存多个单资源 operation；`Clear()` 会取消未完成等待、释放缓存并允许后续复用。
 - `AssetLoader` 同步读取时，缓存未命中调用同步加载接口；命中未完成的 operation 则调用 `WaitForComplete()`，复用原加载，不重新发起请求。
 - 场景 operation 由流程或其他明确所有者持有，卸载时使用对应 operation。
+- 玩家表和 NPC 表中的 `prefabLocation` 直接指向角色 Prefab。EntitySystem 按地址去重预加载当前场景的角色资源，离场时释放。玩家资源预加载失败会中止进场，NPC 资源失败会记录并跳过对应角色。
 
 ## 使用与扩展规则
 

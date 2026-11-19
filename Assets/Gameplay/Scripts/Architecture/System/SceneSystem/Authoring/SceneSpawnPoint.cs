@@ -16,6 +16,10 @@ namespace Gameplay
         [SerializeField, LabelText("绑定路径"), SceneRouteId] 
         private int _routeId;
 
+        [SerializeField, LabelText("初始朝向")]
+        private FacingDirection _facing = FacingDirection.Left;
+
+        public FacingDirection Facing => _facing;
         public int SpawnPointId => _spawnPointId;
         public bool IsDefault => _isDefault;
         public int RouteId => _routeId;

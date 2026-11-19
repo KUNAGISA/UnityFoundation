@@ -7,14 +7,14 @@ namespace Gameplay
         public int SpawnPointId { get; }
         public int RouteId { get; }
         public Vector3 Position { get; }
-        public Quaternion Rotation { get; }
+        public FacingDirection Facing { get; }
 
-        public SpawnPointData(int spawnPointId, int routeId, Vector3 position, Quaternion rotation)
+        public SpawnPointData(int spawnPointId, int routeId, Vector3 position, FacingDirection facing)
         {
             SpawnPointId = spawnPointId;
             RouteId = routeId;
             Position = position;
-            Rotation = rotation;
+            Facing = facing;
         }
     }
 }

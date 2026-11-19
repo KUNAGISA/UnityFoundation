@@ -154,14 +154,14 @@ namespace Gameplay
 
             int? initRouteId = null;
             var initPosition = Vector2.zero;
-            var initRotation = Quaternion.identity;
+            var initFacing = FacingDirection.Left;
 
             if (useSavedPlayerLocation)
             {
                 var spatial = Context.GetModel<CharacterModel>().PlayerCharacter.Spatial;
                 initRouteId = spatial.RouteId;
                 initPosition = spatial.Position;
-                initRotation = spatial.Rotation;
+                initFacing = spatial.Facing;
             }
 
             var spawnPointModel = Context.GetModel<SpawnPointModel>();
@@ -171,7 +171,7 @@ namespace Gameplay
                 {
                     initRouteId = spawnPointData.RouteId;
                     initPosition = spawnPointData.Position;
-                    initRotation = spawnPointData.Rotation;
+                    initFacing = spawnPointData.Facing;
                 }
                 else
                 {
@@ -183,7 +183,7 @@ namespace Gameplay
             {
                 initRouteId = defaultSpawnPointData.RouteId;
                 initPosition = defaultSpawnPointData.Position;
-                initRotation = defaultSpawnPointData.Rotation;
+                initFacing = defaultSpawnPointData.Facing;
             }
 
             if (!initRouteId.HasValue || !routeModel.TryProject(initRouteId.Value, initPosition, out var initialLocation))
@@ -193,9 +193,10 @@ namespace Gameplay
                 {
                     throw new InvalidOperationException("Failed to initialize player route location.");
                 }
+                initFacing = FacingDirection.Left;
             }
 
-            var playerEntity = Context.GetSystem<EntitySystem>().SpawnPlayer(initialLocation, initRotation);
+            var playerEntity = Context.GetSystem<EntitySystem>().SpawnPlayer(initialLocation, initFacing);
             if (playerEntity == null)
             {
                 throw new InvalidOperationException("Failed to spawn player entity.");

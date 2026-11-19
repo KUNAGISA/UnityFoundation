@@ -99,14 +99,6 @@ public partial class TablesModel : ModelBase
     public NpcTable NpcTable => _npcTable;
 #endif
 
-    [ShowInInspector, FoldoutGroup("ActorTable"), HideLabel, HideReferenceObjectPicker]
-    private ActorTable _actorTable = null;
-#if UNITY_EDITOR
-    public ActorTable ActorTable => _actorTable ??= new ActorTable(LoadBuff("Configs/actortable"));
-#else
-    public ActorTable ActorTable => _actorTable;
-#endif
-
     [ShowInInspector, FoldoutGroup("ConditionTable"), HideLabel, HideReferenceObjectPicker]
     private ConditionTable _conditionTable = null;
 #if UNITY_EDITOR
@@ -160,39 +152,37 @@ public partial class TablesModel : ModelBase
     {
         progress?.Report(0f);
         _globalTable ??= new GlobalTable(await LoadBuffAsync("Configs/globaltable", cancellationToken));
-        progress?.Report(1/17f);
+        progress?.Report(1/16f);
         _sequenceTable ??= new SequenceTable(await LoadBuffAsync("Configs/sequencetable", cancellationToken));
-        progress?.Report(2/17f);
+        progress?.Report(2/16f);
         _sequenceSettingsTable ??= new SequenceSettingsTable(await LoadBuffAsync("Configs/sequencesettingstable", cancellationToken));
-        progress?.Report(3/17f);
+        progress?.Report(3/16f);
         _itemTable ??= new ItemTable(await LoadBuffAsync("Configs/itemtable", cancellationToken));
-        progress?.Report(4/17f);
+        progress?.Report(4/16f);
         _sceneTable ??= new SceneTable(await LoadBuffAsync("Configs/scenetable", cancellationToken));
-        progress?.Report(5/17f);
+        progress?.Report(5/16f);
         _sceneNpcTable ??= new SceneNpcTable(await LoadBuffAsync("Configs/scenenpctable", cancellationToken));
-        progress?.Report(6/17f);
+        progress?.Report(6/16f);
         _sceneEventTable ??= new SceneEventTable(await LoadBuffAsync("Configs/sceneeventtable", cancellationToken));
-        progress?.Report(7/17f);
+        progress?.Report(7/16f);
         _emotionTable ??= new EmotionTable(await LoadBuffAsync("Configs/emotiontable", cancellationToken));
-        progress?.Report(8/17f);
+        progress?.Report(8/16f);
         _playerCharacterTable ??= new PlayerCharacterTable(await LoadBuffAsync("Configs/playercharactertable", cancellationToken));
-        progress?.Report(9/17f);
+        progress?.Report(9/16f);
         _npcTable ??= new NpcTable(await LoadBuffAsync("Configs/npctable", cancellationToken));
-        progress?.Report(10/17f);
-        _actorTable ??= new ActorTable(await LoadBuffAsync("Configs/actortable", cancellationToken));
-        progress?.Report(11/17f);
+        progress?.Report(10/16f);
         _conditionTable ??= new ConditionTable(await LoadBuffAsync("Configs/conditiontable", cancellationToken));
-        progress?.Report(12/17f);
+        progress?.Report(11/16f);
         _actionTable ??= new ActionTable(await LoadBuffAsync("Configs/actiontable", cancellationToken));
-        progress?.Report(13/17f);
+        progress?.Report(12/16f);
         _gameVariableTable ??= new GameVariableTable(await LoadBuffAsync("Configs/gamevariabletable", cancellationToken));
-        progress?.Report(14/17f);
+        progress?.Report(13/16f);
         _gameSwitchTable ??= new GameSwitchTable(await LoadBuffAsync("Configs/gameswitchtable", cancellationToken));
-        progress?.Report(15/17f);
+        progress?.Report(14/16f);
         _globalVariableTable ??= new GlobalVariableTable(await LoadBuffAsync("Configs/globalvariabletable", cancellationToken));
-        progress?.Report(16/17f);
+        progress?.Report(15/16f);
         _globalSwitchTable ??= new GlobalSwitchTable(await LoadBuffAsync("Configs/globalswitchtable", cancellationToken));
-        progress?.Report(17/17f);
+        progress?.Report(16/16f);
     }
 
     public void LoadAll()
@@ -207,7 +197,6 @@ public partial class TablesModel : ModelBase
         _emotionTable ??= new EmotionTable(LoadBuff("Configs/emotiontable"));
         _playerCharacterTable ??= new PlayerCharacterTable(LoadBuff("Configs/playercharactertable"));
         _npcTable ??= new NpcTable(LoadBuff("Configs/npctable"));
-        _actorTable ??= new ActorTable(LoadBuff("Configs/actortable"));
         _conditionTable ??= new ConditionTable(LoadBuff("Configs/conditiontable"));
         _actionTable ??= new ActionTable(LoadBuff("Configs/actiontable"));
         _gameVariableTable ??= new GameVariableTable(LoadBuff("Configs/gamevariabletable"));
@@ -230,7 +219,6 @@ public partial class TablesModel : ModelBase
             case "emotiontable" : if (_emotionTable != null) { _emotionTable = new EmotionTable(LoadBuff("Configs/emotiontable")); this.PublishEvent(new TableReloadedEvent<EmotionTable>(_emotionTable)); } break;
             case "playercharactertable" : if (_playerCharacterTable != null) { _playerCharacterTable = new PlayerCharacterTable(LoadBuff("Configs/playercharactertable")); this.PublishEvent(new TableReloadedEvent<PlayerCharacterTable>(_playerCharacterTable)); } break;
             case "npctable" : if (_npcTable != null) { _npcTable = new NpcTable(LoadBuff("Configs/npctable")); this.PublishEvent(new TableReloadedEvent<NpcTable>(_npcTable)); } break;
-            case "actortable" : if (_actorTable != null) { _actorTable = new ActorTable(LoadBuff("Configs/actortable")); this.PublishEvent(new TableReloadedEvent<ActorTable>(_actorTable)); } break;
             case "conditiontable" : if (_conditionTable != null) { _conditionTable = new ConditionTable(LoadBuff("Configs/conditiontable")); this.PublishEvent(new TableReloadedEvent<ConditionTable>(_conditionTable)); } break;
             case "actiontable" : if (_actionTable != null) { _actionTable = new ActionTable(LoadBuff("Configs/actiontable")); this.PublishEvent(new TableReloadedEvent<ActionTable>(_actionTable)); } break;
             case "gamevariabletable" : if (_gameVariableTable != null) { _gameVariableTable = new GameVariableTable(LoadBuff("Configs/gamevariabletable")); this.PublishEvent(new TableReloadedEvent<GameVariableTable>(_gameVariableTable)); } break;

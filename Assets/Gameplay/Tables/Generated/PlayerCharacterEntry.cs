@@ -23,7 +23,7 @@ public sealed partial class PlayerCharacterEntry : Luban.BeanBase
         {int __n0 = buffer.ReadSize(); InitialAttributes = new AttributeModifier[__n0];for(var __index0 = 0 ; __index0 < __n0 ; __index0++) { AttributeModifier __e0;__e0 = global::Gameplay.Tables.AttributeModifier.DeserializeAttributeModifier(buffer); InitialAttributes[__index0] = __e0;}}
         {int __n0 = buffer.ReadSize(); InitialEmotions = new EmotionModifier[__n0];for(var __index0 = 0 ; __index0 < __n0 ; __index0++) { EmotionModifier __e0;__e0 = global::Gameplay.Tables.EmotionModifier.DeserializeEmotionModifier(buffer); InitialEmotions[__index0] = __e0;}}
         {int __n0 = buffer.ReadSize(); InitialEmotionThresholds = new EmotionModifier[__n0];for(var __index0 = 0 ; __index0 < __n0 ; __index0++) { EmotionModifier __e0;__e0 = global::Gameplay.Tables.EmotionModifier.DeserializeEmotionModifier(buffer); InitialEmotionThresholds[__index0] = __e0;}}
-        ActorId = buffer.ReadInt();
+        PrefabLocation = buffer.ReadString();
     }
 
     internal static PlayerCharacterEntry DeserializePlayerCharacterEntry(ByteBuf buffer)
@@ -62,11 +62,11 @@ public sealed partial class PlayerCharacterEntry : Luban.BeanBase
     [ShowInInspector]
     public readonly EmotionModifier[] InitialEmotionThresholds;
     /// <summary>
-    /// 角色Id
+    /// 角色预制体地址
     /// </summary>
-    [LabelText("角色Id")]
+    [LabelText("角色预制体地址")]
     [ShowInInspector]
-    public readonly int ActorId;
+    public readonly string PrefabLocation;
    
     public const int __ID__ = -1671074774;
     public override int GetTypeId() => __ID__;
@@ -79,7 +79,7 @@ public sealed partial class PlayerCharacterEntry : Luban.BeanBase
         + "InitialAttributes:" + Luban.StringUtil.CollectionToString(InitialAttributes) + ","
         + "InitialEmotions:" + Luban.StringUtil.CollectionToString(InitialEmotions) + ","
         + "InitialEmotionThresholds:" + Luban.StringUtil.CollectionToString(InitialEmotionThresholds) + ","
-        + "ActorId:" + ActorId + ","
+        + "PrefabLocation:" + PrefabLocation + ","
         + "}";
     }
 }

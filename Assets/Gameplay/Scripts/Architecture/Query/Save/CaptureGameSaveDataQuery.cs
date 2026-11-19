@@ -34,7 +34,7 @@ namespace Gameplay
                 SaveTimeUtcTicks = DateTime.UtcNow.Ticks,
                 PlayerCharacter = CapturePlayerCharacter(characterModel.PlayerCharacter),
                 Npcs = npcs,
-                VariablesAndSwitches = context.GetModel<GameValueModel>().Capture(),
+                Values = context.GetModel<GameValueModel>().Capture(),
             };
         }
 
@@ -141,7 +141,6 @@ namespace Gameplay
             {
                 RouteId = data.RouteId,
                 Position = data.Position,
-                Rotation = data.Rotation,
             };
         }
     }

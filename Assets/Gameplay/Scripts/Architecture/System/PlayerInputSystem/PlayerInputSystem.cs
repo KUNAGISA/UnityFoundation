@@ -14,7 +14,7 @@ namespace Gameplay
         private FrameTickToken _lateTickToken = default;
         private PlayerInputChannel _playerInputChannel = null;
 
-        private PlayerEntity _target = null;
+        private PlayerActor _target = null;
         private PlayerInputState _targetInput = null;
 
         protected override void OnInitialize()
@@ -33,7 +33,7 @@ namespace Gameplay
             _playerInputChannel = null;
         }
 
-        public void Bind(PlayerEntity target)
+        public void Bind(PlayerActor target)
         {
             Unbind();
             _target = target ?? throw new System.ArgumentNullException(nameof(target));

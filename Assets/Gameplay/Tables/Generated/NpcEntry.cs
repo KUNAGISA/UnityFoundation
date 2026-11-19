@@ -20,7 +20,7 @@ public sealed partial class NpcEntry : Luban.BeanBase
     {
         Id = buffer.ReadInt();
         Name = buffer.ReadString();
-        ActorId = buffer.ReadInt();
+        PrefabLocation = buffer.ReadString();
         {int __n0 = buffer.ReadSize(); InitialEmotions = new EmotionModifier[__n0];for(var __index0 = 0 ; __index0 < __n0 ; __index0++) { EmotionModifier __e0;__e0 = global::Gameplay.Tables.EmotionModifier.DeserializeEmotionModifier(buffer); InitialEmotions[__index0] = __e0;}}
     }
 
@@ -42,11 +42,11 @@ public sealed partial class NpcEntry : Luban.BeanBase
     [ShowInInspector]
     public readonly string Name;
     /// <summary>
-    /// 角色Id
+    /// 角色预制体地址
     /// </summary>
-    [LabelText("角色Id")]
+    [LabelText("角色预制体地址")]
     [ShowInInspector]
-    public readonly int ActorId;
+    public readonly string PrefabLocation;
     /// <summary>
     /// 初始情绪值
     /// </summary>
@@ -62,7 +62,7 @@ public sealed partial class NpcEntry : Luban.BeanBase
         return "{ "
         + "Id:" + Id + ","
         + "Name:" + Name + ","
-        + "ActorId:" + ActorId + ","
+        + "PrefabLocation:" + PrefabLocation + ","
         + "InitialEmotions:" + Luban.StringUtil.CollectionToString(InitialEmotions) + ","
         + "}";
     }

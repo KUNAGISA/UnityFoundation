@@ -234,13 +234,12 @@ namespace Gameplay
 
         private void SpawnNpc(SceneNpcEntry config)
         {
-            var entity = this.GetSystem<EntitySystem>().SpawnNpc(config.NpcId, config.Position, config.Rotation);
+            GetSpawnPose(config, out var location, out var facing);
+            var entity = this.GetSystem<EntitySystem>().SpawnNpc(config.NpcId, config.Position, facing, location);
             if (entity == null)
             {
                 return;
             }
-
-            ApplyConfigLocation(config, entity);
 
             _activeNpcs[config.NpcId] = new SceneNpcState
             {
@@ -250,27 +249,37 @@ namespace Gameplay
             };
         }
 
-        private void ApplyConfigLocation(SceneNpcEntry config, NpcEntity entity)
+        private void ApplyConfigLocation(SceneNpcEntry config, NpcActor actor)
         {
-            if (config.RouteId.HasValue)
+            GetSpawnPose(config, out var location, out var facing);
+            if (location.HasValue)
             {
-                ApplyRouteLocation(config, entity);
-                return;
+                actor.Motor.WarpToRoute(location.Value, facing);
             }
-
-            entity.RequireAbility<CharacterMotorAbility>().WarpToWorld(config.Position, config.Rotation);
+            else if (!config.RouteId.HasValue)
+            {
+                actor.Motor.WarpToWorld(config.Position, facing);
+            }
         }
 
-        private void ApplyRouteLocation(SceneNpcEntry config, NpcEntity entity)
+        private void GetSpawnPose(SceneNpcEntry config, out RouteLocation? location, out FacingDirection facing)
         {
-            var routeModel = this.GetModel<MovementRouteModel>();
-            if (!routeModel.TryProject(config.RouteId.Value, config.Position, out var location))
+            facing = (config.Rotation * Vector3.forward).z < 0f ? FacingDirection.Right : FacingDirection.Left;
+
+            location = null;
+            if (!config.RouteId.HasValue)
             {
-                Debug.LogError($"[SceneNpc] 场景 NPC [{config.NpcId}] 无法投影到路线 [{config.RouteId.Value}]");
                 return;
             }
 
-            entity.RequireAbility<CharacterMotorAbility>().WarpToRoute(location, config.Rotation);
+            var routeModel = this.GetModel<MovementRouteModel>();
+            if (routeModel.TryProject(config.RouteId.Value, config.Position, out var result))
+            {
+                location = result;
+                return;
+            }
+
+            Debug.LogError($"[SceneNpc] 场景 NPC [{config.NpcId}] 无法投影到路线 [{config.RouteId.Value}]");
         }
 
         private void RemoveNpc(int npcId)

@@ -1028,6 +1028,7 @@ MonoBehaviour:
   _spawnPointId: 1
   _isDefault: 1
   _routeId: 1001
+  _facing: 0
 --- !u!1 &1285833930
 GameObject:
   m_ObjectHideFlags: 0

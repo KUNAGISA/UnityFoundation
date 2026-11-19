@@ -50,7 +50,7 @@ Loading Session 从 Activate 起按所选内容时间累计，资源完成后追
 
 ### PlayerCamera
 
-`PlayerCamera.ActivateAsync` 接收有效 PlayerEntity。Rig 首次加载后常驻，Session 结束只禁用并清理玩家绑定。PlayerCameraRig Prefab 是镜头参数的唯一来源，运行时不覆盖 OrthographicSize、FollowOffset、Damping 或 Composition；初次激活或空间连续性中断时通过 Snap 丢弃旧帧状态。
+`PlayerCamera.ActivateAsync` 接收有效 PlayerActor。Rig 首次加载后常驻，Session 结束只禁用并清理玩家绑定。PlayerCameraRig Prefab 是镜头参数的唯一来源，运行时不覆盖 OrthographicSize、FollowOffset、Damping 或 Composition；初次激活或空间连续性中断时通过 Snap 丢弃旧帧状态。
 
 ### ArtCamera
 

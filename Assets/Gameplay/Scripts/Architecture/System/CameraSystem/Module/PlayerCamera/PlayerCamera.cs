@@ -22,7 +22,7 @@ namespace Gameplay
         private CancellationTokenSource _moduleCancellationSource;
         private PlayerCameraSettings _settings;
         private PlayerCameraRig _cameraRig;
-        private PlayerEntity _player;
+        private PlayerActor _player;
         private CameraOutputRegistration _outputRegistration;
         private FrameTickToken _lateTickToken;
         private CancellationTokenRegistration _lifetimeRegistration;
@@ -179,7 +179,7 @@ namespace Gameplay
 
         private void ApplyFollowImmediate()
         {
-            if (_player?.Root == null)
+            if (_player == null)
             {
                 return;
             }
@@ -189,7 +189,7 @@ namespace Gameplay
 
         private bool IsSpatialDiscontinuity()
         {
-            if (_player?.Root == null)
+            if (_player == null)
             {
                 return false;
             }

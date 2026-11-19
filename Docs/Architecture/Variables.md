@@ -31,7 +31,7 @@ GlobalValueModel 完整负责独立文件的加载、保存和脏标记。Launch
 
 四类值分别发布 GameVariableChangedEvent、GameSwitchChangedEvent、GlobalVariableChangedEvent、GlobalSwitchChangedEvent。事件表示覆盖记录变化：新增、改值、删除或快照内容改变；有效值相同也可通知。清除不存在的覆盖、重复应用相同快照不通知。批量清除、恢复先完成两个字典的全部提交，再按变化类型通知。捕获、恢复均不与调用方共享可修改字典。
 
-ValueSaveData 使用 Variables / Switches 保存两类覆盖值，MessagePack 数字键仍为 0 / 1，GameSaveData.VariablesAndSwitches 仍为键 4。全局文件路径仍为 Variables/global.json，JSON 键仍为 ints / bools；这些持久化名称保留以兼容旧存档。
+`ValueSaveData` 的 `Variables` 和 `Switches` 分别保存两类覆盖值，MessagePack 数字键为 0 和 1。游戏存档通过 `GameSaveData.Values` 访问，使用键 4。全局覆盖值写入 `Variables/global.json`，JSON 键为 `ints` 和 `bools`。
 
 ## 使用与扩展规则
 

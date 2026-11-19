@@ -5,7 +5,7 @@ namespace Gameplay
     internal sealed class SceneNpcState
     {
         public int NpcId;
-        public NpcEntity Entity;
+        public NpcActor Entity;
         public SceneNpcEntry Config;
     }
 }

@@ -12,21 +12,21 @@ _Avoid_: Character Data, Entity Data
 角色进入场景后产生的可更新实例，拥有独立的运行时 Entity ID 和场景生命周期。
 _Avoid_: Character State, Save Data
 
-**Ability**:
-附着于 Entity、具有独立生命周期的行为。
-_Avoid_: State, Aspect
+**Character Actor**:
+装配在角色 Prefab 根节点上的场景 Entity，负责驱动角色行为和表现。
+_Avoid_: Character State
 
 **Save Data**:
 角色状态在存档协议中的传输表示，不作为游戏运行时的领域对象。
 _Avoid_: Character State, Entity
 
 **Spatial State**:
-角色在某个空间中的位置和旋转；玩家空间状态长期保存，NPC 空间状态仅属于当前场景 Entity。
+角色在某个空间中的位置、路线和朝向。玩家的位置和路线长期保存，NPC 空间状态仅属于当前场景 Entity。
 _Avoid_: Transform Data
 
 **Gameplay Tag State**:
 场景 Entity 当前生效的标签及其来源计数。
-_Avoid_: Gameplay Tag Set, Gameplay Tag Ability
+_Avoid_: Gameplay Tag Set
 
 ## 变量与开关
 
