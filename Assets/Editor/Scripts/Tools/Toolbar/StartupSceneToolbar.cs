@@ -24,6 +24,7 @@ namespace Gameplay.Editor
         private const string RestorePendingKey = "Gameplay.Editor.StartupSceneToolbar.RestorePending";
         private const string PreviousSceneGuidKey = "Gameplay.Editor.StartupSceneToolbar.PreviousSceneGuid";
         private const string PreviewSceneIdKey = "Gameplay.Editor.StartupSceneToolbar.PreviewSceneId";
+        private const string PreviewPositionKey = "Gameplay.Editor.StartupSceneToolbar.PreviewPosition";
 
         private static readonly Type ToolbarType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.Toolbar");
         private static readonly FieldInfo ToolbarRootField = ToolbarType?.GetField("m_Root", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -31,6 +32,7 @@ namespace Gameplay.Editor
         private static ScriptableObject _currentToolbar;
         private static EditorToolbarButton _button;
         private static EditorToolbarButton _previewButton;
+        private static SceneView _rightClickView;
         private static bool _hasLoggedInjectionWarning;
 
         static StartupSceneToolbar()
@@ -39,6 +41,7 @@ namespace Gameplay.Editor
             EditorApplication.update += OnEditorUpdate;
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            SceneView.duringSceneGui += OnSceneGUI;
         }
 
         private static void OnEditorUpdate()
@@ -115,7 +118,54 @@ namespace Gameplay.Editor
             StartFromStartupScene(true);
         }
 
-        private static void StartFromStartupScene(bool preview)
+        private static void OnSceneGUI(SceneView sceneView)
+        {
+            var evt = Event.current;
+            if (evt.button != 1)
+            {
+                return;
+            }
+
+            // Scene View also uses the right button for camera navigation.
+            switch (evt.rawType)
+            {
+                case EventType.MouseDown:
+                    _rightClickView = !evt.alt && !evt.shift && !evt.control && !evt.command ? sceneView : null;
+                    return;
+                case EventType.MouseDrag:
+                    _rightClickView = null;
+                    return;
+                case EventType.MouseUp:
+                    var openedFromClick = _rightClickView == sceneView;
+                    _rightClickView = null;
+                    if (!openedFromClick)
+                    {
+                        return;
+                    }
+                    break;
+                default:
+                    return;
+            }
+
+            if (EditorApplication.isPlayingOrWillChangePlaymode || PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                return;
+            }
+
+            var ray = HandleUtility.GUIPointToWorldRay(evt.mousePosition);
+            var plane = new Plane(Vector3.forward, Vector3.zero);
+            if (!plane.Raycast(ray, out var distance))
+            {
+                return;
+            }
+
+            var position = (Vector2)ray.GetPoint(distance);
+            var menu = new GenericMenu();
+            menu.AddItem(new GUIContent("从这里开始"), false, () => StartFromStartupScene(true, position));
+            menu.ShowAsContext();
+        }
+
+        private static void StartFromStartupScene(bool preview, Vector2? previewPosition = null)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
@@ -147,7 +197,7 @@ namespace Gameplay.Editor
 
             if (matches.Count == 1)
             {
-                EnterPlayMode(startupScene, matches[0].Id);
+                EnterPlayMode(startupScene, matches[0].Id, previewPosition);
                 return;
             }
 
@@ -163,29 +213,33 @@ namespace Gameplay.Editor
                         return;
                     }
 
-                    EnterPlayMode(startupScene, sceneId);
+                    EnterPlayMode(startupScene, sceneId, previewPosition);
                 });
             }
             menu.ShowAsContext();
         }
 
-        private static void EnterPlayMode(SceneAsset startupScene, int? previewSceneId)
+        private static void EnterPlayMode(SceneAsset startupScene, int? previewSceneId, Vector2? previewPosition = null)
         {
             StorePreviousPlayModeStartScene();
             EditorSceneManager.playModeStartScene = startupScene;
 
             try
             {
-                SessionState.EraseInt(PreviewSceneIdKey);
+                ClearPreview();
                 if (previewSceneId.HasValue)
                 {
                     SessionState.SetInt(PreviewSceneIdKey, previewSceneId.Value);
+                    if (previewPosition.HasValue)
+                    {
+                        SessionState.SetString(PreviewPositionKey, JsonUtility.ToJson(previewPosition.Value));
+                    }
                 }
                 EditorApplication.EnterPlaymode();
             }
             catch
             {
-                SessionState.EraseInt(PreviewSceneIdKey);
+                ClearPreview();
                 RestorePlayModeStartScene();
                 throw;
             }
@@ -238,7 +292,7 @@ namespace Gameplay.Editor
         {
             if (state == PlayModeStateChange.EnteredEditMode)
             {
-                SessionState.EraseInt(PreviewSceneIdKey);
+                ClearPreview();
             }
             if (!SessionState.GetBool(RestorePendingKey, false))
             {
@@ -249,6 +303,12 @@ namespace Gameplay.Editor
             {
                 RestorePlayModeStartScene();
             }
+        }
+
+        private static void ClearPreview()
+        {
+            SessionState.EraseInt(PreviewSceneIdKey);
+            SessionState.EraseString(PreviewPositionKey);
         }
 
         private static void StorePreviousPlayModeStartScene()

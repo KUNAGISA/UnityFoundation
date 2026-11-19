@@ -16,7 +16,10 @@ namespace Startup
 {
     public sealed class GameplayStartup : MonoBehaviour, IGameplayController, IStartupSplash
     {
+#if UNITY_EDITOR
         private const string PreviewSceneIdKey = "Gameplay.Editor.StartupSceneToolbar.PreviewSceneId";
+        private const string PreviewPositionKey = "Gameplay.Editor.StartupSceneToolbar.PreviewPosition";
+#endif
 
         [SerializeField]
         private GameObject _splash;
@@ -39,7 +42,7 @@ namespace Startup
             this.GetSystem<ProcedureSystem>().Transition(new TransitionProcedureRequest(ProcedureType.Launch)
             {
                 Reason = TransitionProcedureReason.Startup,
-                Options = new LaunchProcedureOptions(this, ConsumePreviewSceneId()),
+                Options = CreateLaunchOptions(),
             });
         }
 
@@ -64,15 +67,20 @@ namespace Startup
             _successSubscription = default;
         }
 
-        private static int? ConsumePreviewSceneId()
+        private LaunchProcedureOptions CreateLaunchOptions()
         {
 #if UNITY_EDITOR
             var sceneId = SessionState.GetInt(PreviewSceneIdKey, 0);
+            var positionJson = SessionState.GetString(PreviewPositionKey, string.Empty);
             SessionState.EraseInt(PreviewSceneIdKey);
-            return sceneId > 0 ? sceneId : null;
-#else
-            return null;
+            SessionState.EraseString(PreviewPositionKey);
+            if (sceneId > 0)
+            {
+                Vector2? position = string.IsNullOrEmpty(positionJson) ? null : JsonUtility.FromJson<Vector2>(positionJson);
+                return new LaunchProcedureOptions(this, sceneId, position);
+            }
 #endif
+            return new LaunchProcedureOptions(this);
         }
 
         private void OnProcedureEntered(EnterProcedureSuccessEvent evt)

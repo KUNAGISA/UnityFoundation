@@ -48,7 +48,8 @@ namespace Gameplay
             }
 
             var sceneId = saveData?.SceneId ?? options.InitialSceneId ?? Context.GetModel<TablesModel>().GlobalTable.InitialSceneId;
-            await StartSceneTransitionAsync(new SceneTransitionRequest(sceneId, SceneTransitionReason.System), saveData != null);
+            var previewPosition = saveData == null ? options.PreviewPosition : null;
+            await StartSceneTransitionAsync(new SceneTransitionRequest(sceneId, SceneTransitionReason.System), saveData != null, previewPosition);
         }
 
         protected override async UniTask OnTeardownAsync()
@@ -91,15 +92,15 @@ namespace Gameplay
             }
         }
 
-        private UniTask StartSceneTransitionAsync(SceneTransitionRequest request, bool useSavedPlayerLocation = false)
+        private UniTask StartSceneTransitionAsync(SceneTransitionRequest request, bool useSavedPlayerLocation = false, Vector2? previewPosition = null)
         {
             var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(Context.LifetimeCancellationToken);
             _sceneTransitionCancellationSource = cancellationSource;
-            _sceneTransitionTask = UniTask.Lazy(() => ExecuteSceneTransitionAsync(request, useSavedPlayerLocation, cancellationSource));
+            _sceneTransitionTask = UniTask.Lazy(() => ExecuteSceneTransitionAsync(request, useSavedPlayerLocation, previewPosition, cancellationSource));
             return _sceneTransitionTask.Task;
         }
 
-        private async UniTask ExecuteSceneTransitionAsync(SceneTransitionRequest request, bool useSavedPlayerLocation, CancellationTokenSource cancellationSource)
+        private async UniTask ExecuteSceneTransitionAsync(SceneTransitionRequest request, bool useSavedPlayerLocation, Vector2? previewPosition, CancellationTokenSource cancellationSource)
         {
             var cancellationToken = cancellationSource.Token;
             var pauseToken = default(ProcedurePauseToken);
@@ -129,7 +130,7 @@ namespace Gameplay
 
                 Context.GetModel<GameStateModel>().SetCurrentScene(request.SceneId);
                 await NotifySystemsAsync<ISceneBeforeEnter>((system, token) => system.BeforeEnterSceneAsync(transitionContext, token), cancellationToken);
-                await PreparePlayerAsync(request, useSavedPlayerLocation, cancellationToken);
+                await PreparePlayerAsync(request, useSavedPlayerLocation, previewPosition, cancellationToken);
                 await NotifySystemsAsync<ISceneAfterEnter>((system, token) => system.AfterEnterSceneAsync(transitionContext, token), cancellationToken);
 
                 Context.GetSystem<UISystem>().OpenView(new DemoMainView.Data());
@@ -148,7 +149,7 @@ namespace Gameplay
             }
         }
 
-        private async UniTask PreparePlayerAsync(SceneTransitionRequest request, bool useSavedPlayerLocation, CancellationToken cancellationToken)
+        private async UniTask PreparePlayerAsync(SceneTransitionRequest request, bool useSavedPlayerLocation, Vector2? previewPosition, CancellationToken cancellationToken)
         {
             var routeModel = Context.GetModel<MovementRouteModel>();
 
@@ -186,14 +187,23 @@ namespace Gameplay
                 initFacing = defaultSpawnPointData.Facing;
             }
 
+            if (previewPosition.HasValue)
+            {
+                initPosition = previewPosition.Value;
+                initRouteId = null;
+            }
+
             if (!initRouteId.HasValue || !routeModel.TryProject(initRouteId.Value, initPosition, out var initialLocation))
             {
-                Debug.LogError(initRouteId.HasValue ? $"[Scene] 初始路线 [{initRouteId.Value}] 无法投影，尝试使用最近路线" : "[Scene] 当前场景没有可用出生点，尝试使用最近路线");
+                if (!previewPosition.HasValue)
+                {
+                    Debug.LogError(initRouteId.HasValue ? $"[Scene] 初始路线 [{initRouteId.Value}] 无法投影，尝试使用最近路线" : "[Scene] 当前场景没有可用出生点，尝试使用最近路线");
+                    initFacing = FacingDirection.Left;
+                }
                 if (!routeModel.TryProjectToClosestRoute(initPosition, out initialLocation))
                 {
                     throw new InvalidOperationException("Failed to initialize player route location.");
                 }
-                initFacing = FacingDirection.Left;
             }
 
             var playerEntity = Context.GetSystem<EntitySystem>().SpawnPlayer(initialLocation, initFacing);

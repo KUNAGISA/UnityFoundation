@@ -68,7 +68,7 @@ namespace Gameplay
             Context.GetSystem<ProcedureSystem>().Transition(new TransitionProcedureRequest(previewSceneId.HasValue ? ProcedureType.Game : ProcedureType.MainMenu)
             {
                 Reason = TransitionProcedureReason.Initialize,
-                Options = previewSceneId.HasValue ? new GameProcedureEnterOptions(initialSceneId: previewSceneId.Value) : null,
+                Options = previewSceneId.HasValue ? new GameProcedureEnterOptions(initialSceneId: previewSceneId.Value, previewPosition: options.PreviewPosition) : null,
             });
         }
 

@@ -10,6 +10,8 @@
 
 编辑器工具栏的“启动”沿用 Launch 到 MainMenu 的正式路径。“预览”先从当前活动场景的 Addressables 地址匹配场景配表；匹配到多个场景 ID 时由用户在弹出菜单中选择，取消选择则不启动。选定的场景 ID 作为一次性启动参数传给 Launch；Launch 完成全局初始化后直接进入 Game，Game 首次加载该场景并生成玩家。无存档、无预览参数时，Game 的首次场景 ID 取自全局表 `InitialSceneId`；读档仍使用存档中的场景 ID。进入 MainMenu 或 Game 成功后卸载 StartupScene。
 
+Scene View 右键菜单的“从这里开始”复用同一预览入口，并附带鼠标在场景 XY 平面上的世界坐标。Game 完成首次场景的路线初始化后，将该坐标投影到最近路线，使用投影位置生成玩家。预览参数在 StartupScene 读取后即清除。
+
 ## 主要类型与入口
 
 - 启动入口：`Assets/Startup/GameplayStartup.cs`
