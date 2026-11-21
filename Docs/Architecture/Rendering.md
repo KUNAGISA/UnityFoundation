@@ -4,7 +4,7 @@ Rendering 模块提供与 Gameplay 和 UI 解耦的通用 URP 渲染能力；当
 
 ## 职责与边界
 
-`Assets/Framework/Rendering/Runtime` 编译为独立程序集 `Gameplay.Rendering`，只依赖 Unity Rendering Core 与 URP。它不理解 UI Layer、View、Option 或业务生命周期；Gameplay 决定何时启停 Feature 和如何组织 Camera Stack。
+`Assets/Scripts/Framework/Rendering/Runtime` 编译为独立程序集 `Gameplay.Rendering`，只依赖 Unity Rendering Core 与 URP。它不理解 UI Layer、View、Option 或业务生命周期；Gameplay 决定何时启停 Feature 和如何组织 Camera Stack。
 
 当前模糊能力处理整张 Camera Color，不导出全局纹理、不提供局部遮罩，也不替调用方筛选 Layer。局部 UI 模糊、背景纹理采样或不同区域不同半径需要单独设计。
 

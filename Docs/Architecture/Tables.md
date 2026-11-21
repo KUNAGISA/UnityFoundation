@@ -9,8 +9,9 @@
 ## 主要类型与入口
 
 - 设计源数据：`Design`
-- 生成代码：`Assets/Gameplay/Tables/Generated`
-- 表模型：`Assets/Gameplay/Tables/Runtime/TablesModel.cs`
+- 数据产物：`Assets/Content/Tables/Config` 和 `Assets/Content/Tables/Localization`
+- 生成代码：`Assets/Scripts/Tables/Generated`
+- 表模型：`Assets/Scripts/Tables/Runtime/TablesModel.cs`
 
 ## 生命周期与核心语义
 
@@ -19,7 +20,7 @@
 ## 使用与扩展规则
 
 - 配表结构和数据变更只修改 `Design` 下的源文件。
-- 不手写修补 `Assets/Gameplay/Tables/Generated` 下的输出。
+- 不手写修补 `Assets/Scripts/Tables/Generated` 下的输出。
 - 运行时代码通过 `TablesModel` 或现有表封装访问数据，不直接读取生成类静态状态、Excel、XML 或其他设计文件。
 - 新增字段时同步检查默认值、空值、资源地址和存档兼容性。
 
@@ -62,7 +63,7 @@ ConditionSystem 手工维护变量事件和来源映射，在 LateTick 集中刷
 CLI 也可直接调用：
 
 ```text
-dotnet run --project Tools/GameplayTags.Generator/GameplayTags.Generator.csproj -c Release -- --input Design/GameplayTags.xml --template Design/Template/gameplay-tags/catalog.sbn --output Assets/Gameplay/Tables/Runtime/Tags/Generated/GameplayTags.cs --template Design/Template/gameplay-tags/constalias.sbn --output Design/Defines/gameplaytags.xml
+dotnet run --project Tools/GameplayTags.Generator/GameplayTags.Generator.csproj -c Release -- --input Design/GameplayTags.xml --template Design/Template/gameplay-tags/catalog.sbn --output Assets/Scripts/Tables/Runtime/Tags/Generated/GameplayTags.cs --template Design/Template/gameplay-tags/constalias.sbn --output Design/Defines/gameplaytags.xml
 ```
 
 工具先校验整份定义，再补齐 ID 并生成。重复 ID、同级重名、非法 C# 名称、与 Tag/Catalog 或所属生成类同名、ID 耗尽均报错，不自动改名。XML 使用 UTF-8，回写保留注释、空白和换行风格；已有 ID 不重算，无变化的文件不写入。nextId 只能递增；手工降低它会破坏已删除 ID 不复用的契约。

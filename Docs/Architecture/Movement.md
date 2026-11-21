@@ -14,7 +14,7 @@ Motor 在构造时接收已求解的初始路线位置。运行时传送、路�
 
 ## 主要类型与入口
 
-- `CharacterMotor`：角色运动执行入口，位于 `Assets/Gameplay/Scripts/Character/Components`。
+- `CharacterMotor`：角色运动执行入口，位于 `Assets/Scripts/Gameplay/Character/Components`。
 - `SubmitDelta`：提交本帧期望位移。
 - `WarpToRoute`、`WarpToWorld`：设置路线内或自由世界位置。
 - `MotionMode.Override`：只采用最高优先级请求，同优先级请求相加。

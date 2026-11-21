@@ -15,9 +15,9 @@
 
 ## 主要类型与入口
 
-- 运行时入口：`Assets/Gameplay/Scripts/Architecture/Core/GameplayArchitecture.cs`
-- Gameplay 能力入口：`Assets/Gameplay/Scripts/Architecture/Core/IGameplayController.cs`
-- 编辑器入口：`Assets/Editor/Scripts/Architecture/Core/EditorArchitecture.cs`
+- 运行时入口：`Assets/Scripts/Gameplay/Architecture/Core/GameplayArchitecture.cs`
+- Gameplay 能力入口：`Assets/Scripts/Gameplay/Architecture/Core/IGameplayController.cs`
+- 编辑器入口：`Assets/Scripts/Editor/Architecture/Core/EditorArchitecture.cs`
 - Aoiro 基础实现：`Packages/com.kunagisatomo.aoiro/Runtime`
 
 架构通过 `Initialize()` 创建，通过 `Shutdown()` 关闭。`Instance` 在实例不存在时按需初始化；关闭阶段读取现有实例使用 `TryGetInstance`，避免重新触发初始化。

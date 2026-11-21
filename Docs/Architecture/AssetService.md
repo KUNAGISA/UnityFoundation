@@ -10,9 +10,9 @@
 
 ## 主要类型与入口
 
-- `IAssetService`：`Assets/Framework/Asset/Runtime/Core/IAssetService.cs`
-- `AddressableAssetService`：`Assets/Framework/Asset/Runtime/Addressable/AddressableAssetService.cs`
-- `IAssetAsyncOperation<T>`、`ISceneAsyncOperation`：`Assets/Framework/Asset/Runtime/Core/AsyncOperation`
+- `IAssetService`：`Assets/Scripts/Framework/Asset/Runtime/Core/IAssetService.cs`
+- `AddressableAssetService`：`Assets/Scripts/Framework/Asset/Runtime/Addressable/AddressableAssetService.cs`
+- `IAssetAsyncOperation<T>`、`ISceneAsyncOperation`：`Assets/Scripts/Framework/Asset/Runtime/Core/AsyncOperation`
 
 主要入口包括单资源的 `LoadAssetSync<T>` / `LoadAssetAsync<T>`、按 Label 批量加载的 `LoadAssetsSync<T>` / `LoadAssetsAsync<T>`，以及 `LoadSceneAsync`、`UnloadUnusedAssets` 和 `CreateLoader`。
 
@@ -35,7 +35,7 @@
 - 需要按调用方生命周期缓存资源时使用 `AssetLoader`，并在所有者退出前调用 `Clear()`。
 - Label 可以包含不同 Unity 资源类型，类型专属初始化由调用方处理。
 - 流程场景加载优先使用 [Procedure](Procedure.md) 的场景封装。
-- 新增通用加载能力放入 `Assets/Framework/Asset`，保持与具体游戏业务解耦。
+- 新增通用加载能力放入 `Assets/Scripts/Framework/Asset`，保持与具体游戏业务解耦。
 - operation 生命周期必须与调用方生命周期匹配，不绕过服务直接使用 Addressables。
 - 同步入口仅在后端和平台支持的条件下使用，并在 Unity 主线程调用。Addressables 同步等待可能推进其他活跃资源加载并阻塞主线程，不用于依赖远程下载的资源；WebGL 不支持该等待方式，场景尚未完成加载时在 `Awake` 中同步等待可能死锁。
 - 场景继续通过异步接口加载与激活，不提供同步场景加载承诺。

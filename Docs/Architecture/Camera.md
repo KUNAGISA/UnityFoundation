@@ -26,7 +26,7 @@ Director 是 internal 核心，不作为业务入口。镜头模块只在初始�
 - `Cameras/ArtCameraSettings`
 - `Cameras/PlayerCameraRig`
 
-默认资产位于 `Assets/Gameplay/Settings/Camera`，Addressables 分组和地址由 SmartAddressable 规则生成。
+默认资产位于 `Assets/Content/Settings/Camera`，Addressables 分组和地址由 SmartAddressable 规则生成。
 
 ## 生命周期与核心语义
 

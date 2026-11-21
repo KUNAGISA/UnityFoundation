@@ -19,7 +19,7 @@
 
 ## 文件边界
 
-- 配表修改 `Design` 下的 Luban 源数据并重新生成；不手工编辑 `Assets/Gameplay/Tables/Generated`。
+- 配表修改 `Design` 下的 Luban 源数据并重新生成；不手工编辑 `Assets/Scripts/Tables/Generated`。
 - 项目侧优先提供第三方能力的适配或扩展；除非用户明确要求或不存在项目侧方案，不修改 `Assets/Plugins`、`Packages/luban_unity`、`Packages/com.singularitygroup.hotreload`、`Packages/com.github.messagepack-csharp` 等第三方源码。
 - 不编辑 Unity 临时或用户目录：`Library`、`Temp`、`Logs`、`obj`、`UserSettings`。
 - Unity Editor、批处理和测试日志输出到项目根目录 `Logs/`。
@@ -69,8 +69,9 @@
 
 ## 项目事实
 
+- 游戏内容位于 `Assets/Content`，项目自有 C# 源码位于 `Assets/Scripts`。
 - Unity 版本：`2022.3.62f3`。
-- 主运行时程序集：`Assets/Gameplay/Scripts/Gameplay.asmdef`，根命名空间 `Gameplay`。
-- 主编辑器程序集：`Assets/Editor/Scripts/Gameplay.Editor.asmdef`，根命名空间 `Gameplay.Editor`。
-- 配表源数据位于 `Design`，生成代码位于 `Assets/Gameplay/Tables/Generated`。
-- 项目自有可复用框架代码位于 `Assets/Framework`。
+- 主运行时程序集：`Assets/Scripts/Gameplay/Gameplay.asmdef`，根命名空间 `Gameplay`。
+- 主编辑器程序集：`Assets/Scripts/Editor/Gameplay.Editor.asmdef`，根命名空间 `Gameplay.Editor`。
+- 配表源数据位于 `Design`，生成代码位于 `Assets/Scripts/Tables/Generated`。
+- 项目自有可复用框架代码位于 `Assets/Scripts/Framework`。

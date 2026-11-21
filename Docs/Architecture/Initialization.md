@@ -6,7 +6,7 @@
 
 架构创建阶段只注册模块、创建纯内存状态并绑定依赖，不加载运行时资源。正式初始化由 Launch 统一编排；启动入口只负责显示无资源依赖的启动呈现、请求进入 Launch，并在成功或失败后完成交接。
 
-正式启动从专用 StartupScene 进入。普通场景不补齐全局初始化，也不提供同步 Ensure；需要独立预览的内容使用专用预览入口。
+正式启动从 `Assets/Content/StartupScene.unity` 进入。普通场景不补齐全局初始化，也不提供同步 Ensure；需要独立预览的内容使用专用预览入口。
 
 编辑器工具栏的“启动”沿用 Launch 到 MainMenu 的正式路径。“预览”先从当前活动场景的 Addressables 地址匹配场景配表；匹配到多个场景 ID 时由用户在弹出菜单中选择，取消选择则不启动。选定的场景 ID 作为一次性启动参数传给 Launch；Launch 完成全局初始化后直接进入 Game，Game 首次加载该场景并生成玩家。无存档、无预览参数时，Game 的首次场景 ID 取自全局表 `InitialSceneId`；读档仍使用存档中的场景 ID。进入 MainMenu 或 Game 成功后卸载 StartupScene。
 
@@ -14,7 +14,7 @@ Scene View 右键菜单的“从这里开始”复用同一预览入口，并附
 
 ## 主要类型与入口
 
-- 启动入口：`Assets/Startup/GameplayStartup.cs`
+- 启动入口：`Assets/Scripts/Startup/GameplayStartup.cs`
 - Launch 流程：`LaunchProcedure`
 - 启动呈现边界：`IStartupSplash`
 - 需要运行时资源的模块：公开 `InitializeAsync(CancellationToken, IProgress<float>)`

@@ -8,9 +8,9 @@
 
 ## 主要类型与入口
 
-- `IStorageService`：`Assets/Framework/Storage/Runtime/Core/IStorageService.cs`
-- `FileStorageService`：`Assets/Framework/Storage/Runtime/FileSystem/FileStorageService.cs`
-- `StorageWriteMode`：`Assets/Framework/Storage/Runtime/Core/StorageWriteMode.cs`
+- `IStorageService`：`Assets/Scripts/Framework/Storage/Runtime/Core/IStorageService.cs`
+- `FileStorageService`：`Assets/Scripts/Framework/Storage/Runtime/FileSystem/FileStorageService.cs`
+- `StorageWriteMode`：`Assets/Scripts/Framework/Storage/Runtime/Core/StorageWriteMode.cs`
 
 入口覆盖文件与目录检查、删除、字节和文本读写，以及分段读取；同步和异步版本保持相同的路径与范围语义。
 
@@ -29,7 +29,7 @@
 
 - 关键业务文件优先使用 Atomic 写入。
 - 长生命周期读写传入调用方的取消令牌。
-- 新增存储能力放在 `Assets/Framework/Storage`，保持与序列化格式和游戏业务解耦。
+- 新增存储能力放在 `Assets/Scripts/Framework/Storage`，保持与序列化格式和游戏业务解耦。
 - 路径校验由服务统一完成，调用方不拼接可逃逸 RootPath 的路径。
 
 ## 验证

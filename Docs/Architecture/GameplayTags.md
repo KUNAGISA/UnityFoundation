@@ -4,7 +4,7 @@
 
 ## 职责与边界
 
-- `Gameplay.Tags` 程序集位于 `Assets/Framework/Tags/Runtime`，只依赖 Aoiro，提供标签值、Catalog、容器和 Token。
+- `Gameplay.Tags` 程序集位于 `Assets/Scripts/Framework/Tags/Runtime`，只依赖 Aoiro，提供标签值、Catalog、容器和 Token。
 - 项目标签由 XML 生成；共享 Catalog 与常量位于配表程序集 `Gameplay.Tables`，框架不依赖具体标签或 Luban。
 - Catalog 持有全局共享的层级信息；每个容器采用以 GameplayTag 为键的稀疏字典，只存储生效标签计数与实际使用的订阅通道，不按 Catalog 大小分配数组或使用索引。
 - 标签是正整数 ID 值；`default(GameplayTag)` 表示无标签。运行时不保存路径字符串，不根据 ID 推测父子关系。

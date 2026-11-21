@@ -82,18 +82,25 @@ StartupScene
 
 ```text
 Assets/
-  Framework/            项目自有可复用框架与程序集
-  Gameplay/
-    Scripts/            Gameplay 架构、业务系统与 View
+  Content/
+    StartupScene.unity  正式启动场景
+    Arts/               美术资源
+    Cameras/            相机 Prefab
+    Characters/         角色资源
+    Global/             控制台等全局 Prefab
+    Views/              UI Prefab
+    Scenes/             项目场景
+    Sequences/          Sequence 资源
+    Settings/           游戏配置资源及 Input Actions 资产
+    Tables/             Config 和 Localization 二进制数据
+  Scripts/
+    Gameplay/           Gameplay 架构、业务系统与 View
+    Framework/          项目自有可复用框架与程序集
+    Editor/             Gameplay.Editor 编辑器工具
+    Startup/            启动入口及独立程序集
     Input/              输入适配与独立程序集
     GM/                 调试命令，受 GAMEPLAY_GM 编译符号约束
-    Tables/             运行时表模型、生成代码和二进制数据
-    Scenes/             项目场景
-    Prefabs/            玩法与 UI 预制体
-    Settings/           项目配置资源
-    Sequences/          Sequence 资源
-  Editor/Scripts/       Gameplay.Editor 编辑器工具
-  Startup/              启动场景和启动入口
+    Tables/             运行时表模型和生成代码
   AddressableAssetsData/ Addressables 分组、地址和 LayoutRule
   Plugins/              随仓库保留的第三方组件及本地插件安装位置
 Design/                 Luban 源数据、定义、模板、本地化和 Gameplay Tag 源文件
@@ -104,7 +111,7 @@ Docs/Architecture/      当前架构接口、边界、生命周期与排错说�
 Docs/ADR/               架构决策及其背景
 ```
 
-通用框架能力放在 `Assets/Framework`，具体玩法放在 Gameplay。主运行时程序集为 `Gameplay`，主编辑器程序集为 `Gameplay.Editor`；各框架模块有各自的程序集边界。编辑器能力不能直接进入 Player 程序集。
+通用框架能力放在 `Assets/Scripts/Framework`，具体玩法放在 `Assets/Scripts/Gameplay`。主运行时程序集为 `Gameplay`，主编辑器程序集为 `Gameplay.Editor`；各框架模块有各自的程序集边界。编辑器能力不能直接进入 Player 程序集。
 
 ## 依赖与插件
 
@@ -186,7 +193,7 @@ dotnet --info
 
 ### 4. 从正式入口启动
 
-打开 `Assets/Startup/StartupScene.unity` 后进入 Play Mode，正常路径由 Launch 完成初始化并进入 MainMenu。Build Settings 已将该场景配置为启用的启动场景。
+打开 `Assets/Content/StartupScene.unity` 后进入 Play Mode，正常路径由 Launch 完成初始化并进入 MainMenu。Build Settings 已将该场景配置为启用的启动场景。
 
 也可以使用编辑器工具栏的 `▶ 启动` 从正式入口启动。`▶ 预览` 会将已保存的当前活动场景匹配到场景表，完成正式初始化后直接进入 Game 并加载该场景；匹配多个场景 ID 时需选择目标。
 
@@ -206,7 +213,7 @@ dotnet --info
 
 脚本先生成 Gameplay Tag，再校验配置、生成 C# 与二进制配置数据，最后生成 `zh` / `en` 本地化数据；Windows 脚本结束时会暂停。Bash 入口为 `bash Design/gen.sh`。
 
-主要输出包括 `Assets/Gameplay/Tables/Generated`、`Assets/Gameplay/Tables/Data/Config` 和 `Assets/Gameplay/Tables/Data/Localization`。不要手工修补 Generated；运行时代码通过 TablesModel 及既有封装读取数据。变更资源地址后同步检查 Addressables。
+主要输出包括 `Assets/Scripts/Tables/Generated`、`Assets/Content/Tables/Config` 和 `Assets/Content/Tables/Localization`。不要手工修补 Generated；运行时代码通过 TablesModel 及既有封装读取数据。变更资源地址后同步检查 Addressables。
 
 ### Gameplay Tag
 
@@ -236,7 +243,7 @@ Bash 入口为 `bash Design/gen-tags.sh`。生成器项目位于 `Tools/Gameplay
 - `Window > Architecture > Gameplay`：查看架构诊断。
 - `Tools > Gameplay > Reload Localization Table`：编辑器本地化表重载入口。
 - `GameObject > 场景`：创建出生点、移动路径和场景事件点。
-- GM 命令位于 `Assets/Gameplay/GM`；程序集受 `GAMEPLAY_GM` 约束，控制台本身仍属于启动依赖。
+- GM 命令位于 `Assets/Scripts/GM`；程序集受 `GAMEPLAY_GM` 约束，控制台本身仍属于启动依赖。
 
 ## 本地文件与版本控制
 

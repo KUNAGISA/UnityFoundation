@@ -10,9 +10,9 @@ View 不直接订阅 Input Actions。UI 上下文命令由 `UICommand` 信号进
 
 ## 主要类型与入口
 
-- `IInputService` / `InputService`：`Assets/Gameplay/Input/Runtime`
-- `InputModeCatalog`、`InputModeDefinition`、`InputChannelMask`、模式栈：`Assets/Gameplay/Input/Runtime/Mode`
-- `InputChannel`、`PlayerInputChannel`、`InputButtonState`：`Assets/Gameplay/Input/Runtime/Channel`
+- `IInputService` / `InputService`：`Assets/Scripts/Input/Runtime`
+- `InputModeCatalog`、`InputModeDefinition`、`InputChannelMask`、模式栈：`Assets/Scripts/Input/Runtime/Mode`
+- `InputChannel`、`PlayerInputChannel`、`InputButtonState`：`Assets/Scripts/Input/Runtime/Channel`
 - `InputModeToken`、`UIInputModuleToken`：输入模式和 UI Module 绑定的强类型取消凭证
 - `UIInputCommand`：Cancel、上下文和翻页等 UI 语义命令
 

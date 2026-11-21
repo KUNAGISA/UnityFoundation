@@ -277,7 +277,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Sequences
+          - Assets/Content/Sequences
     - rid: 4218722862064467973
       type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -296,21 +296,21 @@ MonoBehaviour:
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Sequences/([0-9a-zA-Z_]*)\.(.*)$
+        _pattern: ^Assets/Content/Sequences/([0-9a-zA-Z_]*)\.(.*)$
         _replacement: Sequences/$1
     - rid: 4218723357122887683
       type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Tables/Data/Localization/(.*)\.(.*)$
+        _pattern: ^Assets/Content/Tables/Localization/(.*)\.(.*)$
         _replacement: Localizations/$1
     - rid: 4218723357122887684
       type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Tables/Data/Config/(.*)\.(.*)$
+        _pattern: ^Assets/Content/Tables/Config/(.*)\.(.*)$
         _replacement: Configs/$1
     - rid: 4218723357122887686
       type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
@@ -321,7 +321,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Tables/Data/Config
+          - Assets/Content/Tables/Config
     - rid: 4218723357122887687
       type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -331,7 +331,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Tables/Data/Localization
+          - Assets/Content/Tables/Localization
     - rid: 4218723359542214656
       type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
       data:
@@ -361,7 +361,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Arts/Fonts/TMP
+          - Assets/Content/Arts/Fonts/TMP
     - rid: 4218723359542214659
       type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -380,7 +380,7 @@ MonoBehaviour:
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Prefabs/Characters/(.*)/Portrait/(.*)\.(.*)$
+        _pattern: ^Assets/Content/Characters/(.*)/Portrait/(.*)\.(.*)$
         _replacement: Characters/$1/Portrait/$2
     - rid: 4218723359542214661
       type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
@@ -391,7 +391,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Prefabs/Characters/.*/Portrait
+          - Assets/Content/Characters/.*/Portrait
     - rid: 4218723359542214662
       type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -410,7 +410,7 @@ MonoBehaviour:
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Prefabs/Characters/(.*)/Actor/(.*)\.(.*)$
+        _pattern: ^Assets/Content/Characters/(.*)/Actor/(.*)\.(.*)$
         _replacement: Characters/$1/Actor/$2
     - rid: 4218723359542214664
       type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
@@ -421,7 +421,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Prefabs/Characters/.*/Actor
+          - Assets/Content/Characters/.*/Actor
     - rid: 4218723359542214665
       type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -510,7 +510,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Scenes
+          - Assets/Content/Scenes
     - rid: 5099078978472771609
       type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
       data:
@@ -527,7 +527,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Prefabs/Views
+          - Assets/Content/Views
     - rid: 5099079137288257536
       type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
       data:
@@ -544,7 +544,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Prefabs/Global
+          - Assets/Content/Global
     - rid: 5099079137288257538
       type: {class: AssetPathBasedAddressProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.AddressRules, asm: SmartAddresser.Editor}
       data:
@@ -561,7 +561,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Prefabs/Cameras
+          - Assets/Content/Cameras
     - rid: 7089961138480218121
       type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -588,7 +588,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Settings/Camera/(PlayerCameraSettings|ArtCameraSettings)
+          - Assets/Content/Settings/Camera/(PlayerCameraSettings|ArtCameraSettings)
     - rid: 9000000000000000002
       type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -615,7 +615,7 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - Assets/Gameplay/Settings/Camera/CameraSystemSettings
+          - Assets/Content/Settings/Camera/CameraSystemSettings
     - rid: 9000000000000000004
       type: {class: TypeBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
       data:
@@ -634,7 +634,7 @@ MonoBehaviour:
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Scenes/([^/]+)/Content/(.*)\.(.*)$
+        _pattern: ^Assets/Content/Scenes/([^/]+)/Content/(.*)\.(.*)$
         _replacement: SceneResources/$1/$2
     - rid: 9100000000000000002
       type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
@@ -645,13 +645,13 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - ^Assets/Gameplay/Scenes/[^/]+/Content/
+          - ^Assets/Content/Scenes/[^/]+/Content/
     - rid: 9100000000000000003
       type: {class: AssetPathBasedLabelProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.LabelRules, asm: SmartAddresser.Editor}
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Scenes/([^/]+)/Content/.*$
+        _pattern: ^Assets/Content/Scenes/([^/]+)/Content/.*$
         _replacement: scene-resource-$1
     - rid: 9100000000000000004
       type: {class: RegexBasedAssetFilter, ns: SmartAddresser.Editor.Core.Models.Shared.AssetGroups.AssetFilterImpl, asm: SmartAddresser.Editor}
@@ -662,11 +662,11 @@ MonoBehaviour:
         _assetPathRegex:
           _isListMode: 0
           _values:
-          - ^Assets/Gameplay/Tables/Data/Localization/[^/]+/
+          - ^Assets/Content/Tables/Localization/[^/]+/
     - rid: 9100000000000000005
       type: {class: AssetPathBasedLabelProvider, ns: SmartAddresser.Editor.Core.Models.LayoutRules.LabelRules, asm: SmartAddresser.Editor}
       data:
         _source: 2
         _replaceWithRegex: 1
-        _pattern: ^Assets/Gameplay/Tables/Data/Localization/([^/]+)/.*$
+        _pattern: ^Assets/Content/Tables/Localization/([^/]+)/.*$
         _replacement: localization-$1
